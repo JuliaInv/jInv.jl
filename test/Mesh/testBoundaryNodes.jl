@@ -23,10 +23,15 @@ for k=length(Meshes)
     Z = getNodalGrid(M)[:,3];
     ib, iin = getBoundaryNodes(M);
 
-    # Check if there are 0s or 1s in X, Y, and Z at boundary nodes
+    # Check if there are 0s in X, Y, and Z at boundary nodes
     @test length(X[ib])-length(find(X[ib]))>0
     @test length(Y[ib])-length(find(Y[ib]))>0
     @test length(Z[ib])-length(find(Z[ib]))>0
+    
+    # Check if there are 1s in X, Y, and Z at boundary nodes
+    @test length(X[ib])-length(find(X[ib]-1))>0
+    @test length(Y[ib])-length(find(Y[ib]-1))>0
+    @test length(Z[ib])-length(find(Z[ib]-1))>0
 
     # Check that there aren't 0s in X,Y,Z at inner nodes
     @test length(X[iin])-length(find(X[iin]))==0
@@ -40,7 +45,3 @@ for k=length(Meshes)
 
     println("passed!\n")
 end
-
-
-
-
