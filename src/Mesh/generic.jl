@@ -227,3 +227,43 @@ function getNodalLaplacianMatrix(Mesh::AbstractTensorMesh)
 	end
 	return Mesh.nLap	
 end
+
+
+"""
+function jInv.Mesh.getBoundaryNodes(Mesh)
+	
+	Returns an array tuple (boundary node indices, inner node indices)
+	
+	Input: 
+		Mesh::Abstract Mesh
+	
+	Output:
+		Tuple{Array{Int64,1},Array{Int64,1}}
+"""
+function getBoundaryNodes(M::AbstractMesh)
+    
+    # number of cells in each direction
+    N = M.n
+    
+    # nodal matrix
+    nodal_mat = 1:prod(N+1)
+    
+    # check dimension
+    if M.dim==2
+        
+        nodal_mat = reshape(nodal_mat, N[1]+1, N[2]+1)
+        
+        iin = nodal_mat[2:end-1,2:end-1]
+        ib = setdiff(nodal_mat, iin)
+        
+    elseif M.dim==3
+        
+        nodal_mat = reshape(nodal_mat, N[1]+1, N[2]+1, N[3]+1)
+        
+        iin = nodal_mat[2:end-1,2:end-1,2:end-1]
+        ib = setdiff(nodal_mat, iin)
+        
+    end
+    
+    return (ib[:], iin[:])
+end
