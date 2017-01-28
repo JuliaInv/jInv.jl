@@ -158,15 +158,20 @@ module ForwardShare
 			P.Obs     = clear!(P.Obs)
 		end
 		if clearAll || clearFields
+		if any(fieldnames(P) .== :Fields) 
 			P.Fields = clear!(P.Fields)
 		end
-		if clearAll || clearAinv
-			clear!(P.Ainv)
-		end
+
+	end
+
+	if clearAll || clearAinv
+	if any(fieldnames(P) .== :Ainv) 
+	   clear!(P.Ainv)
+	end
 	end
 
 	
-	
+end
 
 
 end

@@ -5,6 +5,7 @@ module Utils
 	include("sortpermFast.jl")
 	include("uniqueidx.jl")
 	include("initRemoteChannel.jl")
+	include("variousUtils.jl")
 
 
 

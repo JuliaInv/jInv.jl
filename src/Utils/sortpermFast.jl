@@ -3,15 +3,11 @@ export sortpermFast
 
 
 function sortpermFast(A)
-	const n = length(A)
-   ii = Array(Int64,n)
+   const n = length(A)
 
-   for i = 1:n
-   	ii[i] = i
-   end
-
+   ii = collect(1:n)
    B = copy(A)
-   quicksort!(B,ii)
+   quicksort!(B,ii, 1,n)
 
    return ii, B
 end # function mysortperm
@@ -22,9 +18,10 @@ function quicksort!(A, order, i=1,j=length(A))
 # modified from:
 # http://rosettacode.org/wiki/Sorting_algorithms/Quicksort#Julia	
 
+	 @inbounds begin
     if j > i
     	
-    	  if  j - i <= 50 
+    	  if  j - i <= 10 
     	  	  # Insertion sort for small groups is faster than Quicksort
     	     InsertionSort!(A,order, i,j)
     	     return A
@@ -52,6 +49,7 @@ function quicksort!(A, order, i=1,j=length(A))
         quicksort!(A,order, i,   right)
         quicksort!(A,order, left,j)
     end  # j > i
+    end
     
     return A
 end # function quicksort!
@@ -60,6 +58,7 @@ end # function quicksort!
 
 function InsertionSort!(A, order, ii=1, jj=length(A))
 	
+	 @inbounds begin
     for i = ii+1 : jj
         j = i - 1
         temp  = A[i]
@@ -80,6 +79,7 @@ function InsertionSort!(A, order, ii=1, jj=length(A))
         A[j+1] = temp
         order[j+1] = itemp
     end  # i
+    end
 
 return
 end # function InsertionSort!

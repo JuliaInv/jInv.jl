@@ -20,6 +20,12 @@ function HessMatVec(d2F::SparseMatrixCSC{Complex128}, x::Array{Complex128,1})
 	return complex(real(d2F) * real(x), imag(d2F) * imag(x))
 end
 
+function HessMatVec(d2F::SparseMatrixCSC{Float64}, x::Array{Complex128,1})
+   return real2complex( d2F * complex2real(x))
+end
+
+
+
 function HessMatVec(x,
                     pMis::MisfitParam,
                     sig,  # conductivity on inv mesh (active cells only)
