@@ -1,5 +1,5 @@
 
-export uniqueidx, sortunique
+export uniqueidx
 
 function uniqueidx( a::Array{Int64,1} )
     # b = sorted unique(a)
@@ -46,30 +46,3 @@ function uniqueidx( a::Array{Int64,1} )
 
     return b, ii, jj
 end # function uniqueidx
-
-#-----------------------------------------------------
-
-function sortunique( a::Array{Int64,1} )
-    # b = sorted unique(a)
-
-    const n = length(a)
-
-    ii,b = sortpermFast(a)
-    ii = []
-
-    nunique = n  # counter for # of unique values
-    p1 = 1  # pointer to the next unique element
-
-    for i = 2:n
-        if b[p1] == b[i]
-            nunique -= 1
-        else
-            p1 += 1
-            b[p1] = b[i]
-        end
-    end  # i
-
-    deleteat!(b,  nunique+1:n)
-
-    return b
-end # function sortunique

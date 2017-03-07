@@ -1,14 +1,4 @@
-export removeZeros, complex2real, real2complex
-
-#--------------------------------------------------------------------
-
-function removeZeros( A::Array )
-    # Make array shorter by removing all zero values.
-    A = A[A .!= 0]
-    return A
-end # function removeZeros
-
-#---------------------------------------------------------------------
+export complex2real, real2complex
 
 function complex2real( a::Array{Complex128} )
     # Convert from [a1 a2 ...] to [ ar1 ai1 ar2 ai2 ... ]
