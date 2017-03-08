@@ -15,7 +15,7 @@ end
 
 msh = getTensorMesh3D(ones(3), ones(3), ones(3))
 
-Ainv = getMUMPSsolver()
+Ainv = getJuliaSolver()
 
 pf = TestForwardProbType(msh,ones(3),ones(3),ones(3),Ainv);
 
