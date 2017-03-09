@@ -11,14 +11,13 @@ Our goal is to solve parameter estimation problems efficiently and in parallel. 
 
 # Overview
 
-jInv consists of six submodules:
+jInv consists of five submodules:
 
 1. `ForwardShare` - methods for solving forward problems in parallel.
-1. `InverseSolve` - methods commonly used in inverse problems such as misfit functions, regularization and numerical optimization.
-1. `Mesh` - regular and tensor meshes in 2D and 3D as well as differential operators.
-1. `LinearSolvers` - interfaces to sparse and (if installed) direct linear solvers that can be used for solving the discretized PDEs.
-1. `Vis` - visualization based on PyPlot.
-1. `Utils` - utility functions
+2. `InverseSolve` - methods commonly used in inverse problems such as misfit functions, regularization and numerical optimization.
+3. `Mesh` - regular and tensor meshes in 2D and 3D as well as differential operators.
+4. `LinearSolvers` - interfaces to sparse and (if installed) direct linear solvers that can be used for solving the discretized PDEs.
+5. `Utils` - utility functions
 
 # Requirements
 

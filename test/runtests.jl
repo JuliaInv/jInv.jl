@@ -37,15 +37,4 @@ catch
 	warn("LinearSolvers had test errors")
 end
 
-using jInv.Vis
-if jInv.Vis.hasPyPlot
-	try
-		include("Vis/runtests.jl")
-	catch
-		allPassed = false
-		warn("Vis had test errors")
-	end
-end
-
-
 @test allPassed == true

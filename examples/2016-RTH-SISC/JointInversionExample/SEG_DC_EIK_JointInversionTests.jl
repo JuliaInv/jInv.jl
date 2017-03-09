@@ -6,7 +6,7 @@ using jInv.Mesh
 using jInv.LinearSolvers
 using jInv.ForwardShare
 using jInv.Utils
-using jInv.Vis
+using jInvVis
 using EikonalInv
 
 plotting = true;
