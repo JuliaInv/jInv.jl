@@ -1,5 +1,7 @@
 include("display.jl")
 println("==== compare regular and tensor mesh ====")
+include("testConstraints.jl")
+println("==== test edge and face constraints ====")
 include("regularVStensor.jl")
 println("==== test differential operators ====")
 include("testDiffOps.jl")
