@@ -1,13 +1,22 @@
 
+using Base.Test
 using jInv.Mesh
 
 h = rand(6)
 msh = getTensorMesh3D(h,h,h)
+m = rand(msh.nc)
 
 Ne, Qe, activeEdges = getEdgeConstraints(msh);
 Nf,Qf = getFaceConstraints(msh);
 
 Curl = getCurlMatrix(msh)
-Curl = Qf  * Curl * Ne
-Msig = Ne' * Diagonal(ones(msh.ne)) * Ne
-Mmu  = Nf' * Diagonal(ones(msh.nf))  * Nf
+Msig = getEdgeMassMatrix(msh, m)
+Mmu = getFaceMassMatrix(msh, m)
+
+CurlC = Qf  * Curl * Ne
+MsigC = Ne' * Msig * Ne
+MmuC  = Nf' * Mmu * Nf
+
+@test Curl==CurlC
+@test Msig==MsigC
+@test Mmu==MmuC
