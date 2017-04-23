@@ -24,6 +24,7 @@ Example:
 
 """
 type IterativeSolver<: AbstractSolver
+   AA   # matrix being solved
 	IterMethod::Function
 	PC::Symbol
 	maxIter::Int
@@ -75,18 +76,21 @@ Optional Inputs:
 """
 function getIterativeSolver(IterMethod::Function;PC=:ssor,maxIter=500,tol=1e-5,
 					Ainv=identity,out=-1,doClear::Bool=true,nthreads::Int=4,sym=0,isTranspose=false)
- 	return IterativeSolver(IterMethod,PC,maxIter,tol,Ainv,out,doClear,nthreads,sym,isTranspose,0,0,.0,.0,.0)
+ 	return IterativeSolver([], IterMethod,PC,maxIter,tol,Ainv,out,doClear,nthreads,sym,isTranspose,0,0,.0,.0,.0)
 end
 
-function solveLinearSystem!(A,B,X,param::IterativeSolver,doTranspose=0)
+function solveLinearSystem!(A, B,X,param::IterativeSolver,doTranspose=0)
+   # A is only needed when initializing.
 	if param.doClear
 		# clear preconditioner
 		clear!(param)
+		param.AA = []
 		param.doClear=false
 	end
-	
+
 	# build preconditioner
 	if param.Ainv == []
+	   param.AA = A  # save for later
 		if param.PC==:ssor
 			OmInvD = 1./diag(A);
 			x      = zeros(eltype(A),size(B,1))
@@ -101,25 +105,28 @@ function solveLinearSystem!(A,B,X,param::IterativeSolver,doTranspose=0)
 		end
 		param.nBuildPC+=1
 	end
+
 	
 	# solve systems
-	y     = zeros(eltype(A),size(X,1))
+	ONE  = one( eltype(param.AA))
+	ZERO = zero(eltype(param.AA))
+	y    = zeros(eltype(param.AA),size(X,1))
 	doTranspose = (param.isTranspose) ? mod(doTranspose+1,2) : doTranspose
 	if hasParSpMatVec
 		if (param.sym==1) ||  ((param.sym != 1) && (doTranspose == 1)) 
-			Af = x -> (y[:]=0.0; tic(); ParSpMatVec.Ac_mul_B!(one(eltype(A)),A,x,zero(eltype(A)),y,param.nthreads); param.timeMV+=toq(); return y)
+			Af = x -> (y[:]=0.0; tic(); ParSpMatVec.Ac_mul_B!(ONE,param.AA,x,ZERO,y,param.nthreads); param.timeMV+=toq(); return y)
 		elseif (param.sym != 1) && (doTranspose == 0)
-			Af = x -> (y[:]=0.0; tic(); ParSpMatVec.A_mul_B!(one(eltype(A)),A,x,zero(eltype(A)),y,param.nthreads); param.timeMV+=toq(); return y)
+			Af = x -> (y[:]=0.0; tic(); ParSpMatVec.A_mul_B!( ONE,param.AA,x,ZERO,y,param.nthreads); param.timeMV+=toq(); return y)
 		end
-			
+
 	else
 		if (param.sym==1) ||  ((param.sym != 1) && (doTranspose == 1)) 
-			Af = x -> (y[:]=0.0; tic(); Ac_mul_B!(one(eltype(A)),A,x,zero(eltype(A)),y); param.timeMV+=toq(); return y)
+			Af = x -> (y[:]=0.0; tic(); Ac_mul_B!(ONE,param.AA,x,ZERO,y); param.timeMV+=toq(); return y)
 		elseif (param.sym != 1) && (doTranspose == 0)
-			Af = x -> (y[:]=0.0; tic(); A_mul_B!(one(eltype(A)),A,x,zero(eltype(A)),y); param.timeMV+=toq(); return y)
+			Af = x -> (y[:]=0.0; tic(); A_mul_B!( ONE,param.AA,x,ZERO,y); param.timeMV+=toq(); return y)
 		end
 	end
-	
+
 	tic()
 	for i=1:size(X,2)
 		bi      = vec(full(B[:,i]))

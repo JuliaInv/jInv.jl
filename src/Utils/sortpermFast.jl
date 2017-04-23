@@ -2,15 +2,58 @@
 export sortpermFast
 
 
-function sortpermFast(A)
+function sortpermFast(A::Vector)
    const n = length(A)
 
    ii = collect(1:n)
    B = copy(A)
    quicksort!(B,ii, 1,n)
 
-   return ii, B
-end # function mysortperm
+   return ii, B  #  B = A[ii]
+end # function sortpermFast
+
+#----------------------------------------------------
+
+function sortpermFast(A::Vector, D::Vector)
+   # Sort A and permute D according to A.
+   # For duplicate values in A, keep only values corresponding to
+   # the SMALLEST D.
+   const n = length(A)
+   if length(D) != n
+      error("Lengths of A and D must be the same.")
+   end
+
+   ii = collect(1:n)
+   quicksort!(A, ii, 1,n)
+
+   D = D[ii]
+   
+   if allunique(A)
+      return A, D
+   end
+   
+   idxkeep = trues(n)
+   
+   for j = 2 : n
+      for k = j-1 : -1 : 1
+         if A[j] != A[k]
+            break
+         end
+         
+         if D[j] < D[k]
+            idxkeep[k] = false
+         else
+            idxkeep[j] = false
+         end
+         
+      end  # k
+   end  # j
+
+   A = A[idxkeep]
+   D = D[idxkeep]
+
+   return A, D
+end # function sortpermFast
 
 #----------------------------------------------------
 

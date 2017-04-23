@@ -38,9 +38,10 @@ for k=1:m
 	@test norm(A*X[:,k] - B[:,k])/norm(B[:,k]) < sBiCG.tol
 end
 
+sBiCG.doClear=true
 sBiCG.isTranspose=true
 Xt, = solveLinearSystem(A',B,sBiCG)
 for k=1:m
-	@test norm(A*X[:,k] - B[:,k])/norm(B[:,k]) < sBiCG.tol
+	#@test norm(A*X[:,k] - B[:,k])/norm(B[:,k]) < sBiCG.tol
 	@test norm(Xt[:,k] - X[:,k])/norm(X[:,k]) < 1e-13
 end
