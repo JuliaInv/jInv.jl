@@ -83,14 +83,7 @@ function getData{T<:Union{RemoteChannel,Future,SparseMatrixCSC,AbstractFloat}}(
 =#
 
     Dobs = Array(Future,length(pFor))
-
-    # find out which workers are involved
-    workerList = []
-    for k=1:length(pFor)
-        push!(workerList,pFor[k].where)
-    end
-    workerList = unique(workerList)
-
+    workerList = getWorkerIds(pFor)
     sigmaRef = Array(Future,maximum(workers()))
     @sync begin
         for p=workerList
