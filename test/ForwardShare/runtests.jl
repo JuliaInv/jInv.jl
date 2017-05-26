@@ -1,3 +1,4 @@
+include("../setupTests.jl")
 println("test getDataParallel")
 include("testGetDataParallel.jl")
 println("test prepareMesh2Mesh")

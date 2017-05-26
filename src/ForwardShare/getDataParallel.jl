@@ -68,33 +68,24 @@ function getData{T<:Union{RemoteChannel,Future,SparseMatrixCSC,AbstractFloat}}(
                  pFor::Array{RemoteChannel},
                  Mesh2Mesh::Array{T}=ones(length(pFor)),
                  doClear::Bool=false)
-	#=
-		load and solve forward problems in parallel
-	=#
-	## Compute Dobs
-	Dobs = Array(Future,length(pFor))
+#=
+    parallel forward simulation with static scheduling (i.e., pFors are distributed a-priorily)
+=#
 
-	# find out which workers are involved
-	workerList = []
-	for k=1:length(pFor)
-		push!(workerList,pFor[k].where)
-	end
-	workerList = unique(workerList)
-	# prepare remoterefs for sigma
-	sigmaRef = Array(Future,maximum(workers()))
-	@sync begin
-		for p=workerList
-			@async begin
-				# send model to worker
-				sigmaRef[p] = remotecall(identity,p,sigma)
-				# solve forward problems
-				for idx=1:length(pFor)
-					if p==pFor[idx].where
-						Dobs[idx],pFor[idx]    = remotecall_fetch(getData,p,sigmaRef[p],pFor[idx],Mesh2Mesh[idx],doClear)
-					end
-				end
-			end
-		end
-	end
-	return Dobs,pFor
+    Dobs = Array(Future,length(pFor))
+    workerList = getWorkerIds(pFor)
+    sigmaRef = Array(Future,maximum(workers()))
+    @sync begin
+        for p=workerList
+            @async begin
+                sigmaRef[p] = remotecall(identity,p,sigma)  # send model to worker
+                for idx=1:length(pFor)                      
+                    if p==pFor[idx].where                  
+                        Dobs[idx],pFor[idx] = remotecall_fetch(getData,p,sigmaRef[p],pFor[idx],Mesh2Mesh[idx],doClear)
+                    end
+                end
+            end
+        end
+    end
+    return Dobs,pFor
 end
