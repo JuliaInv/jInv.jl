@@ -22,9 +22,9 @@ Outputs:
     P'       - interpolation matrix (sparse). To reduce storage, transpose is returned.
 
 """
-function prepareMesh2Mesh(Mfwd::AbstractMesh, Minv::AbstractMesh, compact::Bool=true)
+function prepareMesh2Mesh(Mfwd::AbstractMesh, Minv::AbstractMesh, compact::Bool=true; kwargs...)
 
-    P = getInterpolationMatrix(Minv,Mfwd)'
+    P = getInterpolationMatrix(Minv,Mfwd; kwargs...)'
     if compact
         Ps = SparseMatrixCSC(P.m,P.n,round(UInt32,P.colptr),round(UInt32,P.rowval),round(Int8,log2(P.nzval)/3))
     else
@@ -33,15 +33,15 @@ function prepareMesh2Mesh(Mfwd::AbstractMesh, Minv::AbstractMesh, compact::Bool=
     return Ps
 end
 
-function prepareMesh2Mesh(pF::ForwardProbType, Minv::AbstractMesh, compact::Bool=true)
-    return prepareMesh2Mesh(pF.Mesh, Minv, compact)
+function prepareMesh2Mesh(pF::ForwardProbType, Minv::AbstractMesh, compact::Bool=true; kwargs...)
+    return prepareMesh2Mesh(pF.Mesh, Minv, compact; kwargs...)
 end
 
-function prepareMesh2Mesh(pFor::RemoteChannel, MinvRef::Future, compact::Bool=true)
-    return prepareMesh2Mesh(fetch(pFor), fetch(MinvRef), compact)
+function prepareMesh2Mesh(pFor::RemoteChannel, MinvRef::Future, compact::Bool=true; kwargs...)
+    return prepareMesh2Mesh(fetch(pFor), fetch(MinvRef), compact; kwargs...)
 end
 
-function prepareMesh2Mesh(pFor::Array{RemoteChannel},Minv::AbstractMesh,compact::Bool=true)
+function prepareMesh2Mesh(pFor::Array{RemoteChannel},Minv::AbstractMesh,compact::Bool=true; kwargs...)
 
     Mesh2Mesh = Array(RemoteChannel,length(pFor))
     # find out which workers are involved
@@ -59,7 +59,7 @@ function prepareMesh2Mesh(pFor::Array{RemoteChannel},Minv::AbstractMesh,compact:
                 MinvRef[p] = remotecall_wait(identity,p,Minv)   # send model to workers
                 for idx=1:length(pFor)
                     if p==pFor[idx].where
-                        Mesh2Mesh[idx] = initRemoteChannel(prepareMesh2Mesh,p,pFor[idx],MinvRef[p],compact)
+                        Mesh2Mesh[idx] = initRemoteChannel(prepareMesh2Mesh,p,pFor[idx],MinvRef[p],compact; kwargs...)
                     end
                 end
             end
