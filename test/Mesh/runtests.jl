@@ -1,19 +1,13 @@
-include("display.jl")
-println("==== compare regular and tensor mesh ====")
-include("testConstraints.jl")
-println("==== test edge and face constraints ====")
-include("regularVStensor.jl")
-println("==== test differential operators ====")
-include("testDiffOps.jl")
-include("testInterpolationMatrix.jl")
-println("==== test differential operators ====")
-include("testAvgOps.jl")
-println("==== test boundary and inner node indices ====")
-include("testBoundaryNodes.jl")
-println("==== test persistency of linear operators ====")
-include("testPersistency.jl")
-println("=== test getEdgeIntegralOfPolygonalChain ===")
-include("testIntPolyChain.jl")
-println("==== test mass matrices and derivatives ====")
-include("testMassMatrices.jl")
-println(" Mesh: All tests passed!")
+@testset "Mesh" begin
+	@testset "display" begin include("display.jl") end
+	@testset "Constraints" begin include("testConstraints.jl") end
+	@testset "Regular vs. Tensor" begin include("regularVStensor.jl") end
+	@testset "tbd" begin include("testDiffOps.jl") end
+	@testset "tbd" begin include("testInterpolationMatrix.jl") end
+	@testset "tbd" begin include("testAvgOps.jl") end
+	@testset "tbd" begin include("testBoundaryNodes.jl") end
+	@testset "tbd fail" begin include("testPersistency.jl"); @test 3==5; end
+	@testset "tbd" begin include("testIntPolyChain.jl") end 
+	@testset "tbd" begin include("testMassMatrices.jl") end
+end
+
