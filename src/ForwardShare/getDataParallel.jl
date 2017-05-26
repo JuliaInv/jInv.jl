@@ -24,7 +24,7 @@ function getData(sigma::Future,pFor::ForwardProbType,
                  Mesh2Mesh::Union{RemoteChannel, Future,SparseMatrixCSC,AbstractFloat},
                  doClear::Bool=false)
 #=
-    load a forward problem from RemoteRef
+    computations on one worker
 =#
     sig = interpGlobalToLocal(fetch(sigma),fetch(Mesh2Mesh))
     dobs,pFor   = getData(sig,pFor,doClear)
@@ -34,6 +34,9 @@ end
 
 function getData(sigma::Vector,pFor::RemoteChannel,Mesh2Mesh::Union{SparseMatrixCSC,AbstractFloat},
                  doClear::Bool=false)
+#=
+    modify pFor on current worker (e.g., to keep factorizations)
+=#
     pF = take!(pFor)
     Dobs,pFor = getData(sig,pF,doClear)
     put!(pFor,pF)
