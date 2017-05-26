@@ -67,7 +67,7 @@ function HessMatVec(x,
         JTxloc   = getSensTMatVec(Jx,sigmaloc,pMis.pFor)
         JTx      = dsigma'*interpLocalToGlobal(JTxloc,pMis.gloc.PForInv) # = 
         return JTx
-        h err
+    catch err
         if isa(err,InterruptException)
             return -1
         else
