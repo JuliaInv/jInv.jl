@@ -1,46 +1,30 @@
 export getData
 
 
-"""
-function jInv.ForwardShare.getData(sigma, pFor, ...)
 
-solved forward model and computes data. getData is application specific and some guidelines
-how to create getData for a new problem can be found in examples/tutorialBuildYourOwn.ipynb
-
-Inputs:
-
-   sigma  -  current parameters
-   pFor   -  description of forward problems (ForwardProbType, Array{ForwardProbType}, Array{Future}
-
-   Some methods of getData require further arguments. 
-
-Output:
-
-    Dobs   - simulated data
-    pFor   - modified forward problem type
-
-"""
-function getData(sigma::Future,pFor::ForwardProbType,
+function getData(sigma::Future,pFor::RemoteChannel,
                  Mesh2Mesh::Union{RemoteChannel, Future,SparseMatrixCSC,AbstractFloat},
                  doClear::Bool=false)
-#=
-    computations on one worker
-=#
-    sig = interpGlobalToLocal(fetch(sigma),fetch(Mesh2Mesh))
-    dobs,pFor   = getData(sig,pFor,doClear)
-    Dobs  = remotecall(identity,myid(),dobs)
-    return Dobs,pFor
+	#=
+		load a forward problem from RemoteRef
+	=#
+	# get mesh 2 mesh interpolation matrix
+	sig = interpGlobalToLocal(fetch(sigma),fetch(Mesh2Mesh))
+	pF  = take!(pFor)
+	dobs,pF   = getData(sig,pF,doClear)
+	put!(pFor,pF)
+	Dobs  = remotecall(identity,myid(),dobs)
+	return Dobs,pFor
 end
 
-function getData(sigma::Vector,pFor::RemoteChannel,Mesh2Mesh::Union{SparseMatrixCSC,AbstractFloat},
+function getData(sigma::Vector,pFor::ForwardProbType,Mesh2Mesh::Union{SparseMatrixCSC,AbstractFloat},
                  doClear::Bool=false)
-#=
-    modify pFor on current worker (e.g., to keep factorizations)
-=#
-    pF = take!(pFor)
-    Dobs,pFor = getData(sig,pF,doClear)
-    put!(pFor,pF)
-    return Dobs,pFor
+
+	# get mesh 2 mesh interpolation matrix
+	sig = interpGlobalToLocal(sigma,Mesh2Mesh)
+	dobs,pFor   = getData(sig,pFor,doClear)
+	Dobs  = remotecall(identity,myid(),dobs)
+	return Dobs,pFor
 end
 
 function getData{FPT<:ForwardProbType,T<:Union{Future,RemoteChannel,SparseMatrixCSC,AbstractFloat}}(
@@ -49,28 +33,34 @@ function getData{FPT<:ForwardProbType,T<:Union{Future,RemoteChannel,SparseMatrix
                  Mesh2Mesh::Array{T}=ones(length(pFor)),
                  doClear::Bool=false,
                  workerList::Vector=workers())
-#=
-    parallel forward simulation with dynamic scheduling (i.e., elements in pFor get sent to remote workers on the fly)
-=#
-    i=1; nextidx() = (idx = i; i+=1; idx)
-	
-    Dobs = Array(Any,length(pFor))
-    workerList = intersect(workers(),workerList)
-    if isempty(workerList)
-        error("getData: workers do not exist!")
-    end
-    @sync begin
-        for p=workerList
-            @async begin
-                while true
-                    idx = nextidx()
-                    if idx > length(pFor); break; end
-                    Dobs[idx],pFor[idx] = remotecall_fetch(getData,p,sigma,pFor[idx],Mesh2Mesh[idx],doClear)
-                end
-            end
-        end
-    end
-    return Dobs,pFor
+	#=
+		load and solve forward problems in parallel
+	=#
+	i=1; nextidx() = (idx = i; i+=1; idx)
+	## Compute Dobs
+	Dobs = Array(Any,length(pFor))
+	workerList = intersect(workers(),workerList)
+	if isempty(workerList)
+		error("getData: workers do not exist!")
+	end
+	@sync begin
+		for p=workerList
+			@async begin
+				while true
+					idx = nextidx()
+					if idx > length(pFor)
+						break
+					end
+#					P = Mesh2Mesh[idx]
+# 					if isa(P,SparseMatrixCSC) && eltype(P.nzval)==Int16
+# 						P = SparseMatrixCSC(P.m,P.n,P.colptr,P.rowval,2.^float(3*P.nzval))
+# 					end
+					Dobs[idx],pFor[idx]    = remotecall_fetch(getData,p,sigma,pFor[idx],Mesh2Mesh[idx],doClear)
+				end
+			end
+		end
+	end
+	return Dobs,pFor
 end
 
 function getData{T<:Union{RemoteChannel,Future,SparseMatrixCSC,AbstractFloat}}(

@@ -14,6 +14,8 @@ Required Input:
 
 	M1::AbstractTensorMesh 
 	M2::AbstractTensorMesh
+
+	Note: kwargs are not used for AbstractTensorMesh
 	
 Example:
 
