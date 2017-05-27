@@ -144,6 +144,9 @@ function getdEdgeMassMatrix(M::AbstractMesh,v::Vector)
 	return sdiag(v)*Ae'*V
 end
 
+# for compatibility with applications supporting isotropic/anisotropic PDE coefficients
+getdEdgeMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdEdgeMassMatrix(M, v)
+
 """
 	function jInv.Mesh.getFaceMassMatrix(M,sigma)
 	
@@ -190,6 +193,9 @@ function getdFaceMassMatrix(M::AbstractMesh,v::Vector)
 	return Massf
 end
 
+# for compatibility with applications supporting isotropic/anisotropic PDE coefficients
+getdFaceMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdFaceMassMatrix(M, v)
+
 """
 	function jInv.Mesh.getNodalMassMatrix(M,sigma)
 	
@@ -233,6 +239,9 @@ function getdNodalMassMatrix(M::AbstractMesh,v::Vector)
 	V   = getVolume(M)
 	dMn = spdiagm(v)*An'*V
 end
+
+# for compatibility with applications supporting isotropic/anisotropic PDE coefficients
+getdNodalMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdNodalMassMatrix(M, v)
 
 # --- ndgrid
 ndgrid(v::AbstractVector) = copy(v)
