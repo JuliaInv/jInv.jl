@@ -112,7 +112,11 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 	updateRes(Fi,idx) = (F+=Fi;push!(indDebit,idx))
 	updateDF(x) = (dF+=x)
 
-	workerList = getWorkerIds(pFor)
+    workerList = []
+    for k=indCredit
+        push!(workerList,pMisRefs[k].where)
+    end
+    workerList = unique(workerList)
     sigRef = Array(Future,maximum(workers()))
 	dFiRef = Array(RemoteChannel,maximum(workers()))
 
