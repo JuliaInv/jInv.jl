@@ -20,8 +20,11 @@ Output:
     pFor   - modified forward problem type
 
 """
-function getData(sigma::Future,pFor::ForwardProbType,
-                 Mesh2Mesh::Union{RemoteChannel, Future,SparseMatrixCSC,AbstractFloat},
+Mesh2MeshTypes = Union{RemoteChannel, Future, SparseMatrixCSC, AbstractFloat}
+
+function getData(sigma::Union{Future, Vector},
+                 pFor::ForwardProbType,
+                 Mesh2Mesh::Mesh2MeshTypes,
                  doClear::Bool=false)
 #=
     computations on one worker
@@ -32,18 +35,20 @@ function getData(sigma::Future,pFor::ForwardProbType,
     return Dobs,pFor
 end
 
-function getData(sigma::Vector,pFor::RemoteChannel,Mesh2Mesh::Union{SparseMatrixCSC,AbstractFloat},
+function getData(sigma::Union{Future, Vector},
+                 pFor::RemoteChannel,
+                 Mesh2Mesh::Mesh2MeshTypes,
                  doClear::Bool=false)
 #=
     modify pFor on current worker (e.g., to keep factorizations)
 =#
     pF = take!(pFor)
-    Dobs,pFor = getData(sig,pF,doClear)
+    Dobs, pF = getData(fetch(sigma), pF, fetch(Mesh2Mesh), doClear)
     put!(pFor,pF)
     return Dobs,pFor
 end
 
-function getData{FPT<:ForwardProbType,T<:Union{Future,RemoteChannel,SparseMatrixCSC,AbstractFloat}}(
+function getData{FPT<:ForwardProbType,T<:Mesh2MeshTypes}(
                  sigma::Vector,
                  pFor::Array{FPT},
                  Mesh2Mesh::Array{T}=ones(length(pFor)),
@@ -73,7 +78,7 @@ function getData{FPT<:ForwardProbType,T<:Union{Future,RemoteChannel,SparseMatrix
     return Dobs,pFor
 end
 
-function getData{T<:Union{RemoteChannel,Future,SparseMatrixCSC,AbstractFloat}}(
+function getData{T<:Mesh2MeshTypes}(
                  sigma::Vector,
                  pFor::Array{RemoteChannel},
                  Mesh2Mesh::Array{T}=ones(length(pFor)),
