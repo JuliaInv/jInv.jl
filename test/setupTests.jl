@@ -5,13 +5,12 @@ import jInv.ForwardShare
 import jInv.Utils
 import Base.Test
 @everywhere begin
-	using jInv.InverseSolve
-	using jInv.Mesh
-	using jInv.LinearSolvers
-	using jInv.ForwardShare
-	using jInv.Utils
-	using Base.Test
-
+using jInv.InverseSolve
+using jInv.Mesh
+using jInv.LinearSolvers
+using jInv.ForwardShare
+using jInv.Utils
+using Base.Test
 
 type LSparam <: ForwardProbType
 	A

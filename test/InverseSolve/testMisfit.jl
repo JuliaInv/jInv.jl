@@ -8,9 +8,9 @@ wd   = rand(n)+1
 dd   = rand(n)
 
 for misfitFun in [ SSDFun HuberFun ]
-	
-	println("Gradient test for ", misfitFun, " (real)")
-	
+
+	# Gradient test for ", misfitFun, " (real)")
+
 	function testFun(x,v=[])
 		mis,dmis,d2mis = misfitFun(x,dobs,wd)
 		if isempty(v)
@@ -19,16 +19,16 @@ for misfitFun in [ SSDFun HuberFun ]
 			return mis,dot(dmis,v)
 		end
 	end
-	
+
 	chkDer, = checkDerivative(testFun,dc,out=false)
 	@test chkDer
 
 end
 
 for misfitFun in [ SSDFun ]
-	
-	println("Hessian test for ", misfitFun, " (real)")
-	
+
+	# Hessian test for ", misfitFun, " (real)")
+
 	function testFun(x,v=[])
 		mis,dmis,d2mis = misfitFun(x,dobs,wd)
 		if isempty(v)
@@ -37,7 +37,7 @@ for misfitFun in [ SSDFun ]
 			return dmis,d2mis.*v
 		end
 	end
-	
+
 	chkDer, = checkDerivative(testFun,dc,out=false)
 	@test chkDer
 end
@@ -50,9 +50,9 @@ wd   += 1im*rand(n)
 dd   += 1im*rand(n)
 
 for misfitFun in [ SSDFun ]
-	
-	println("Gradient test for ", misfitFun, " (complex)")
-	
+
+	# Gradient test for ", misfitFun, " (complex)")
+
 	function testFun(x,v=[])
 		mis,dmis,d2mis = misfitFun(x,dobs,wd)
 		if isempty(v)
@@ -61,26 +61,26 @@ for misfitFun in [ SSDFun ]
 			return mis,real(dot(dmis,v))
 		end
 	end
-	
+
 	chkDer, = checkDerivative(testFun,dc,out=false)
 	@test chkDer
 
 end
 
-for misfitFun in [ SSDFun ]
-	
-	println("Hessian test for ", misfitFun, " (complex)")
-	warn("skipped"); break
-	function testFun(x,v=[])
-		mis,dmis,d2mis = misfitFun(x,dobs,wd)
-		if isempty(v)
-			return real(dmis)
-		else
-			return real(dmis),real(d2mis.*v)
-		end
-	end
-	
-	chkDer, = checkDerivative(testFun,dc,out=true)
-	@test chkDer
+# for misfitFun in [ SSDFun ]
 
-end
+	# Hessian test for ", misfitFun, " (complex)")
+	# warn("skipped"); break
+# 	function testFun(x,v=[])
+# 		mis,dmis,d2mis = misfitFun(x,dobs,wd)
+# 		if isempty(v)
+# 			return real(dmis)
+# 		else
+# 			return real(dmis),real(d2mis.*v)
+# 		end
+# 	end
+#
+# 	chkDer, = checkDerivative(testFun,dc,out=true)
+# 	@test chkDer
+#
+# end

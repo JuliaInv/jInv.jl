@@ -1,4 +1,3 @@
-include("../setupTests.jl")
 
 # build domain and true image
 domain = [0.0 1.0 0.0 1.0]
@@ -7,7 +6,7 @@ Minv   = getRegularMesh(domain,n)
 xc     = getCellCenteredGrid(Minv)
 xtrue = sin(2*pi*xc[:,1]).*sin(pi*xc[:,2])
 
-# get noisy data 
+# get noisy data
 A     = speye(Minv.nc)
 ids   = sort(rand(1:Minv.nc,round(Int64,Minv.nc*.8)))
 A     = A[ids,:]
@@ -39,11 +38,11 @@ Wd2          = Wd[i2]
 Wd3          = Wd[i3]
 Wd4          = Wd[i4]
 
-pMis =  getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1) 
+pMis =  getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 
 pMisRefs    = Array(RemoteChannel,2)
-pMisRefs[1] = initRemoteChannel(getMisfitParam,workers()[1],pFor1,Wd1,bd1,SSDFun,fMod,gl1) 
-pMisRefs[2] = initRemoteChannel(getMisfitParam,workers()[min(2,nworkers())],pFor2,Wd2,bd2,SSDFun,fMod,gl2) 
+pMisRefs[1] = initRemoteChannel(getMisfitParam,workers()[1],pFor1,Wd1,bd1,SSDFun,fMod,gl1)
+pMisRefs[2] = initRemoteChannel(getMisfitParam,workers()[min(2,nworkers())],pFor2,Wd2,bd2,SSDFun,fMod,gl2)
 
 pForRefs = Array(RemoteChannel,4)
 pForRefs[1] = initRemoteChannel(LSparam,workers()[1],A[i3,:],[])
@@ -60,7 +59,7 @@ boundsHigh   = maximum(xtrue)*ones(Minv.nc)
 pInv         = getInverseParam(Minv,fMod,diffusionReg,alpha,x0,boundsLow,boundsHigh)
 display(pInv)
 
-print("\t== Test with local misfit...")
+# Test with local misfit
 # evaluate distance
 sig,dsig = pInv.modelfun(x0)
 Dc,F,dF,d2F,pMis,tMis = computeMisfit(sig,pMis,true)
@@ -71,9 +70,8 @@ x = randn(size(Hm,2))
 t1 = HessMatVec(x,pMis,sig,d2F)
 t2 = Hm*x
 @test norm(t1-t2,Inf)/norm(t1,Inf) < 1e-12
-println("passed!\n")
 
-print("\t== Test with single remote ref misfit param...")
+# Test with single remote ref misfit param
 sig,dsig = pInv.modelfun(x0)
 Dc,F,dF,d2F,pMisR,tMis = computeMisfit(sig,pMisRefs[1:1],true)
 # get Hessian
@@ -83,9 +81,8 @@ x = randn(size(Hm,2))
 t1 = HessMatVec(x,pMisR,sig,d2F)
 t2 = Hm*x
 @test norm(t1-t2,Inf)/norm(t1,Inf) < 1e-12
-println("passed!\n")
 
-print("\t== Test array of remote ref misfit param...")
+# Test array of remote ref misfit param
 # get Hessian
 Hm = getHessian(sig,pMisR,d2F)
 # multiply with random direction and compare results
@@ -93,9 +90,8 @@ x = randn(size(Hm,2))
 t1 = HessMatVec(x,pMisR,sig,d2F)
 t2 = Hm*x
 @test norm(t1-t2,Inf)/norm(t1,Inf) < 1e-12
-println("passed!\n")
 
-print("\t== Test array of misfit params...")
+# Test array of misfit params
 pMisA = [pMis;pMis;pMis]
 sig,dsig = pInv.modelfun(x0)
 Dc,F,dF,d2F,pMisA,tMis = computeMisfit(sig,pMisA,true)
@@ -107,4 +103,3 @@ x = randn(size(Hm,2))
 t1 = HessMatVec(x,pMisA,sig,d2F)
 t2 = Hm*x
 @test norm(t1-t2,Inf)/norm(t1,Inf) < 1e-12
-println("passed!\n")

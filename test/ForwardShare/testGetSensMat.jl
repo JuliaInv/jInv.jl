@@ -1,4 +1,3 @@
-include("../setupTests.jl")
 
 # get random matrix for least squares problem
 A     = ( sprandn(100,13,.1), sprandn(100,200,.2), randn(100,24))
@@ -25,8 +24,7 @@ pForRef[2] = initRemoteChannel(LSparam,workerList[2%nw+1],A2,[])
 pFors = (pForp,pFor,pForRef)
 
 for k=1:length(pFors)
-	print("\ttest getSensMatVec for pFor as $(typeof(pFors[k]))...")
-
+	# test getSensMatVec for pFor as $(typeof(pFors[k]))...
 	(mt,nt) = getSensMatSize(pFors[k])
 	nd      = getNumberOfData(pFors[k])
 	(m,n) = size(A[k])
@@ -36,8 +34,5 @@ for k=1:length(pFors)
 	@test nt==n
 
 	At = getSensMat(randn(n),pFors[k])
-
 	@test norm(At-A[k],Inf)/norm(A[k],Inf) < 1e-14
-
-	print("passed!\n")
 end

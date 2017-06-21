@@ -1,8 +1,8 @@
-print("   test checkDerivative ...")
 using jInv.Utils
 using Base.Test
 
 
+# test checkDerivative
 f = x-> x^2
 dfRight = x -> 2*x
 p,e,o = checkDerivative(f,dfRight,randn(),out=true)
@@ -22,5 +22,3 @@ p,e,o = checkDerivative(f,dfWrong,randn(),out=false)
 x0 = randn(10)
 p,e,o = checkDerivative(F,dFWrong,x0,out=false)
 @test p==false
-
-print("passed\n")

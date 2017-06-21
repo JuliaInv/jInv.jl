@@ -10,7 +10,7 @@ Minv  = getRegularMesh(domain,n)
 
 modFun = (expMod,boundMod,fMod)
 for k=1:length(modFun)
-	println("\t\tcheckDerivative of $(modFun[k])")
+	# checkDerivative of $(modFun[k])
 	function testModFun(m,v=[])
 		mc,dm = modFun[k](m)
 		if !isempty(v)
@@ -22,5 +22,3 @@ for k=1:length(modFun)
 	derivativeDistModel, = checkDerivative(testModFun,rand(prod(n)),out=false)
 	@test derivativeDistModel
 end
-
-

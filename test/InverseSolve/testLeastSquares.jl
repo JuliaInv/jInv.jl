@@ -1,4 +1,3 @@
-include("../setupTests.jl")
 
 # build domain and true image
 domain = [0.0 1.0 0.0 1.0]
@@ -46,7 +45,7 @@ boundsLow    = minimum(xtrue)*ones(Minv.nc)
 boundsHigh   = maximum(xtrue)*ones(Minv.nc)
 sigmaBack    = zeros(Minv.nc)
 
-print("\t== test projGN...")
+# test projGN
 pInv         = getInverseParam(Minv,fMod,diffusionReg,alpha,x0,boundsLow,boundsHigh)
 pInv.maxIter = 5
 x1, = projGN(x0,pInv,pMis)
@@ -57,9 +56,7 @@ x2, = projGN(x0,pInv,pMisRefs,out=1)
 @test all(x2.>=boundsLow)
 @test all(x1.<=boundsHigh)
 @test all(x2.<=boundsHigh)
-print("passed! ===")
-
-print("\t== test barrierGNCG...")
+# test barrierGNCG...")
 pInv.maxIter = 5
 x1, = barrierGNCG(x0,pInv,pMis)
 pInv.maxIter = 5
@@ -69,10 +66,8 @@ x2, = barrierGNCG(x0,pInv,pMisRefs,out=1)
 @test all(x2.>=boundsLow)
 @test all(x1.<=boundsHigh)
 @test all(x2.<=boundsHigh)
-print("passed! ===")
 
-
-print("\t== test iteratedTikhonov...")
+# test iteratedTikhonov...")
 pInv.maxIter = 2
 pInv.alpha   = 100.
 nAlpha = 3
@@ -88,10 +83,8 @@ x2,Dc,flag2,hist = iteratedTikhonov(x0,pInv,pMisRefs,nAlpha,alphaFac,targetMisfi
 @test all(x2.>=boundsLow)
 @test all(x1.<=boundsHigh)
 @test all(x2.<=boundsHigh)
-print("passed! ===")
 
-
-print("\t== test projSD...")
+# test projSD...")
 pInv.maxIter = 20
 x1, = projSD(x0,pInv,pMis)
 pInv.maxIter = 20
@@ -101,4 +94,3 @@ x2, = projSD(x0,pInv,pMisRefs,out=1)
 @test all(x2.>=boundsLow)
 @test all(x1.<=boundsHigh)
 @test all(x2.<=boundsHigh)
-print("passed! ===")
