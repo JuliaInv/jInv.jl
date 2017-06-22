@@ -14,6 +14,8 @@ Required Input:
 
 	M1::AbstractTensorMesh 
 	M2::AbstractTensorMesh
+
+    Note: kwargs are not used for AbstractTensorMesh
 	
 Example:
 
@@ -23,7 +25,7 @@ Example:
 	Mesh2Mesh = getInterpolationMatrix(Minv,Mfor)
 
 """
-getInterpolationMatrix(M1::AbstractTensorMesh,M2::AbstractTensorMesh) = 
+getInterpolationMatrix(M1::AbstractTensorMesh, M2::AbstractTensorMesh; kwargs...) = 
 							getCellCenteredInterpolationMatrix(M1, getCellCenteredGrid(M2))
 
 function interpmat(x,y,Xr)

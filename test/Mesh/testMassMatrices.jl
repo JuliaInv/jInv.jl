@@ -35,7 +35,7 @@ for k=1:length(Meshes)
 		vt = randn(size(Av,1))
 		
 	
-		chkDir, = checkDerivative(sig->Mf(M,sig)*vt,sig->dMf(M,vt),sig,out=false)
+		chkDir, = checkDerivative(sig->Mf(M,sig)*vt,sig->dMf(M,sig,vt),sig,out=false)
 		@test chkDir
 	end
 end

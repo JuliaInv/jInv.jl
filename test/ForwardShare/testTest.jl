@@ -1,16 +1,13 @@
 using Base.Test
 
-println("\t\tcheckDerivative for ForwardProbTypes")
-include("../setupTests.jl")
 A    = sprandn(100,10,.1)
 pFor = LSparam(A,[])
 m0   = randn(10)
 
-passed, = checkDerivative(m0,pFor)
+# checkDerivative for ForwardProbTypes
+passedDerivative, = checkDerivative(m0,pFor)
+@test passedDerivative
 
-println("\t\tadjoint test")
-
-passed, = adjointTest(m0,pFor)
-@test passed
-
-@test passed
+# adjoint test
+passedAdjoint, = adjointTest(m0,pFor)
+@test passedAdjoint

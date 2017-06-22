@@ -5,8 +5,7 @@ using Base.Test
 a = rand(1:300,300)
 ua = unique(a)
 
-println("testing uniqueidx")
-
+# testing uniqueidx
 b,ii,jj = uniqueidx(a)
 b2      = sortunique(a)
 t1 = sort(ua)

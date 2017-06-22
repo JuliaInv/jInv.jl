@@ -1,4 +1,3 @@
-include("../setupTests.jl")
 
 # build domain and true image
 domain = [0.0 1.0 0.0 1.0]

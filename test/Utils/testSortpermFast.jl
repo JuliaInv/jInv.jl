@@ -6,14 +6,14 @@ vu = unique(v)
 w  = randn(100)
 
 data = (vu,w)
-println("testing sortpermFast")
+# testing sortpermFast
 
 for k=1:length(data)
-	
+
 	res1 = sortpermFast(data[k])
 	res2 = sortperm(data[k])
 	b2   = data[k][res2]
-	
+
 	@test all(res1[1] .== res2)
 	@test all(res1[2] .== b2)
 end
@@ -33,5 +33,5 @@ vin,din   = sortpermFast(vin,din)
 vuin,duin = sortpermFast(vuin,duin)
 
 @test vin == vuin == vus
-@test duin == du[jj] 
+@test duin == du[jj]
 @test length(din) == length(duin)
