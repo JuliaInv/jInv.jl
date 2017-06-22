@@ -4,7 +4,7 @@ export getData
 """
 function jInv.ForwardShare.getData(sigma, pFor, ...)
 
-solved forward model and computes data. getData is application specific and some guidelines
+solves forward model and computes data. getData is application specific and some guidelines
 how to create getData for a new problem can be found in examples/tutorialBuildYourOwn.ipynb
 
 Inputs:
