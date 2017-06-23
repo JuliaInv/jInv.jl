@@ -29,7 +29,7 @@ end
 	Rc,dR,d2R = diffusionReg(m,mref,M,Iact=1.0)
 
 	Compute diffusion regularizer
-		0.5*||GRAD*(m-mref)||_V^2
+		0.5\*||GRAD*(m-mref)||\_V^2
 
 	Input:
 		m     - model
@@ -60,7 +60,7 @@ end
 
 	Compute smallness regularizer (L2 difference to reference model)
 
-		R(m) = 0.5*||m-mref||_V^2
+		R(m) = 0.5\*||m-mref||\_V^2
 
 	Input:
 		m     - model
