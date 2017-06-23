@@ -1,6 +1,30 @@
 export interpLocalToGlobal, interpGlobalToLocal
 # Interpolate a vector x from the local mesh to the global mesh
 
+"""
+function jInv.ForwardShare.interpLocalToGlobal(mLocal,P,const)
+function jInv.ForwardShare.interpGlobalToLocal(mGlobal,P,const)
+
+convert a local (or global) model to a global (or local) mesh so that
+    mGlobal = P * mLocal + const
+    mLocal = P' * mGlobal + const
+
+Examples:
+    P = prepareMesh2Mesh(Msmall, Mbig, true)
+    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'*modelInv
+
+    P = prepareMesh2Mesh(Msmall, Mbig, true)
+    modelInv =  interpGlobalToLocal(modelLoc,P) # uncompresses the indices and does P'*modelInv
+
+Inputs:
+    mLocal  - a model defined on the local (PDE) mesh
+    mGlobal - a model defined on the global (inverse) mesh
+    const   - a scalar constant shift (if not provided: const = 0.0)
+
+Outputs:
+    mGlobal - a model defined on the global (inverse) mesh
+    mLocal  - a model defined on the local (PDE) mesh
+"""
 function interpLocalToGlobal(x::Vector{Float64}, P::AbstractFloat,y0::AbstractFloat=0.0)
 	return P * x + y0
 end

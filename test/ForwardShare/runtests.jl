@@ -1,8 +1,18 @@
-println("test getDataParallel")
-include("testGetDataParallel.jl")
-println("test prepareMesh2Mesh")
-include("testPrepareMesh2Mesh.jl")
-println("test test utilities")
-include("testTest.jl")
-include("testGetSensMat.jl")
-include("testClear.jl")
+
+@testset "ForwardShare" begin
+    @testset "testGetDataParallel.jl" begin
+        include("testGetDataParallel.jl")
+    end
+    @testset "testPrepareMesh2Mesh.jl" begin
+        include("testPrepareMesh2Mesh.jl")
+    end
+    @testset "testTest.jl" begin
+        include("testTest.jl")
+    end
+    @testset "testGetSensMat.jl" begin
+        include("testGetSensMat.jl")
+    end
+    @testset "testClear.jl" begin
+        include("testClear.jl")
+    end
+end

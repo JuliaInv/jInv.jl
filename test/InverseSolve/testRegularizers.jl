@@ -10,17 +10,17 @@ M     = getRegularMesh(domain,n)
 idx   = ones(Int,(n[1],n[2],n[3]))
 idx[:,:,1:5] = 0
 Iact  = speye(Bool,M.nc)
-Iact  = Iact[:,vec(idx).==1] 
+Iact  = Iact[:,vec(idx).==1]
 mc    = randn(size(Iact,2))
 
-regFuns = [ 
-			(m,mref,M)->diffusionReg(m,mref,M,Iact=Iact), 
-			(m,mref,M)->wdiffusionReg(m,mref,M,Iact=Iact), 
-			smallnessReg, 
+regFuns = [
+			(m,mref,M)->diffusionReg(m,mref,M,Iact=Iact),
+			(m,mref,M)->wdiffusionReg(m,mref,M,Iact=Iact),
+			smallnessReg,
 			(m,mref,M)->wTVReg(m,mref,M,Iact=Iact)]
 for k=1:length(regFuns)
-	println("checkDerivative of $(regFuns[k])")
-	
+	# checkDerivative of $(regFuns[k])
+
 	function testFun(x,v=[])
 		Sc,dS,d2S = regFuns[k](x,0.*x,M)
 		if isempty(v)
@@ -37,12 +37,12 @@ regFuns = [wdiffusionRegNodal;wTVRegNodal]
 idx   = ones(Int,(n[1]+1,n[2]+1,n[3]+1))
 idx[:,:,1:5] = 0
 Iact  = speye(Bool,prod(M.n+1))
-Iact  = Iact[:,vec(idx).==1] 
+Iact  = Iact[:,vec(idx).==1]
 mc    = randn(size(Iact,2))
 
 for k=1:length(regFuns)
-	println("checkDerivative of $(regFuns[k])")
-	
+	# checkDerivative of $(regFuns[k])
+
 	function testFun(x,v=[])
 		Sc,dS,d2S = regFuns[k](x,0.*x,M,Iact=Iact)
 		if isempty(v)
@@ -60,7 +60,7 @@ regFuns = [logBarrier;logBarrierSquared]
 idx   = ones(Int,(n[1]+1,n[2]+1,n[3]+1))
 idx[:,:,1:5] = 0
 Iact  = speye(Bool,prod(M.n+1))
-Iact  = Iact[:,vec(idx).==1] 
+Iact  = Iact[:,vec(idx).==1]
 mc    = ones(size(Iact,2)) + 0.05*randn(size(Iact,2));
 
 low   = ones(length(mc))*0.4;
@@ -68,8 +68,8 @@ high  = ones(length(mc))*1.6;
 epsilon = ones(length(mc))*0.58;
 
 for k=1:length(regFuns)
-	println("checkDerivative of $(regFuns[k])")
-	
+	# checkDerivative of $(regFuns[k])
+
 	function testFun(x,v=[])
 		Sc,dS,d2S = regFuns[k](x,0.*x,M,low,high,epsilon)
 		if isempty(v)
@@ -81,9 +81,3 @@ for k=1:length(regFuns)
 	chkDer, = checkDerivative(testFun,mc,out=false)
 	@test chkDer
 end
-
-
-
-
-
-

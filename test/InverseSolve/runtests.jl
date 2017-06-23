@@ -1,13 +1,24 @@
 
-println(" test module InverseSolve")
-
-include("testModels.jl")
-include("testMisfit.jl")
-include("testRegularizers.jl")
-include("testMisfitParams.jl")
-include("testLeastSquares.jl")
-include("testGetHessian.jl")
-include("testHessMatVec.jl")
-# include("FWI/runtests.jl")
-# include("DivSigGrad/runtests.jl")
-println(" InverseSolve: All tests passed!")
+@testset "InverseSolve" begin
+    @testset "testModels.jl" begin
+        include("testModels.jl")
+    end
+    @testset "testMisfit.jl" begin
+        include("testMisfit.jl")
+    end
+     @testset "testRegularizers.jl" begin
+         include("testRegularizers.jl")
+     end
+     @testset "testMisfitParams.jl" begin
+         include("testMisfitParams.jl")
+     end
+     @testset "testLeastSquares.jl" begin
+         include("testLeastSquares.jl")
+     end
+     @testset "testGetHessian.jl" begin
+         include("testGetHessian.jl")
+     end
+     @testset "testHessMatVec.jl" begin
+         include("testHessMatVec.jl")
+     end
+end
