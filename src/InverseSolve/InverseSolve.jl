@@ -11,8 +11,8 @@ import jInv.ForwardShare.ForwardProbType
 
 export getName,AbstractModel, AbstractMisfit
 
-abstract AbstractModel
-abstract AbstractMisfit
+abstract type AbstractModel end
+abstract type AbstractMisfit end
 
 include("HessianPreconditioners.jl")
 
@@ -48,21 +48,21 @@ Example:
     mref    = zeros(Minv.nc)
     pInv = getInverseParam(Minv,modelfun,regularizer,alpha,mref)
 """
-type InverseParam
+mutable struct InverseParam
     MInv::AbstractMesh
-    modelfun::Function 
-    regularizer::Union{Function,Array{Function}} 
-    alpha::Union{Float64,Array{Float64}}  
-    mref::Array 
+    modelfun::Function
+    regularizer::Union{Function,Array{Function}}
+    alpha::Union{Float64,Array{Float64}}
+    mref::Array
     boundsLow::Vector
     boundsHigh::Vector
-    maxStep::Real 
+    maxStep::Real
     pcgMaxIter::Int
     pcgTol::Real
-    minUpdate::Real 
+    minUpdate::Real
     maxIter::Int
     HesPrec
-end 
+end
 
 function Base.display(pInv::InverseParam)
     println("---jInv.InverseSolve.InverseParam---")
@@ -75,7 +75,7 @@ function Base.display(pInv::InverseParam)
     println("pcgTol:               $(pInv.pcgTol)")
     println("pcgTol:               $(pInv.pcgTol)")
     println("minUpdate:            $(pInv.minUpdate)")
-    println("maxIter:              $(pInv.maxIter)")        
+    println("maxIter:              $(pInv.maxIter)")
 end
 
 """

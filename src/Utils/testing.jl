@@ -31,7 +31,7 @@ function checkDerivative(f::Function,x0;out::Bool=true,tol::Float64=1.9,nSuccess
 	if out
 		println(@sprintf("%9s\t%9s\t%9s\t%9s\t%9s\t%5s","h","E0","E1","O1","O2","OK?"))
 	end
-	
+
 	f0,dvf  = f(x0,v)
 	nf0     = norm(f0)
 	#dvf    = real(dvf)
@@ -43,10 +43,10 @@ function checkDerivative(f::Function,x0;out::Bool=true,tol::Float64=1.9,nSuccess
 		Error[j,1] = norm(f0-ft)/nf0          # Error TaylorPoly 0
 		Error[j,2] = norm(f0 .+10.0^(-j)*dvf .- ft)/nf0 # Error TaylorPoly 1
 		if j>1
-			Order[j,:] = log10(Error[j-1,:]./Error[j,:]);
+			Order[j,:] = log10.(Error[j-1,:]./Error[j,:]);
 		end
 		if (Order[j,2]>tol) || (Error[j,1]/Error[j,2] > 100); Success[j]=1; end
-		if out 
+		if out
 			println(@sprintf("%1.3e\t%1.3e\t%1.3e\t%1.3e\t%1.3e\t%5d",
 							10.0^(-j), Error[j,1],Error[j,2], Order[j,1],Order[j,2],Success[j]))
 		end

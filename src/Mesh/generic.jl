@@ -17,14 +17,14 @@ end
 # --- linear operator
 """
  	function jInv.Mesh.getFaceAverageMatrix
-	
-	Returns Face-to-CellCenter average matrix from Mesh.Af. 
-	Matrix is constructed if Mesh.Af is empty. 
-	
+
+	Returns Face-to-CellCenter average matrix from Mesh.Af.
+	Matrix is constructed if Mesh.Af is empty.
+
 	For 2D Mesh: Af = [A1 A2]
 	For 3D Mesh: Af = [A1 A2 A3]
-	
-	Input: 
+
+	Input:
 		Mesh::Abstract Mesh
 
 """
@@ -35,8 +35,8 @@ function getFaceAverageMatrix(Mesh::AbstractTensorMesh)
 			A2 = kron(av(Mesh.n[2]),speye(Mesh.n[1]))
 			Mesh.Af = [A1 A2]
 		elseif Mesh.dim==3
-			A1 = kron(speye(Mesh.n[3]),kron(speye(Mesh.n[2]),av(Mesh.n[1]))) 
-			A2 = kron(speye(Mesh.n[3]),kron(av(Mesh.n[2]),speye(Mesh.n[1]))) 
+			A1 = kron(speye(Mesh.n[3]),kron(speye(Mesh.n[2]),av(Mesh.n[1])))
+			A2 = kron(speye(Mesh.n[3]),kron(av(Mesh.n[2]),speye(Mesh.n[1])))
 			A3 = kron(av(Mesh.n[3]),kron(speye(Mesh.n[2]),speye(Mesh.n[1])))
 			Mesh.Af = [A1 A2 A3]
 		end
@@ -46,21 +46,21 @@ end
 
 """
  	function jInv.Mesh.getEdgeAverageMatrix
-	
-	Returns Edge-to-CellCenter average matrix from Mesh.Ae. 
-	Matrix is constructed if Mesh.Ae is empty. 
-	
+
+	Returns Edge-to-CellCenter average matrix from Mesh.Ae.
+	Matrix is constructed if Mesh.Ae is empty.
+
 	For 3D Mesh: Ae = [A1 A2 A3]
-	
-	Input: 
+
+	Input:
 		Mesh::Abstract Mesh
 
 """
 function getEdgeAverageMatrix(Mesh::AbstractTensorMesh)
 	if isempty(Mesh.Ae)
 		if Mesh.dim==3
-			A1 = kron(av(Mesh.n[3]),kron(av(Mesh.n[2]),speye(Mesh.n[1]))) 
-			A2 = kron(av(Mesh.n[3]),kron(speye(Mesh.n[2]),av(Mesh.n[1]))) 
+			A1 = kron(av(Mesh.n[3]),kron(av(Mesh.n[2]),speye(Mesh.n[1])))
+			A2 = kron(av(Mesh.n[3]),kron(speye(Mesh.n[2]),av(Mesh.n[1])))
 			A3 = kron(speye(Mesh.n[3]),kron(av(Mesh.n[2]),av(Mesh.n[1])))
 			Mesh.Ae = [A1 A2 A3]
 		elseif Mesh.dim==2
@@ -76,11 +76,11 @@ end
 
 """
  	function jInv.Mesh.getNodalAverageMatrix
-	
-	Returns Nodal-to-CellCenter average matrix from Mesh.An. 
-	Matrix is constructed if Mesh.An is empty. 
-	
-	Input: 
+
+	Returns Nodal-to-CellCenter average matrix from Mesh.An.
+	Matrix is constructed if Mesh.An is empty.
+
+	Input:
 		Mesh::Abstract Mesh
 
 """
@@ -100,15 +100,15 @@ end
 
 """
 	function jInv.Mesh.getEdgeMassMatrix(mesh,sigma)
-	
+
 	Returns mass matrix on cell edges, weighted by vector sigma.
 	Matrix is always constructed. Uses pre-constructed edge averaging
 	and cell volume matrices if available.
-	
-	Input: 
+
+	Input:
 		Mesh::Abstract Mesh
 	       sigma::Vector
-	
+
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
@@ -122,23 +122,23 @@ end
 
 """
 	function jInv.Mesh.getdEdgeMassMatrix(M,v)
-	
+
 	Returns directional derivative of edge mass matrix w.r.t. sigma, i.e.,
 
-			d_sigma (M(sigma)*v)
+			d_sigma (M(sigma)\*v)
 
 	Matrix is always constructed. Uses pre-constructed edge averaging
 	and cell volume matrices if available.
-	
-	Input: 
+
+	Input:
 		Mesh::Abstract - Mesh
 		   v::Vector   - edge vector defining derivative
-	
+
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
 function getdEdgeMassMatrix(M::AbstractMesh,v::Vector)
- 
+
 	Ae   = getEdgeAverageMatrix(M)
 	V    = getVolume(M)
 	return sdiag(v)*Ae'*V
@@ -149,16 +149,16 @@ getdEdgeMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdEdgeMassMatrix
 
 """
 	function jInv.Mesh.getFaceMassMatrix(M,sigma)
-	
-	Returns face mass matrix, weighted by vector sigma. 
+
+	Returns face mass matrix, weighted by vector sigma.
 	Matrix is always constructed. Uses pre-constructed face averaging
 	and cell volume matrices if available.
-	
-	Input: 
+
+	Input:
 		M::Abstract Mesh
 	       sigma::Vector
-		
-	
+
+
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
@@ -171,18 +171,18 @@ end
 
 """
 	function jInv.Mesh.getdFaceMassMatrix(M,v)
-	
+
 	Returns directional derivative of face mass matrix w.r.t sigma, i.e.
-	
-		d_sigma (M(sigma)*v)
-	
+
+		d_sigma (M(sigma)\*v)
+
 	Matrix is always constructed. Uses pre-constructed face averaging
 	and cell volume matrices if available.
-	
-	Input: 
+
+	Input:
 		M::Abstract  - Mesh
 		   v::Vector -  face vector defining derivative
-	
+
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
@@ -198,15 +198,15 @@ getdFaceMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdFaceMassMatrix
 
 """
 	function jInv.Mesh.getNodalMassMatrix(M,sigma)
-	
+
 	Returns nodal mass matrix, weighted by vector sigma.
 	Matrix is always constructed. Uses pre-constructed nodal averaging
 	and cell volume matrices if available.
-	
-	Input: 
+
+	Input:
 		M::Abstract Mesh
 	       sigma::Vector
-	
+
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
@@ -219,18 +219,18 @@ end
 
 """
 	function jInv.Mesh.getdNodalMassMatrix(M,v)
-	
+
 	Returns directional derivative of nodal mass matrix w.r.t. sigma, i.e.,
-	
-		d_sigma (M(sigma)*v)
- 
+
+		d_sigma (M(sigma)\*v)
+
 	Matrix is always constructed. Uses pre-constructed nodal averaging
 	and cell volume matrices if available.
-	
-	Input: 
+
+	Input:
 		M::Abstract  - Mesh
 		   v::Vector - nodal vector defining derivative
-	
+
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
@@ -261,7 +261,7 @@ end
 function ndgrid{T}(vs::AbstractVector{T}...)
 	n = length(vs)
 	sz = map(length, vs)
-	out = ntuple(i->Array(T, sz), n)
+	out = ntuple(i->Array{T}(sz), n)
 	s = 1
 	for i=1:n
 		a = out[i]::Array
@@ -341,25 +341,25 @@ function getCurlMatrix(Mesh::AbstractTensorMesh)
 			# The Curl from edges to faces
 			Dyz = kron(ddx(Mesh.n[3]),kron(speye(Mesh.n[2]),speye(Mesh.n[1]+1)))
 			Dzy = kron(speye(Mesh.n[3]),kron(ddx(Mesh.n[2]),speye(Mesh.n[1]+1)))
-        	
+
 			Dxz = kron(ddx(Mesh.n[3]),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1])))
 			Dzx = kron(speye(Mesh.n[3]),kron(speye(Mesh.n[2]+1),ddx(Mesh.n[1])))
-        	
+
 			Dxy = kron(speye(Mesh.n[3]+1),kron(ddx(Mesh.n[2]),speye(Mesh.n[1])))
 			Dyx = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]),ddx(Mesh.n[1])))
-        	
+
 			# curl on the edges
 			Curl = [
 				 spzeros(Mesh.nf[1],Mesh.ne[1])  -Dyz   Dzy
 				 Dxz   spzeros(Mesh.nf[2],Mesh.ne[2])  -Dzx
 				-Dxy   Dyx   spzeros(Mesh.nf[3],Mesh.ne[3])]
-			
+
 				Fi = getFaceAreaInv(Mesh)
 				L  = getLength(Mesh)
 				Mesh.Curl = Fi*(Curl*L)
 		else
 			error("CURL is only implemented for 3D meshes.")
-		end	
+		end
 
 	end
 	return Mesh.Curl
@@ -370,5 +370,5 @@ function getNodalLaplacianMatrix(Mesh::AbstractTensorMesh)
 		G = getNodalGradientMatrix(Mesh)
 		Mesh.nLap = G'*G
 	end
-	return Mesh.nLap	
+	return Mesh.nLap
 end

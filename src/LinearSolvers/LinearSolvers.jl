@@ -1,6 +1,6 @@
 module LinearSolvers
 
-	abstract AbstractSolver
+	abstract type AbstractSolver end
 	export   AbstractSolver
 
 	using KrylovMethods

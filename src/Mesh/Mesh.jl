@@ -6,8 +6,8 @@ using jInv.Utils
 
 export AbstractMesh
 export AbstractTensorMesh
-abstract AbstractMesh
-abstract AbstractTensorMesh <: AbstractMesh
+abstract type AbstractMesh end
+abstract type AbstractTensorMesh <: AbstractMesh end
 
 import Base.clear!
 function clear!(M::AbstractTensorMesh)
