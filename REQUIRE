@@ -1,3 +1,2 @@
-julia 0.5
-Compat
+julia 0.6
 KrylovMethods

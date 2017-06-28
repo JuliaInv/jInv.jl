@@ -1,6 +1,5 @@
 module InverseSolve
 
-using Compat
 using KrylovMethods
 using jInv.Utils
 using jInv.Mesh

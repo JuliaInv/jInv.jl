@@ -1,6 +1,5 @@
 module Mesh
 
-using Compat
 using Base.BLAS
 using jInv.Utils
 
