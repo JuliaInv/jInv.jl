@@ -11,7 +11,8 @@ import jInv.ForwardShare.ForwardProbType
 
 export getName,AbstractModel, AbstractMisfit
 
-abstract type AbstractModel end
+# abstract type AbstractModel end # This is also defined in globalToLocal.jl
+                                   # and not used anywhere else
 abstract type AbstractMisfit end
 
 include("HessianPreconditioners.jl")

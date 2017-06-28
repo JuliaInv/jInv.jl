@@ -12,7 +12,7 @@ Inputs:
    sigma  -  current parameters
    pFor   -  description of forward problems (ForwardProbType, Array{ForwardProbType}, Array{Future}
 
-   Some methods of getData require further arguments. 
+   Some methods of getData require further arguments.
 
 Output:
 
@@ -58,8 +58,8 @@ function getData{FPT<:ForwardProbType,T<:Mesh2MeshTypes}(
     parallel forward simulation with dynamic scheduling (i.e., elements in pFor get sent to remote workers on the fly)
 =#
     i=1; nextidx() = (idx = i; i+=1; idx)
-	
-    Dobs = Array(Any,length(pFor))
+
+    Dobs = Array{Any}(length(pFor))
     workerList = intersect(workers(),workerList)
     if isempty(workerList)
         error("getData: workers do not exist!")
@@ -87,15 +87,15 @@ function getData{T<:Mesh2MeshTypes}(
     parallel forward simulation with static scheduling (i.e., pFors are distributed a-priorily)
 =#
 
-    Dobs = Array(Future,length(pFor))
+    Dobs = Array{Future}(length(pFor))
     workerList = getWorkerIds(pFor)
-    sigmaRef = Array(Future,maximum(workers()))
+    sigmaRef = Array{Future}(maximum(workers()))
     @sync begin
         for p=workerList
             @async begin
                 sigmaRef[p] = remotecall(identity,p,sigma)  # send model to worker
-                for idx=1:length(pFor)                      
-                    if p==pFor[idx].where                  
+                for idx=1:length(pFor)
+                    if p==pFor[idx].where
                         Dobs[idx],pFor[idx] = remotecall_fetch(getData,p,sigmaRef[p],pFor[idx],Mesh2Mesh[idx],doClear)
                     end
                 end
