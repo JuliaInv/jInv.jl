@@ -32,7 +32,7 @@ function computeMisfit(sig,
 #=
  computeMisfit for a single forward problem. Everything is stored in memory on the node executing this function.
 =#
-    
+
     times = zeros(4)
     sigma,dsigma = pMis.modelfun(sig)
     tic();
@@ -44,16 +44,16 @@ function computeMisfit(sig,
     tic()
         F,dF,d2F = pMis.misfit(Dc,pMis.dobs,pMis.Wd)
     times[3]=toq()
-    
+
     if doDerivative
         tic()
         dF = dsigma'*interpLocalToGlobal(getSensTMatVec(dF,sigmaloc,pMis.pFor),pMis.gloc.PForInv)
         times[4]=toq()
     end
-    
+
     if doClear; clear!(pMis.pFor.Ainv); end
     return Dc,F,dF,d2F,pMis,times
-end 
+end
 
 
 function computeMisfit(sigmaRef::Future,
@@ -65,17 +65,17 @@ function computeMisfit(sigmaRef::Future,
 
  Note: model (including interpolation matrix) and forward problems are RemoteRefs
 =#
-    
+
     rrlocs = [ pMisRef.where  dFRef.where]
     if !all(rrlocs .== myid())
         warn("computeMisfit: Problem on worker $(myid()) not all remote refs are stored here, but rrlocs=$rrlocs")
     end
-    
+
     sigma = fetch(sigmaRef)
     pMis  = take!(pMisRef)
-    
+
     Dc,F,dFi,d2F,pMis,times = computeMisfit(sigma,pMis,doDerivative,doClear)
-    
+
     put!(pMisRef,pMis)
     # add to gradient
     if doDerivative
@@ -85,7 +85,7 @@ function computeMisfit(sigmaRef::Future,
     # put predicted data and d2F into remote refs (no need to communicate them)
     Dc  = remotecall(identity,myid(),Dc)
     d2F = remotecall(identity,myid(),d2F)
-    
+
     return Dc,F,d2F,times
 end
 
@@ -106,7 +106,7 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 	F   = 0.0
 	dF  = (doDerivative) ? zeros(length(sigma)) : []
 	d2F = Array{Any}(length(pMisRefs));
-	Dc  = Array(Future, size(pMisRefs))
+	Dc  = Array{Future}(size(pMisRefs))
 
 	indDebit = []
 	updateRes(Fi,idx) = (F+=Fi;push!(indDebit,idx))
@@ -117,8 +117,8 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
         push!(workerList,pMisRefs[k].where)
     end
     workerList = unique(workerList)
-    sigRef = Array(Future,maximum(workers()))
-	dFiRef = Array(RemoteChannel,maximum(workers()))
+    sigRef = Array{Future}(maximum(workers()))
+	dFiRef = Array{RemoteChannel}(maximum(workers()))
 
 	times = zeros(4);
 	updateTimes(tt) = (times+=tt)

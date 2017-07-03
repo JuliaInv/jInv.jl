@@ -12,7 +12,7 @@ using jInv.ForwardShare
 using jInv.Utils
 using Base.Test
 
-type LSparam <: ForwardProbType
+mutable struct LSparam <: ForwardProbType
 	A
 	Ainv
 end

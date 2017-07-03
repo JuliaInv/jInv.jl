@@ -11,4 +11,4 @@ Hx = A[1:2:end,1:2:end]*real(x) +
      im*A[2:2:end,1:2:end]*real(x) +
      im*A[2:2:end,2:2:end]*imag(x)
 
-@test all(abs(HessMatVec(A,x)-Hx).<1e-12)
+@test all(abs.(HessMatVec(A,x)-Hx).<1e-12)

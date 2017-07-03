@@ -4,7 +4,7 @@ domain = [0.0 1.0 0.0 1.0]
 n      = [32,32]
 Minv   = getRegularMesh(domain,n)
 xc     = getCellCenteredGrid(Minv)
-xtrue = sin(2*pi*xc[:,1]).*sin(pi*xc[:,2])
+xtrue = sin.(2*pi*xc[:,1]).*sin.(pi*xc[:,2])
 
 # get noisy data
 A     = speye(Minv.nc)
@@ -46,13 +46,13 @@ pMisRefs[1] = initRemoteChannel(getMisfitParam,workerList[1%nw + 1],
 pMisRefs[2] = initRemoteChannel(getMisfitParam,workerList[2%nw + 1],
                                 pFor2,Wd2,bd2,SSDFun,fMod,gl2)
 
-pForRefs = Array(RemoteChannel,4)
+pForRefs = Array{RemoteChannel}(4)
 pForRefs[1] = initRemoteChannel(LSparam,workerList[3%nw+1],A[i3,:],[])
 pForRefs[2] = initRemoteChannel(LSparam,workerList[4%nw+1],A[i4,:],[])
 pForRefs[3] = initRemoteChannel(LSparam,workerList[5%nw+1],A[i3,:],[])
 pForRefs[4] = initRemoteChannel(LSparam,workerList[6%nw+1],A[i4,:],[])
 
-Mesh2Mesh = Array(Future,2)
+Mesh2Mesh = Array{Future}(2)
 for i=1:length(Mesh2Mesh)
 	k = pForRefs[i].where
 	if i==1
@@ -64,8 +64,8 @@ for i=1:length(Mesh2Mesh)
 	end
 end
 
-Wd = Array(Array{Float64},2);
-dobs = Array(Array{Float64},2);
+Wd = Array{Array{Float64}}(2);
+dobs = Array{Array{Float64}}(2);
 dobs[1] = bd3;
 dobs[2] = bd4;
 Wd[1] = Wd3;

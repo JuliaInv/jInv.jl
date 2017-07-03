@@ -74,7 +74,7 @@ end
 		His                 - iteration history
 
 """
-function  projSD(mc,pInv::InverseParam,pMis; proj=x->min(max(x,pInv.boundsLow),pInv.boundsHigh),
+function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow),pInv.boundsHigh),
 	indCredit=[], dumpResults::Function = dummy,out::Int=2)
 
 	maxIter     = pInv.maxIter      #  Max. no. iterations.
@@ -90,7 +90,7 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min(max(x,pInv.boundsLow),p
 	#---------------------------------------------------------------------------
 	mc = proj(mc)
 
-	Active = (mc .<=low) | (mc.>=high)  # Compute active set
+	Active = (mc .<=low) .| (mc.>=high)  # Compute active set
 
 
 	## evaluate function and derivatives
@@ -140,7 +140,7 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min(max(x,pInv.boundsLow),p
 
 
 		# scale step
-		if maximum(abs(gc)) > maxStep; gc = gc./maximum(abs(gc))*maxStep; end
+		if maximum(abs.(gc)) > maxStep; gc = gc./maximum(abs.(gc))*maxStep; end
 
 		## Begin projected Armijo line search
 		muLS = 1; lsIter = 1; mt = zeros(size(mc)); Jt = Jc
@@ -183,7 +183,7 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min(max(x,pInv.boundsLow),p
 
 		sig, dsig = pInv.modelfun(mc)
 
-		Active = (mc .<=low) | (mc.>=high)  # Compute active set
+		Active = (mc .<=low) .| (mc.>=high)  # Compute active set
 
 		#  Check stopping criteria for outer iteration.
 		updateHis!(iter,His,Jc,-1,F,Dc,R,alpha[1],countnz(Active),stepNorm,lsIter,tMis,tReg)
