@@ -23,7 +23,7 @@ function HessMatVec(d2F::Array{Complex128,1}, x::Array{Complex128,1})
 #=
    Hessian is complex diagonal and represented as vector
 =#
-    return complex(real(d2F) .* real(x), imag(d2F) .* imag(x))
+    return complex.(real.(d2F) .* real.(x), imag.(d2F) .* imag.(x))
 end
 
 function HessMatVec(d2F::SparseMatrixCSC{Float64}, x::Array{Float64,1})
@@ -37,7 +37,7 @@ function HessMatVec(d2F::SparseMatrixCSC{Complex128}, x::Array{Complex128,1})
 #=
    Hessian is complex and sparse, vector is complex
 =#
-    return complex(real(d2F) * real(x), imag(d2F) * imag(x))
+    return complex.(real.(d2F) * real.(x), imag.(d2F) * imag.(x))
 end
 
 
