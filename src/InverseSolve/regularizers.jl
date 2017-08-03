@@ -29,7 +29,7 @@ end
 	Rc,dR,d2R = diffusionReg(m,mref,M,Iact=1.0)
 
 	Compute diffusion regularizer
-		0.5*||GRAD*(m-mref)||_V^2
+		0.5\*||GRAD*(m-mref)||\_V^2
 
 	Input:
 		m     - model
@@ -60,7 +60,7 @@ end
 
 	Compute smallness regularizer (L2 difference to reference model)
 
-		R(m) = 0.5*||m-mref||_V^2
+		R(m) = 0.5\*||m-mref||\_V^2
 
 	Input:
 		m     - model
@@ -165,7 +165,7 @@ function wTVReg(m::Vector,mref,M::AbstractMesh; Iact=1.0, C=[],eps=1e-3)
 	V    = getVolume(M); v = diag(V)
 	Af   = getFaceAverageMatrix(M)
 
-	wTV  = sqrt(Af*(Div'*dm).^2 .+eps);
+	wTV  = sqrt.(Af*(Div'*dm).^2 .+eps);
 
 	Rc   = dot(v,wTV);
 	d2R  = Div*(sdiag(Af'*(v./wTV))*Div')
@@ -251,7 +251,7 @@ function wTVRegNodal(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])
 	v      = diag(V)
 	Af     = getEdgeAverageMatrix(M)
 	Grad   = Wt*getNodalGradientMatrix(M)*Iact;
-	wTV    = sqrt(Af*((Grad*dm).^2+eps));
+	wTV    = sqrt.(Af*((Grad*dm).^2+eps));
 	Rc     += dot(v,wTV);
 	d2R    += Grad'*sdiag(Af'*(v./wTV))*Grad;
 	dR     = d2R*dm
@@ -313,7 +313,7 @@ function logBarrier(m::Vector,z::Vector,M::AbstractMesh, low::Vector, high::Vect
 	df  = (-2.0).*indProj.*(dm./e);
 	d2f = (-2.0).*(indProj./(e.^2));
 
-	g   = -sum(log(f));
+	g   = -sum(log.(f));
 	dg  = -df./f;
 	d2g = dg.^2 - d2f./f  ;
 	return g,dg,sdiag(d2g);
@@ -367,7 +367,7 @@ function logBarrierSquared(m::Vector,z::Vector,M::AbstractMesh, low::Vector, hig
 	end
 	df  = (-2.0).*indProj.*(dm./e);
 
-	r   = log(f);
+	r   = log.(f);
 	dr  = df./f;
 	g   = 0.5*dot(r,r);
 	dg  = dr.*r;

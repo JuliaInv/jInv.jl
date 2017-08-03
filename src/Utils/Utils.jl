@@ -47,7 +47,7 @@ module Utils
 			end
 		end
 	end
-	
+
 	function clear!(PF::Array{Future})
 		@sync begin
 			for p=workers()
@@ -64,7 +64,7 @@ module Utils
 
 
 	function clear!{T,N}(x::Array{T,N})
-		return Array(T,ntuple((i)->0, N))
+		return Array{T}(ntuple((i)->0, N))
 	end
 
 	# function clear!{T}(x::Vector{T})

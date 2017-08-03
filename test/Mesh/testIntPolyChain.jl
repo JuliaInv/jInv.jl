@@ -25,7 +25,7 @@ zt1 = x0[3] + 4*h[3]
 zt2 = x0[3] + 5*h[3]
 
 # test polygonal path directly on edges
-idx     = find( (xt1 .< Xe1[:,1] .< xt2) & (Xe1[:,2] .== yt1) & (Xe1[:,3] .== zt1) )
+idx     = find( (xt1 .< Xe1[:,1] .< xt2) .& (Xe1[:,2] .== yt1) .& (Xe1[:,3] .== zt1) )
 s1      = zeros(ne)
 s1[idx] = l[idx]
 p1      = [xt1 yt1 zt1
@@ -38,8 +38,8 @@ s1Norm = getEdgeIntegralOfPolygonalChain(Mt,p1,normalize=true)
 @test abs(sum(s1Norm) - 1.0) < 1e-10
 
 # test path offset by half a cell in the y direction
-idx1     = find( (xt1 .< Xe1[:,1] .< xt2) & (Xe1[:,2] .== yt1) & (Xe1[:,3] .== zt1) )
-idx2     = find( (xt1 .< Xe1[:,1] .< xt2) & (Xe1[:,2] .== yt2) & (Xe1[:,3] .== zt1) )
+idx1     = find( (xt1 .< Xe1[:,1] .< xt2) .& (Xe1[:,2] .== yt1) .& (Xe1[:,3] .== zt1) )
+idx2     = find( (xt1 .< Xe1[:,1] .< xt2) .& (Xe1[:,2] .== yt2) .& (Xe1[:,3] .== zt1) )
 s2       = zeros(ne)
 s2[idx1] = l[idx1]./2
 s2[idx2] = l[idx2]./2
@@ -50,8 +50,8 @@ s2Comp   = getEdgeIntegralOfPolygonalChain(Mt,p2)
 @test norm(s2-s2Comp) < 1e-10
 
 # test path offset by half a cell in the y and z directions
-idx3     = find( (xt1 .< Xe1[:,1] .< xt2) & (Xe1[:,2] .== yt1) & (Xe1[:,3] .== zt2) )
-idx4     = find( (xt1 .< Xe1[:,1] .< xt2) & (Xe1[:,2] .== yt2) & (Xe1[:,3] .== zt2) )
+idx3     = find( (xt1 .< Xe1[:,1] .< xt2) .& (Xe1[:,2] .== yt1) .& (Xe1[:,3] .== zt2) )
+idx4     = find( (xt1 .< Xe1[:,1] .< xt2) .& (Xe1[:,2] .== yt2) .& (Xe1[:,3] .== zt2) )
 s3       = zeros(ne)
 s3[idx1] = l[idx1]./4
 s3[idx2] = l[idx2]./4
@@ -62,4 +62,3 @@ p3       = [xt1 (yt1+yt2)/2 (zt1 + zt2)/2
 
 s3Comp   = getEdgeIntegralOfPolygonalChain(Mt,p3)
 @test norm(s3-s3Comp) < 1e-10
- 

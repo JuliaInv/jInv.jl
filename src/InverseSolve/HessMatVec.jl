@@ -3,10 +3,10 @@ export HessMatVec
 
 """
 function jInv.InverseSolve.HessMatVec
-    
+
 computes matrix-vector products with Hessian
 
-    H(m)*x = J(m)*d2F*J(m)'*x
+    H(m)\*x = J(m)\*d2F\*J(m)'\*x
 
 HessMatVec has different methods to make this efficient in the respective
 cases. Type methods(HessMatVec) for a list.
@@ -23,7 +23,7 @@ function HessMatVec(d2F::Array{Complex128,1}, x::Array{Complex128,1})
 #=
    Hessian is complex diagonal and represented as vector
 =#
-    return complex(real(d2F) .* real(x), imag(d2F) .* imag(x))
+    return complex.(real.(d2F) .* real.(x), imag.(d2F) .* imag.(x))
 end
 
 function HessMatVec(d2F::SparseMatrixCSC{Float64}, x::Array{Float64,1})
@@ -37,7 +37,7 @@ function HessMatVec(d2F::SparseMatrixCSC{Complex128}, x::Array{Complex128,1})
 #=
    Hessian is complex and sparse, vector is complex
 =#
-    return complex(real(d2F) * real(x), imag(d2F) * imag(x))
+    return complex.(real.(d2F) * real.(x), imag.(d2F) * imag.(x))
 end
 
 
@@ -59,13 +59,13 @@ function HessMatVec(x,
 =#
     try
         sigma,dsigma = pMis.modelfun(sig)
-        
+
         sigmaloc = interpGlobalToLocal(sigma,pMis.gloc.PForInv,pMis.gloc.sigmaBackground)
         xloc     = interpGlobalToLocal(dsigma*x,pMis.gloc.PForInv)
         Jx       = vec(getSensMatVec(xloc,sigmaloc,pMis.pFor))
         Jx       = HessMatVec(d2F,Jx)
         JTxloc   = getSensTMatVec(Jx,sigmaloc,pMis.pFor)
-        JTx      = dsigma'*interpLocalToGlobal(JTxloc,pMis.gloc.PForInv) # = 
+        JTx      = dsigma'*interpLocalToGlobal(JTxloc,pMis.gloc.PForInv) # =
         return JTx
     catch err
         if isa(err,InterruptException)
@@ -74,7 +74,7 @@ function HessMatVec(x,
             throw(err)
         end
     end
-end 
+end
 
 
 function HessMatVec(xRef::Future,
@@ -127,10 +127,10 @@ function HessMatVec(x,
 
     # find out which workers are involved
     workerList = getWorkerIds(pMisRefs)
-    
-    sigmaRef = Array(Future,maximum(workers()))
-    yRef = Array(Future,maximum(workers()))
-    zRef = Array(RemoteChannel,maximum(workers()))
+
+    sigmaRef = Array{Future}(maximum(workers()))
+    yRef = Array{Future}(maximum(workers()))
+    zRef = Array{RemoteChannel}(maximum(workers()))
     z = zeros(length(x))
     commTime = 0.0
     compTime = 0.0

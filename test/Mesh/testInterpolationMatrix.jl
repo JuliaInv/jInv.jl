@@ -15,8 +15,8 @@ for dim=2:3
 	Pfc   = getInterpolationMatrix(Mf,Mc)
 	Xc    = getCellCenteredGrid(Mc)
 	Xf    = getCellCenteredGrid(Mf)
-	
-	@test_approx_eq sum(Pfc,2) ones(size(Pfc,1))
+
+	@test isapprox(sum(Pfc,2),ones(size(Pfc,1)))
 	@test norm(Xc-Pfc*Xf)/norm(Xc) < 1e-13
 end
 print(" passed\n")
@@ -36,6 +36,6 @@ Pfc   = getInterpolationMatrix(Mf,Mc)
 Xc    = getCellCenteredGrid(Mc)
 Xf    = getCellCenteredGrid(Mf)
 
-@test_approx_eq sum(Pfc,2) ones(size(Pfc,1))
+@test isapprox(sum(Pfc,2),ones(size(Pfc,1)))
 @test norm(Xc-Pfc*Xf)/norm(Xc) < 1e-13
 print("passed\n")

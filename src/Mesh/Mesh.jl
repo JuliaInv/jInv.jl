@@ -1,13 +1,12 @@
 module Mesh
 
-using Compat
 using Base.BLAS
 using jInv.Utils
 
 export AbstractMesh
 export AbstractTensorMesh
-abstract AbstractMesh
-abstract AbstractTensorMesh <: AbstractMesh
+abstract type AbstractMesh end
+abstract type AbstractTensorMesh <: AbstractMesh end
 
 import Base.clear!
 function clear!(M::AbstractTensorMesh)
@@ -32,7 +31,8 @@ include("regular.jl")
 include("interpmat.jl")
 include("display.jl")
 
-export getEdgeConstraints, getFaceConstraints
+export getNodalConstraints, getEdgeConstraints, getFaceConstraints
+getNodalConstraints(M::AbstractMesh) = (UniformScaling(1.0), UniformScaling(1.0), 1:prod(M.n+1))
 getEdgeConstraints(M::AbstractMesh) = (UniformScaling(1.0), UniformScaling(1.0), 1:sum(M.ne))
 getFaceConstraints(M::AbstractMesh) = (UniformScaling(1.0), UniformScaling(1.0))
 

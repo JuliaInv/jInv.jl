@@ -2,7 +2,7 @@ export GlobalToLocal, getGlobalToLocal
 export interpLocalToGlobal, interpGlobalToLocal
 export prepareGlobalToLocal
 
-abstract AbstractModel
+abstract type AbstractModel end
 
 """
 type jInv.InverseSolve.GlobalToLocal
@@ -12,20 +12,20 @@ Maps global model to local model
 sigLocal = PForInv*sigGlobal + sigmaBackground
 
 Fields:
-	PForInv::SparseMatrixCSC - linear operator between inverse mesh and 
+	PForInv::SparseMatrixCSC - linear operator between inverse mesh and
 	                           forward mesh, e.g., linear interpolation matrix
                                and projection on active set.
 	sigmaBackground::Vector  - background model
-	
+
 Constructors:
     getGlobalToLocal(P::SparseMatrixCSC)
 	getGlobalToLocal(P::SparseMatrixCSC,sigmaBack::Vector)
-	
-Example: 
+
+Example:
 	Mesh2Mesh = getInterpolationMatrix(Minv,Mfwd)   # Minv and Mfwd have different resolutions
 	sigmaBack = 1.2*ones(Minv.nc)                   # put background conductivity
 	gloc      = getGlobalToLocal(Mesh2Mesh,sigmaBack)
-	
+
 	sigLocal     = gloc.PForInv\' * sigGlobal + gloc.sigmaBack
 	# this call is equivalent, but needed in case the Mesh2Mesh matrix is compressed
 	sigLocalFast = interpGlobalToLocal(sigGlobal,gloc.PForInv,gloc.sigmaBack)

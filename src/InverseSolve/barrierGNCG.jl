@@ -114,10 +114,10 @@ function  barrierGNCG(mc,pInv::InverseParam,pMis;rho = 10.0,epsilon = 0.1*(pInv.
 		delm,hisLinSol = KrylovMethods.cg(Hs,-gc, tol=pcgTol, maxIter=pcgMaxIter, M=PC,out=0)[1:2];
 		His.timeLinSol[iter+1]+= toq()
 		push!(His.hisLinSol,hisLinSol)
-		
+
 
 		# scale step
-		if maximum(abs(delm)) > maxStep; delm = delm./maximum(abs(delm))*maxStep; end
+		if maximum(abs.(delm)) > maxStep; delm = delm./maximum(abs.(delm))*maxStep; end
 
 		delm = shrinkStep(mc,delm,low,high,out);
 

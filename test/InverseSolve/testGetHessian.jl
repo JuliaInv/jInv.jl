@@ -4,7 +4,7 @@ domain = [0.0 1.0 0.0 1.0]
 n      = [32,32]
 Minv   = getRegularMesh(domain,n)
 xc     = getCellCenteredGrid(Minv)
-xtrue = sin(2*pi*xc[:,1]).*sin(pi*xc[:,2])
+xtrue = sin.(2*pi*xc[:,1]).*sin.(pi*xc[:,2])
 
 # get noisy data
 A     = speye(Minv.nc)
@@ -40,11 +40,11 @@ Wd4          = Wd[i4]
 
 pMis =  getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 
-pMisRefs    = Array(RemoteChannel,2)
+pMisRefs    = Array{RemoteChannel}(2)
 pMisRefs[1] = initRemoteChannel(getMisfitParam,workers()[1],pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 pMisRefs[2] = initRemoteChannel(getMisfitParam,workers()[min(2,nworkers())],pFor2,Wd2,bd2,SSDFun,fMod,gl2)
 
-pForRefs = Array(RemoteChannel,4)
+pForRefs = Array{RemoteChannel}(4)
 pForRefs[1] = initRemoteChannel(LSparam,workers()[1],A[i3,:],[])
 pForRefs[2] = initRemoteChannel(LSparam,workers()[min(2,nworkers())],A[i4,:],[])
 pForRefs[3] = initRemoteChannel(LSparam,workers()[min(3,nworkers())],A[i3,:],[])

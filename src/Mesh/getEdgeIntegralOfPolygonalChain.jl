@@ -60,9 +60,9 @@ for ip = 1:np+1
   ax = px[ip]
   ay = py[ip]
   az = pz[ip]
-  ix = findlast((ax .>= x[1:nx-1]) & (ax .<= x[2:nx]))
-  iy = findlast((ay .>= y[1:ny-1]) & (ay .<= y[2:ny]))
-  iz = findlast((az .>= z[1:nz-1]) & (az .<= z[2:nz]))
+  ix = findlast((ax .>= x[1:nx-1]) .& (ax .<= x[2:nx]))
+  iy = findlast((ay .>= y[1:ny-1]) .& (ay .<= y[2:ny]))
+  iz = findlast((az .>= z[1:nz-1]) .& (az .<= z[2:nz]))
   if (ix < 1) | (iy < 1) | (iz < 1)
     msg = @sprintf("Polygon vertex (%d,%d,%d) is outside the mesh \n", ax, ay, az)
     error(msg)
@@ -88,19 +88,19 @@ for ip = 1:np
     tol = d * eps(Float64)
     if abs(dx) > tol
       tx = (x - ax) / dx
-      tx = tx[(tx .>=0) & (tx .<= 1)]
+      tx = tx[(tx .>=0) .& (tx .<= 1)]
     else
       tx = Float64[]
     end
     if abs(dy) > tol
       ty = (y - ay) / dy
-      ty = ty[(ty .>=0) & (ty .<= 1)]
+      ty = ty[(ty .>=0) .& (ty .<= 1)]
     else
       ty = Float64[]
     end
     if abs(dz) > tol
       tz = (z - az) / dz
-      tz = tz[(tz .>=0) & (tz .<= 1)]
+      tz = tz[(tz .>=0) .& (tz .<= 1)]
     else
       tz = Float64[]
     end
@@ -116,9 +116,9 @@ for ip = 1:np
         cz = az + tc[iq] * dz
 
         # locate cell id
-        ix = findlast((cx .>= x[1:nx-1]) & (cx .<= x[2:nx]))
-        iy = findlast((cy .>= y[1:ny-1]) & (cy .<= y[2:ny]))
-        iz = findlast((cz .>= z[1:nz-1]) & (cz .<= z[2:nz]))
+        ix = findlast((cx .>= x[1:nx-1]) .& (cx .<= x[2:nx]))
+        iy = findlast((cy .>= y[1:ny-1]) .& (cy .<= y[2:ny]))
+        iz = findlast((cz .>= z[1:nz-1]) .& (cz .<= z[2:nz]))
 
         # local coordinates
         hxloc = hx[ix]
@@ -172,7 +172,7 @@ if normalize
 	end
 
 	s /= a
-	
+
 end
 
 return s

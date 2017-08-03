@@ -4,7 +4,7 @@ domain = [0.0 1.0 0.0 1.0]
 n      = [16,16]
 Minv   = getRegularMesh(domain,n)
 xc     = getCellCenteredGrid(Minv)
-xtrue = sin(2*pi*xc[:,1]).*sin(pi*xc[:,2])
+xtrue = sin.(2*pi*xc[:,1]).*sin.(pi*xc[:,2])
 
 # get noisy data
 A     = speye(Minv.nc)
@@ -72,11 +72,13 @@ pInv.maxIter = 2
 pInv.alpha   = 100.
 nAlpha = 3
 alphaFac = 10.
+alphaMin = alpha/(alphaFac^nAlpha)
+alphaParam = [alpha;alphaMin;alphaFac;nAlpha]
 targetMisfit = 20.0
-x1,Dc,flag1,     = iteratedTikhonov(x0,pInv,pMis,nAlpha,alphaFac,targetMisfit)
+x1,Dc,flag1,     = iteratedTikhonov(x0,pInv,pMis,alphaParam,targetMisfit)
 pInv.alpha = 100.
 pInv.mref  = x0
-x2,Dc,flag2,hist = iteratedTikhonov(x0,pInv,pMisRefs,nAlpha,alphaFac,targetMisfit,solveGN=projGNexplicit)
+x2,Dc,flag2,hist = iteratedTikhonov(x0,pInv,pMisRefs,alphaParam,targetMisfit,solveGN=projGNexplicit)
 @test typeof(hist) <: Array{InverseSolve.GNhis}
 @test norm(x1-x2)/norm(x1) < 1e-12
 @test all(x1.>=boundsLow)

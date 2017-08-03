@@ -83,8 +83,8 @@ function computeGradMisfit(sigma,
 	end
 	workerList = unique(workerList)
 	# send sigma to all workers
-	sigmaRef = Array(Future,maximum(workers()))
-	dFiRef   = Array(RemoteChannel,maximum(workers()))
+	sigmaRef = Array{Future}(maximum(workers()))
+	dFiRef   = Array{RemoteChannel}(maximum(workers()))
 	dF = zeros(length(sigma))
 
 	commTime = 0.0
