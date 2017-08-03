@@ -31,7 +31,8 @@ include("regular.jl")
 include("interpmat.jl")
 include("display.jl")
 
-export getEdgeConstraints, getFaceConstraints
+export getNodalConstraints, getEdgeConstraints, getFaceConstraints
+getNodalConstraints(M::AbstractMesh) = (UniformScaling(1.0), UniformScaling(1.0), 1:prod(M.n+1))
 getEdgeConstraints(M::AbstractMesh) = (UniformScaling(1.0), UniformScaling(1.0), 1:sum(M.ne))
 getFaceConstraints(M::AbstractMesh) = (UniformScaling(1.0), UniformScaling(1.0))
 
