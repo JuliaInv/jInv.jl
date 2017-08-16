@@ -67,6 +67,7 @@ if hasPardiso
 		  set_iparm!(param.Ainv, 12, 0)
 		end
 		set_phase!(param.Ainv,33)
+		set_iparm!(param.Ainv, 27, 0) #Deactivate matrix checker
 		pardiso(param.Ainv,X,A,full(B))
 		param.solveTime+=toq()
 		param.nSolve+=1
@@ -94,7 +95,7 @@ if hasPardiso
 			end
 			return param,Apard
 	end
-			
+
 	function clear!(param::jInvPardisoSolver)
 		if param.Ainv==[]
 		        return

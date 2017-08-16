@@ -11,10 +11,10 @@ convert a local (or global) model to a global (or local) mesh so that
 
 Examples:
     P = prepareMesh2Mesh(Msmall, Mbig, true)
-    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'*modelInv
+    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'\*modelInv
 
     P = prepareMesh2Mesh(Msmall, Mbig, true)
-    modelInv =  interpGlobalToLocal(modelLoc,P) # uncompresses the indices and does P'*modelInv
+    modelInv =  interpGlobalToLocal(modelLoc,P) # uncompresses the indices and does P'\*modelInv
 
 Inputs:
     mLocal  - a model defined on the local (PDE) mesh
@@ -30,7 +30,7 @@ function interpLocalToGlobal(x::Vector{Float64}, P::AbstractFloat,y0::AbstractFl
 end
 
 function interpGlobalToLocal(x::Vector{Float64}, P::AbstractFloat,y0::AbstractFloat=0.0)
-	return P * x + y0 
+	return P * x + y0
 end
 
 
@@ -64,7 +64,7 @@ function interpGlobalToLocal(x::Vector{Float64}, P::SparseMatrixCSC)
 	if (eltype(P.nzval) == Int16) || (eltype(P.nzval) == Int8)
 		nzv = P.nzval
 		rv  = P.rowval
-		y   = zeros(P.n)  
+		y   = zeros(P.n)
 		@inbounds begin
 			for i = 1 : P.n
 				tmp = 0.0

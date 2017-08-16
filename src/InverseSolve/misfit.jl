@@ -62,10 +62,21 @@ end
 """
 function HuberFun(dc::Array{Float64},dobs::Array{Float64},Wd::Array{Float64},eps=1e-3)
 	# compute Huber distance
-	res   = dc-dobs
+	res   = vec(dc-dobs)
+	G     =
 	G     = sqrt.( abs.(Wd.*res).^2 .+ eps)
 	mis   = sum(G)
 	dmis  = sdiag(Wd./G)*(Wd.*res)
-	d2mis = (Wd.^Wd)./G
+	d2mis = (Wd.*Wd)./G
 	return mis,dmis,d2mis
 end
+# Old Huber fun
+# function HuberFun(dc::Array{Float64},dobs::Array{Float64},Wd::Array{Float64},eps=1e-3)
+# 	# compute Huber distance
+# 	res   = dc-dobs
+# 	G     = sqrt.( abs.(Wd.*res).^2 .+ eps)
+# 	mis   = sum(G)
+# 	dmis  = sdiag(Wd./G)*(Wd.*res)
+# 	d2mis = (Wd.^Wd)./G
+# 	return mis,dmis,d2mis
+# end

@@ -2,14 +2,14 @@ export JuliaSolver,getJuliaSolver,copySolver
 
 import Base.\
 function \{T1,T2}(A::Base.SparseArrays.UMFPACK.UmfpackLU{T1},R::SparseMatrixCSC{T2})
-	
+
 	n,nrhs = size(R)
-	X = zeros(promote_type(T1,T2),n,nrhs)	
+	X = zeros(promote_type(T1,T2),n,nrhs)
 	for k=1:nrhs
 		X[:,k] = A\full(vec(R[:,k]))
 	end
 	return X
-end 
+end
 
 """
 type jInv.LinearSolvers.JuliaSolver<: AbstractSolver
@@ -25,7 +25,7 @@ Fields:
 	solveTime    - cumnulative time for solves
 	nFac         - number of factorizations performed
 
-Example: 
+Example:
 
 	Ainv = getJuliaSolver()
 """
@@ -44,7 +44,7 @@ end
 
 """
 function jInv.LinearSolvers.getJuliaSolver
-	
+
 Constructor for JuliaSolver
 
 Optional Keyword Arguments
@@ -84,7 +84,7 @@ function solveLinearSystem!(A::SparseMatrixCSC,B,X,param::JuliaSolver,doTranspos
 			if param.sym!=0 && !isreal(A)
 				warn("jInv.JuliaSolver: using lufact for complex matrix")
 			end
-			
+
 		  param.Ainv = lufact(A)
 		end
 		param.facTime+=toq()
@@ -98,7 +98,7 @@ function solveLinearSystem!(A::SparseMatrixCSC,B,X,param::JuliaSolver,doTranspos
 
 	return U, param
 end # function solveLinearSystem
-			
+
 function clear!(param::JuliaSolver)
 	param.Ainv = [];
 	param.isTransposed = 0;
