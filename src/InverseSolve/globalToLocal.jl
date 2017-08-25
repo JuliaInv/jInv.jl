@@ -38,8 +38,7 @@ end # type GlobalToLocal
 # Constructors
 getGlobalToLocal(P) = GlobalToLocal(P,1e-8)
 getGlobalToLocal(P,sigBack::Vector{Float64}) = GlobalToLocal(P,sigBack)
-getGlobalToLocal(P,sigBack::Vector{Float64},fname) = GlobalToLocal(P,sigBack)
 
-function prepareGlobalToLocal(Mesh2Mesh,Iact,sigmaBackground,fname)
-	return getGlobalToLocal(Iact'*Mesh2Mesh,interpGlobalToLocal(sigmaBackground,Mesh2Mesh),fname)
+function prepareGlobalToLocal(Mesh2Mesh,Iact,sigmaBackground)
+	return getGlobalToLocal(Iact'*Mesh2Mesh,interpGlobalToLocal(sigmaBackground,Mesh2Mesh))
 end

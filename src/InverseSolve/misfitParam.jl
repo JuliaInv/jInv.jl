@@ -69,7 +69,7 @@ Input for a call:
 
 """
 
-function getMisfitParam(pFor::ForwardProbType, Wd, dobs, misfit::Function, modelfun::Function=identityMod, gloc=getGlobalToLocal(1.0))
+function getMisfitParam(pFor::ForwardProbType, Wd, dobs, misfit::Function, modelfun::Function=identityMod, gloc::GlobalToLocal=getGlobalToLocal(1.0))
     return MisfitParam(pFor,Wd,dobs,misfit,modelfun,gloc);
 end
 
