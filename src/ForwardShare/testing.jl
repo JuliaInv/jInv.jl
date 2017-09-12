@@ -43,16 +43,14 @@ Output:
 	err                 - absolute error
 """
 function adjointTest(sig,pFor::ForwardProbType;out::Bool=false,tol::Real=1e-10)
-    (m,n) = getSensMatSize(pFor)
-
-    v     = getRandomTestDirection(sig)
     
     (out) && println("calling forward problem")
     dobs, pFor = getData(sig,pFor)
     
     (out) && println("calling getSensMatVec")
+    v = getRandomTestDirection(sig)
     Jv = getSensMatVec(v,sig,pFor)
-    w  = getRandomTestDirection(Jv)
+    w = getRandomTestDirection(Jv)
     t1 = dot(w,Jv)
     (out) && println("t1 = $(t1)")
     
@@ -62,5 +60,5 @@ function adjointTest(sig,pFor::ForwardProbType;out::Bool=false,tol::Real=1e-10)
     (out) && println("t2 = $(t2)")
     
     err = abs(t1-t2)/abs(t1)
-    return err< tol,err    
+    return err < tol, err
 end

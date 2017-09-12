@@ -63,7 +63,6 @@ end
 function HuberFun(dc::Array{Float64},dobs::Array{Float64},Wd::Array{Float64},eps=1e-3)
 	# compute Huber distance
 	res   = vec(dc-dobs)
-	G     =
 	G     = sqrt.( abs.(Wd.*res).^2 .+ eps)
 	mis   = sum(G)
 	dmis  = sdiag(Wd./G)*(Wd.*res)
