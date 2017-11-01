@@ -61,7 +61,8 @@ mutable struct InverseParam
     pcgTol::Real
     minUpdate::Real
     maxIter::Int
-    HesPrec
+    HesPrec::HessianPreconditioner
+    metaData::Dict
 end
 
 function Base.display(pInv::InverseParam)
@@ -101,15 +102,23 @@ Optional Inputs:
     minUpdate::Real=1e-4  - stopping criteria
     maxIter::Int=10       - maximum number of iterations
 """
-function getInverseParam(MInv,modFun,
-                         regularizer,alpha,mref,
-                         boundsLow::Vector,boundsHigh::Vector; maxStep=1.0,pcgMaxIter=10,pcgTol=1e-1,
-                         minUpdate=1e-4,maxIter=10,HesPrec=getSSORRegularizationPreconditioner(1.0,1e-15,10))
+function getInverseParam(MInv::AbstractMesh,
+                         modFun::Function,
+                         regularizer::Union{Function,Array{Function}},
+                         alpha::Union{Float64,Array{Float64}},
+                         mref::Array,
+                         boundsLow::Vector,
+                         boundsHigh::Vector; 
+                         maxStep::Real=1.0,
+                         pcgMaxIter::Int=10,
+                         pcgTol::Real=1e-1,
+                         minUpdate::Real=1e-4,
+                         maxIter::Int=10,
+                         HesPrec::HessianPreconditioner=getSSORRegularizationPreconditioner(1.0,1e-15,10),
+                         metaData::Dict=Dict())
 
-    return     InverseParam(MInv,modFun,
-                         regularizer,alpha,mref,
-                         boundsLow,boundsHigh,
-                         maxStep,pcgMaxIter,pcgTol,minUpdate,maxIter,HesPrec)
+    return InverseParam(MInv, modFun, regularizer, alpha, mref, boundsLow, boundsHigh, maxStep, 
+                        pcgMaxIter, pcgTol, minUpdate, maxIter, HesPrec, metaData)
 end
 
 
