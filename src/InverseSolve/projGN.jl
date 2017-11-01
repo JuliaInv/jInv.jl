@@ -87,7 +87,7 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 		Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sig,pMis,true,indCredit)
 	end
 	dF = dsig'*dF
-
+	dumpResults(mc,Dc,0,pInv,pMis) # dump initial model and dpred0
 
 	# compute regularizer
 	tic()
