@@ -37,6 +37,7 @@ Fields:
     minUpdate::Real       - stopping criteria
     maxIter::Int          - maximum number of iterations
     HesPrec               - preconditioner for the Hessian.
+    metaData::Dict        - Optional dictonary for storeing additional information
 Constructor:
     getInverseParam
 
