@@ -6,7 +6,7 @@ mref = copy(m);
 # mref[:,:,1:end-17] = getSimilarLinearModel(m[:,:,1:end-17],1.75,2.8);
 mref = getSimilarLinearModel(m,1.75,2.9);
 
-sea = abs(m[:] .- minimum(m)) .< 5e-2;
+sea = abs.(m[:] .- minimum(m)) .< 5e-2;
 mref[sea] = m[sea];
 if newSize!=[]
 	m    = expandModelNearest(m,   collect(size(m)),newSize);

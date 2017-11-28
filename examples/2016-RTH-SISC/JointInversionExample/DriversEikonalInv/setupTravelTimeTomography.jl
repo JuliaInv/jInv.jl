@@ -33,8 +33,8 @@ EikMPIWorkers = nworkers(); # this just set the maximal MPI workers. To activate
 
 misfun = SSDFun
 
-Wd 		= Array(Array{Float64},length(pFor));
-dobs 	= Array(Array{Float64},length(pFor));
+Wd 		= Array{Array{Float64}}(length(pFor));
+dobs 	= Array{Array{Float64}}(length(pFor));
 for i=1:length(pFor)
 	I_i = SourcesSubInd[i];
 	Wd[i]   = 0.5*WdEik[:,I_i];

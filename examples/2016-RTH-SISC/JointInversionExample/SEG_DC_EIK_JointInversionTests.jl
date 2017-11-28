@@ -6,11 +6,12 @@ using jInv.Mesh
 using jInv.LinearSolvers
 using jInv.ForwardShare
 using jInv.Utils
-using jInvVis
+
 using EikonalInv
 
-plotting = true;
+plotting = false;
 if plotting
+	using jInvVis
 	using PyPlot
 end
 
@@ -81,7 +82,9 @@ function dumpResults(mc,Dc,iter,pInv,pMis)
 		clf();
 	end
 	file = string(filenamePrefix,Minv.n,iter,".dat");
-	plotModel(mDc,false,[],0,[minimum(boundsLow),maximum(boundsHigh)],file);
+	if plotting 
+		plotModel(mDc,false,[],0,[minimum(boundsLow),maximum(boundsHigh)],file);
+	end
 	writedlm(file,convert(Array{Float16},mDc[:]));
 end
 dumpResults(mref,[],"ref",[],[]);
@@ -121,15 +124,15 @@ if invertDC
 		set_num_threads(nworkers());
 	end
 	pFor,Sources,Receivers,Wd,dobsDC,dobs0 = setupDivSigGrad(redoSetup,redoData,Mfwd,Ainv,Mesh2Mesh,sigtrue,sigref);
-	Wt   = 1./(mean(abs(vec(dobsDC)))/2+abs(dobsDC));
-	dobsDC += 0.01*randn(size(dobsDC))*mean(abs(vec(dobsDC)))
-	println("adding noise of magnitude: ",0.01*randn()*mean(abs(vec(dobsDC))), " Compared to ",mean(abs(vec(dobsDC))));
+	Wt   = 1./(mean(abs.(vec(dobsDC)))/2+abs.(dobsDC));
+	dobsDC += 0.01*randn(size(dobsDC))*mean(abs.(vec(dobsDC)))
+	println("adding noise of magnitude: ",0.01*randn()*mean(abs.(vec(dobsDC))), " Compared to ",mean(abs.(vec(dobsDC))));
 	gloc = GlobalToLocal(Iact'*Mesh2Mesh,Mesh2Mesh'*sigback);
 		
 	
 	if invertJoint
 		worker = workers()[1];
-		pMis = remotecall_wait(worker,getMisfitParam,pFor,Wt,dobsDC,SSDFun,modfunDC,gloc);
+		pMis = initRemoteChannel(getMisfitParam,worker, pFor,Wt,dobsDC,SSDFun,modfunDC,gloc);
 		pMis = [pMis];
 		modfun = identityMod;
 	elseif invertDC
@@ -149,7 +152,7 @@ end
 ###########################################################################################################################
 
 if invertEik
-	jump 	= 10;
+	jump 	= 10; 
 	offset 	= 128;
 	pad 	= 2;
 	

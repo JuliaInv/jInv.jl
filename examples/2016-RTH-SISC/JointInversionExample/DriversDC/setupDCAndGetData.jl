@@ -30,7 +30,7 @@ println("number of sources $nsrc")
 
 println("------- generate or load data ----------")
 # if worker == 0
-	pFor = DivSigGradParam(Mfwd,Sources,Receivers,[],Ainv);
+	pFor = DivSigGradParam(Mfwd,Sources,Receivers,[],spzeros(0,0),Ainv);
 # else
 	# pFor = remotecall(worker,DivSigGradParam,Mfwd,Sources,Receivers,[],Ainv);
 	# pFor = [pFor]

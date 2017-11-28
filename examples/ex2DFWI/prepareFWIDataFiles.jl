@@ -99,13 +99,13 @@ nrcv = size(P,2);
 
 for k = 1:length(omega)
 	I = contDiv[k] : contDiv[k+1] - 1 
-	Dobsk = Array(Array{Complex128,2},length(I));
+	Dobsk = Array{Array{Complex128,2}}(length(I));
 	for i = 1:length(I)
 		Dobsk[i] = fetch(D[I[i]]);
 	end
 	Dobsk = arrangeRemoteCallDataIntoLocalData(Dobsk);
 	omRound = string(round((omega[k]/(2*pi))*100.0)/100.0);
-	Wd_k = (1./(abs(real(Dobsk))+0.1*mean(abs(Dobsk)))) + 1im*(1./(abs(imag(Dobsk))+0.1*mean(abs(Dobsk))));
+	Wd_k = (1./(abs.(real(Dobsk))+0.1*mean(abs.(Dobsk)))) + 1im*(1./(abs.(imag(Dobsk))+0.1*mean(abs.(Dobsk))));
 	# Wd_k = (1./(0.0*abs(real(Dobsk))+1.0*mean(abs(Dobsk)))) + 1im*(1./(0.0*abs(imag(Dobsk))+1.0*mean(abs(Dobsk))));
 	Wd_k = limitDataToOffset(Wd_k,srcNodeMap,rcvNodeMap,offset);
 	filename = string(dataFullFilenamePrefix,omRound,".dat");
