@@ -8,10 +8,8 @@ using jInv.LinearSolvers
 
 import jInv.ForwardShare.ForwardProbType
 
-export getName,AbstractModel, AbstractMisfit
+export getName, AbstractMisfit
 
-# abstract type AbstractModel end # This is also defined in globalToLocal.jl
-                                   # and not used anywhere else
 abstract type AbstractMisfit end
 
 include("HessianPreconditioners.jl")

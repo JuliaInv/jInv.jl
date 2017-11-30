@@ -1,8 +1,11 @@
 export GlobalToLocal, getGlobalToLocal
 export interpLocalToGlobal, interpGlobalToLocal
 export prepareGlobalToLocal
+export AbstractModel,AbstractModelDerivative,AbstractModelTransform
 
 abstract type AbstractModel end
+abstract type AbstractModelDerivative end
+abstract type AbstractModelTransform end
 
 """
 type jInv.InverseSolve.GlobalToLocal
@@ -30,9 +33,9 @@ Example:
 	# this call is equivalent, but needed in case the Mesh2Mesh matrix is compressed
 	sigLocalFast = interpGlobalToLocal(sigGlobal,gloc.PForInv,gloc.sigmaBack)
 """
-type GlobalToLocal <: AbstractModel
-	PForInv::Union{SparseMatrixCSC,AbstractFloat} # interpolation matrix from fwd mesh to inv mesh
-	sigmaBackground::Union{Vector{Float64},AbstractFloat} #  (# of cells fwd mesh)
+struct GlobalToLocal
+	PForInv::Union{SparseMatrixCSC,AbstractFloat,AbstractModelTransform} # interpolation matrix from fwd mesh to inv mesh
+	sigmaBackground::Union{Vector{Float64},AbstractFloat,AbstractModel} #  (# of cells fwd mesh)
 end # type GlobalToLocal
 
 # Constructors
