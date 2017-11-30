@@ -2,7 +2,7 @@ using  jInv.Mesh
 using  jInv.Utils
 using  jInv.LinearSolvers
 using  jInv.InverseSolve
-using  jInv.Vis
+using  jInvVis
 using  EikonalInv
 using  MAT
 using  FWI
@@ -17,55 +17,55 @@ using  PyPlot
 ####################################################################################################################################
 ####################################################################################################################################
 
-# include("ex2DFWI/readModelAndGenerateMeshMref.jl");
-# include("ex2DFWI/prepareFWIDataFiles.jl");
+include("ex2DFWI/readModelAndGenerateMeshMref.jl");
+include("ex2DFWI/prepareFWIDataFiles.jl");
 
-# m = readdlm("model/SEGmodel2Dsalt.dat");
-# m = m*1e-3;
-# m = m';
+m = readdlm("model/SEGmodel2Dsalt.dat");
+m = m*1e-3;
+m = m';
 
-# newSize          = [256,128];
-# pad     	     = 10;
-# ABLPad 		     = pad + 8;
-# jumpSrc 	 	 = 5
-# maxBatchSize     = 256;
-# omega   	     = [0.5,0.75,1.25,1.75]*2*pi;
+newSize          = [256,128];
+pad     	     = 10;
+ABLPad 		     = pad + 8;
+jumpSrc 	 	 = 5
+maxBatchSize     = 256;
+omega   	     = [0.5,0.75,1.25,1.75]*2*pi;
 
-# offset  = ceil(Int64,(newSize[1]*(10.0/13.5)));
-# println("Offset is: ",offset)
-# domain = [0.0,13.5,0.0,4.2];
+offset  = ceil(Int64,(newSize[1]*(10.0/13.5)));
+println("Offset is: ",offset)
+domain = [0.0,13.5,0.0,4.2];
 
-# (m,Minv,mref,boundsHigh,boundsLow) = readModelAndGenerateMeshMref(m,pad,newSize,domain);
-
-# # if plotting
-	# # limits = [1.5,4.5];
-	# # figure(1,figsize = (22,10))
-	# # plotModel(m,true,Minv,pad,limits);
-	# # figure(2,figsize = (22,10))# ,figsize = (22,10)
-	# # plotModel(mref,true,Minv,pad,limits);
-# # end
-
-# useFilesForFields = false;
-
-# # ###################################################################################################################
-# dataFilenamePrefix = "ex2DFWI/DATA_SEG2D";
-
-# #######################################################################################################################
+(m,Minv,mref,boundsHigh,boundsLow) = readModelAndGenerateMeshMref(m,pad,newSize,domain);
 
 
-# ######################## DIRECT SOLVER #################################################
-# numCores 	= 4;
-# BLAS.set_num_threads(numCores);
-# Ainv = getMUMPSsolver([],0,0,2); # Alternatives: Ainv = getJuliaSolver(); 
+	limits = [1.5,4.5];
+	figure(1,figsize = (22,10))
+	plotModel(m,true,Minv,pad,limits);
+	figure(2,figsize = (22,10))# ,figsize = (22,10)
+	plotModel(mref,true,Minv,pad,limits);
 
-# ##########################################################################################
 
-# println("omega*maximum(h): ",omega*maximum(Minv.h)*sqrt(maximum(1./(boundsLow.^2))));
+useFilesForFields = false;
 
-# # This is a list of workers for FWI. Ideally they should be on different machines.
-# workersFWI = [1];
-# prepareFWIDataFiles(m,Minv,mref,boundsHigh,boundsLow,dataFilenamePrefix,omega,one(Complex128)*ones(size(omega)), pad,ABLPad,jumpSrc,
-					# offset,workersFWI,maxBatchSize,Ainv,useFilesForFields);
+# ###################################################################################################################
+dataFilenamePrefix = "ex2DFWI/DATA_SEG2D";
+
+#######################################################################################################################
+
+
+######################## DIRECT SOLVER #################################################
+numCores 	= 4;
+BLAS.set_num_threads(numCores);
+Ainv = getMUMPSsolver([],0,0,2); # Alternatives: Ainv = getJuliaSolver(); 
+
+##########################################################################################
+
+println("omega*maximum(h): ",omega*maximum(Minv.h)*sqrt(maximum(1./(boundsLow.^2))));
+
+# This is a list of workers for FWI. Ideally they should be on different machines.
+workersFWI = [workers()[1]];
+prepareFWIDataFiles(m,Minv,mref,boundsHigh,boundsLow,dataFilenamePrefix,omega,one(Complex128)*ones(size(omega)), pad,ABLPad,jumpSrc,
+					offset,workersFWI,maxBatchSize,Ainv,useFilesForFields);
 		
 ####################################################################################################################################
 ####################################################################################################################################
@@ -102,8 +102,8 @@ P = generateSrcRcvProjOperators(Minv.n+1,rcvNodeMap);
 
 
 ### Read the data files to an array of array pointers
-Wd   = Array(Array{Complex128,2},length(omega))
-dobs = Array(Array{Complex128,2},length(omega))
+Wd   = Array{Array{Complex128,2}}(length(omega))
+dobs = Array{Array{Complex128,2}}(length(omega))
 for k = 1:length(omega)
 	omRound = string(round((omega[k]/(2*pi))*100.0)/100.0);
 	(DobsFWIwk,WdFWIwk) =  readDataFileToDataMat(string(dataFilenamePrefix,"_freq",omRound,".dat"),srcNodeMap,rcvNodeMap);
@@ -124,8 +124,8 @@ mback   = zeros(Float64,N);
 
 batch = size(Q,2);         # We solve all the sources at once.
 useFilesForFields = false; # a flag whether to store the fields on the disk.			
-## Set up a MUMPS direct solver 
-Ainv = getMUMPSsolver([],0,0,2); # Alternatives: Ainv = getJuliaSolver(); 
+## Set up a MUMPS direct solver #Ainv = getMUMPSsolver([],0,0,2); #
+Ainv = getJuliaSolver(); 
 ## Choose the workers for FWI (here, its a single worker)
 workersFWI = [1];
 ## Set up workers and division to tasks per frequencies ######################

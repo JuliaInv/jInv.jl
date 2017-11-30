@@ -46,7 +46,7 @@ Iact = speye(N);
 mback   = zeros(Float64,N);
 ## Setting the sea constant:
 mask = zeros(N);
-mask[abs(m[:] .- minimum(m)) .< 1e-2] = 1.0;
+mask[abs.(m[:] .- minimum(m)) .< 1e-2] = 1.0;
 mask[gamma[:] .>= 0.95*maximum(gamma)] = 1.0;
 # setup active cells
 mback = vec(mref[:].*mask);
@@ -69,8 +69,8 @@ batch = min(size(Q,2),maxBatchSize);
 (pForFWI,contDivFWI,SourcesSubIndFWI) = getFWIparam(omega,waveCoef,vec(gamma),Q,P,Minv,Ainv,workersFWI,batch,useFilesForFields);
 
 # write data to remote workers
-Wd   = Array(Array{Complex128,2},length(pForFWI))
-dobs = Array(Array{Complex128,2},length(pForFWI))
+Wd   = Array{Array{Complex128,2}}(length(pForFWI))
+dobs = Array{Array{Complex128,2}}(length(pForFWI))
 for k = 1:length(omega)
 	omRound = string(round((omega[k]/(2*pi))*100.0)/100.0);
 	(DobsFWIwk,WdFWIwk) =  readDataFileToDataMat(string(filenamePrefix,"_freq",omRound,".dat"),srcNodeMap,rcvNodeMap);
