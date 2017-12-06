@@ -1,5 +1,8 @@
 export MisfitParam,getMisfitParam
 
+const ArrayUnionLocRemote = Union{Array{RemoteChannel},Array{Future},Array{Float64}}
+const UnionLocRemote      = Union{RemoteChannel,Future,AbstractFloat}
+
 """
 type jInv.InverseSolve.MisfitParam
 
@@ -75,7 +78,7 @@ end
 
 function getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, misfit::Function,
                             Iact,sigmaBack::Vector,
-                            Mesh2MeshRFs::Union{Array{RemoteChannel},Array{Future},Array{Float64}}=ones(length(pForRFs)),
+                            Mesh2MeshRFs::ArrayUnionLocRemote=ones(length(pForRFs)),
                             modelfun::Function=identityMod,fname="")
     pMis                = Array{RemoteChannel}(length(pForRFs));
     # the next references are for not to broadcast Iact and sigmaBackground
@@ -101,7 +104,7 @@ end
 
 function getMisfitParam(pForRF::RemoteChannel, Wd, dobs, misfit::Function,
                             Iact::Future,sigmaBack::Future,
-                            Mesh2MeshRF::Union{RemoteChannel,Future,AbstractFloat} = 1.0,
+                            Mesh2MeshRF::UnionLocRemote = 1.0,
                             modelfun::Function=identityMod,fname="")
     # Single worker version of getMisfitParam.
     worker = pForRF.where;

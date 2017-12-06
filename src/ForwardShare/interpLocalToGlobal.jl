@@ -33,8 +33,17 @@ function interpGlobalToLocal(x::Vector{Float64}, P::AbstractFloat,y0::AbstractFl
 	return P * x + y0
 end
 
+function interpGlobalToLocal(x,P)
+    return P'*x
+end
 
+function interpGlobalToLocal(x,P,y0)
+    return P'*x + y0
+end
 
+function interpLocalToGlobal(x,P)
+    return P*x
+end
 
 function interpLocalToGlobal(x::Vector{Float64}, P::SparseMatrixCSC)
 
