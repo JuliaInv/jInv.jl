@@ -1,11 +1,6 @@
 export GlobalToLocal, getGlobalToLocal
 export interpLocalToGlobal, interpGlobalToLocal
 export prepareGlobalToLocal
-export AbstractModel,AbstractModelDerivative,AbstractModelTransform
-
-abstract type AbstractModel end
-abstract type AbstractModelDerivative end
-abstract type AbstractModelTransform end
 
 """
 type jInv.InverseSolve.GlobalToLocal
@@ -40,8 +35,8 @@ end # type GlobalToLocal
 
 # Constructors
 getGlobalToLocal(P) = GlobalToLocal(P,1e-8)
-getGlobalToLocal(P,sigBack::Vector{Float64}) = GlobalToLocal(P,sigBack)
-getGlobalToLocal(P,sigBack::Vector{Float64},fname) = GlobalToLocal(P,sigBack)
+getGlobalToLocal(P,sigBack) = GlobalToLocal(P,sigBack)
+getGlobalToLocal(P,sigBack,fname) = GlobalToLocal(P,sigBack)
 
 function prepareGlobalToLocal(Mesh2Mesh,Iact,sigmaBackground,fname)
 	return getGlobalToLocal(Iact'*Mesh2Mesh,interpGlobalToLocal(sigmaBackground,Mesh2Mesh),fname)
