@@ -8,11 +8,15 @@ using jInv.LinearSolvers
 
 import jInv.ForwardShare.ForwardProbType
 
-export getName,AbstractModel, AbstractMisfit
+export getName, AbstractMisfit
 
-# abstract type AbstractModel end # This is also defined in globalToLocal.jl
-                                   # and not used anywhere else
 abstract type AbstractMisfit end
+
+export AbstractModel,AbstractModelDerivative,AbstractModelTransform
+
+abstract type AbstractModel end
+abstract type AbstractModelDerivative end
+abstract type AbstractModelTransform end
 
 include("HessianPreconditioners.jl")
 
@@ -109,7 +113,7 @@ function getInverseParam(MInv::AbstractMesh,
                          alpha::Union{Float64,Array{Float64}},
                          mref::Array,
                          boundsLow::Vector,
-                         boundsHigh::Vector; 
+                         boundsHigh::Vector;
                          maxStep::Real=1.0,
                          pcgMaxIter::Int=10,
                          pcgTol::Real=1e-1,
@@ -118,7 +122,7 @@ function getInverseParam(MInv::AbstractMesh,
                          HesPrec::HessianPreconditioner=getSSORRegularizationPreconditioner(1.0,1e-15,10),
                          metaData::Dict=Dict())
 
-    return InverseParam(MInv, modFun, regularizer, alpha, mref, boundsLow, boundsHigh, maxStep, 
+    return InverseParam(MInv, modFun, regularizer, alpha, mref, boundsLow, boundsHigh, maxStep,
                         pcgMaxIter, pcgTol, minUpdate, maxIter, HesPrec, metaData)
 end
 
