@@ -77,7 +77,7 @@ function getMisfitParam(pFor::ForwardProbType, Wd, dobs, misfit::Function, model
 end
 
 function getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, misfit::Function,
-                            Iact,sigmaBack::Union{Vector,AbstractModel},
+                            Iact,sigmaBack::Union{Vector,AbstractFloat,AbstractModel},
                             Mesh2MeshRFs::ArrayUnionLocRemote=ones(length(pForRFs)),
                             modelfun::Function=identityMod,fname="")
     pMis                = Array{RemoteChannel}(length(pForRFs));

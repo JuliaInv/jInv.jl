@@ -12,7 +12,7 @@ HessMatVec has different methods to make this efficient in the respective
 cases. Type methods(HessMatVec) for a list.
 
 """
-function HessMatVec(d2F::Array{Float64,1}, x::Array{Float64,1})
+function HessMatVec(d2F::Union{Array{Float64,1},Array{Float32,1}}, x::Union{Array{Float64,1},Array{Float32,1}})
 #=
    Hessian is real diagonal and represented as vector
 =#
