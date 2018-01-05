@@ -27,7 +27,7 @@ function projPCG(H::Function,gc::Vector,Active::BitArray,Precond::Function,cgTol
     return zeros(eltype(gc),length(gc)),his[1,:]
   end
 
-	delm       = zeros(size(gc))
+	delm       = zeros(eltype(gc),size(gc))
 	cgiter     = 0
 	resid      = - .!Active.*gc
 	normResid0 = norm(resid)
