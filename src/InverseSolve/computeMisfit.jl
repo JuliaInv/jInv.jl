@@ -130,7 +130,7 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 				sigRef[p] = remotecall(identity,p,sigma)   # send conductivity to workers
 				dFiRef[p] = initRemoteChannel(zeros,p,length(sigma)) # get remote Ref to part of gradient
 				# solve forward problems
-				for idx=1:length(pMisRefs)
+				for idx in indCredit
 					if pMisRefs[idx].where==p
 						Dc[idx],Fi,d2F[idx],tt = remotecall_fetch(computeMisfit,p,sigRef[p],pMisRefs[idx],dFiRef[p],doDerivative)
 						updateRes(Fi,idx)
