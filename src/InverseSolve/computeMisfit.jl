@@ -56,7 +56,7 @@ function computeMisfit(sig,
 end
 
 
-function computeMisfit(sigmaRef::Future,
+function computeMisfit(sigmaRef::RemoteChannel,
                         pMisRef::RemoteChannel,
 				      dFRef::RemoteChannel,
                   doDerivative,doClear::Bool=false)
@@ -117,7 +117,7 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
         push!(workerList,pMisRefs[k].where)
     end
     workerList = unique(workerList)
-    sigRef = Array{Future}(maximum(workers()))
+    sigRef = Array{RemoteChannel}(maximum(workers()))
 	dFiRef = Array{RemoteChannel}(maximum(workers()))
 
 	times = zeros(4);
@@ -127,7 +127,7 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 		for p=workerList
 			@async begin
 				# communicate model and allocate RemoteRef for gradient
-				sigRef[p] = remotecall(identity,p,sigma)   # send conductivity to workers
+				sigRef[p] = initRemoteChannel(identity,p,sigma)   # send conductivity to workers
 				dFiRef[p] = initRemoteChannel(zeros,p,length(sigma)) # get remote Ref to part of gradient
 				# solve forward problems
 				for idx=1:length(pMisRefs)

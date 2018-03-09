@@ -110,6 +110,7 @@ function getMisfitParam(pForRF::RemoteChannel, Wd, dobs, misfit::Function,
     worker = pForRF.where;
     if !isa(Mesh2MeshRF,AbstractFloat)
         Mesh2Mesh     = fetch(Mesh2MeshRF);
+        finalize(Mesh2MeshRF)  # to prevent memory leak
         if worker!=Mesh2MeshRF.where
             error("getMisfitParam::Mesh2Mesh and pFor not on the same worker");
         end

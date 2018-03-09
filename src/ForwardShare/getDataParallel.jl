@@ -22,7 +22,7 @@ Output:
 """
 Mesh2MeshTypes = Union{RemoteChannel, Future, SparseMatrixCSC, AbstractFloat}
 
-function getData(sigma::Union{Future, Vector},
+function getData(sigma::Union{RemoteChannel, Vector},
                  pFor::ForwardProbType,
                  Mesh2Mesh::Mesh2MeshTypes,
                  doClear::Bool=false)
@@ -35,7 +35,7 @@ function getData(sigma::Union{Future, Vector},
     return Dobs,pFor
 end
 
-function getData(sigma::Union{Future, Vector},
+function getData(sigma::Union{RemoteChannel, Vector},
                  pFor::RemoteChannel,
                  Mesh2Mesh::Mesh2MeshTypes,
                  doClear::Bool=false)
@@ -89,11 +89,11 @@ function getData{T<:Mesh2MeshTypes}(
 
     Dobs = Array{Future}(length(pFor))
     workerList = getWorkerIds(pFor)
-    sigmaRef = Array{Future}(maximum(workers()))
+    sigmaRef = Array{RemoteChannel}(maximum(workers()))
     @sync begin
         for p=workerList
             @async begin
-                sigmaRef[p] = remotecall(identity,p,sigma)  # send model to worker
+                sigmaRef[p] = initRemoteChannel(identity,p,sigma)  # send model to worker
                 for idx=1:length(pFor)
                     if p==pFor[idx].where
                         Dobs[idx],pFor[idx] = remotecall_fetch(getData,p,sigmaRef[p],pFor[idx],Mesh2Mesh[idx],doClear)
