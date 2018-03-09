@@ -44,6 +44,10 @@ function computeGradMisfit(sigmaRef::Future,
 	pMis  = take!(pMisRef) # this is a no-op if pFor is stored on this worker
 	sigma = fetch(sigmaRef)
 	Dc    = fetch(DcRef)
+
+   finalize(sigmaRef)  # to prevent memory leak
+   finalize(DcRef)  # to prevent memory leak
+
 	commTime = toq()
 
 	tic()

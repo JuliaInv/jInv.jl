@@ -95,6 +95,10 @@ function HessMatVec(xRef::Future,
     tic()
     x     = fetch(xRef)
     sigma = fetch(sigmaRef)
+    
+    finalize(xRef)  # to prevent memory leak
+    finalize(sigmaRef)  # to prevent memory leak
+    
     pMis  = take!(pMisRef)
     d2F   = fetch(d2FRef)
     commTime = toq()

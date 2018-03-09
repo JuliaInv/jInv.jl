@@ -74,6 +74,8 @@ function computeMisfit(sigmaRef::Future,
     sigma = fetch(sigmaRef)
     pMis  = take!(pMisRef)
 
+    finalize(sigmaRef)  # to prevent memory leak
+
     Dc,F,dFi,d2F,pMis,times = computeMisfit(sigma,pMis,doDerivative,doClear)
 
     put!(pMisRef,pMis)

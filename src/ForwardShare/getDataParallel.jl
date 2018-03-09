@@ -30,6 +30,7 @@ function getData(sigma::Union{Future, Vector},
     computations on one worker
 =#
     sig = interpGlobalToLocal(fetch(sigma),fetch(Mesh2Mesh))
+    finalize(sigma)
     dobs,pFor   = getData(sig,pFor,doClear)
     Dobs  = remotecall(identity,myid(),dobs)
     return Dobs,pFor
