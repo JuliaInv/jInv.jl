@@ -22,7 +22,7 @@ function computeGradMisfit(sig,Dc::Array,pMis::MisfitParam)
 	end
 end
 
-function computeGradMisfit(sigmaRef::Future,
+function computeGradMisfit(sigmaRef::RemoteChannel,
                            DcRef::Future,
                            pMisRef::RemoteChannel,
                            dFiRef::RemoteChannel)
@@ -45,7 +45,6 @@ function computeGradMisfit(sigmaRef::Future,
 	sigma = fetch(sigmaRef)
 	Dc    = fetch(DcRef)
 
-   finalize(sigmaRef)  # to prevent memory leak
    finalize(DcRef)  # to prevent memory leak
 
 	commTime = toq()
@@ -87,7 +86,7 @@ function computeGradMisfit(sigma,
 	end
 	workerList = unique(workerList)
 	# send sigma to all workers
-	sigmaRef = Array{Future}(maximum(workers()))
+	sigmaRef = Array{RemoteChannel}(maximum(workers()))
 	dFiRef   = Array{RemoteChannel}(maximum(workers()))
 	dF = zeros(length(sigma))
 
@@ -103,7 +102,7 @@ function computeGradMisfit(sigma,
 				@async begin
 					# send model to worker and get a remote ref
 					tic()
-						sigmaRef[p] = remotecall(identity,p,sigma)   # send sigma to workers
+						sigmaRef[p] = initRemoteChannel(identity,p,sigma)   # send sigma to workers
 						  dFiRef[p] = initRemoteChannel(identity,p,zeros(length(sigma))) # get remote Ref to part of gradient
 					c1 = toq()
 					updateTimes(c1,0.0)
