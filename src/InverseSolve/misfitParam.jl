@@ -77,7 +77,7 @@ function getMisfitParam(pFor::ForwardProbType, Wd, dobs, misfit::Function, model
 end
 
 function getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, misfit::Function,
-                            Iact,sigmaBack::Vector,
+                            Iact,sigmaBack::Union{Vector,AbstractFloat,AbstractModel},
                             Mesh2MeshRFs::ArrayUnionLocRemote=ones(length(pForRFs)),
                             modelfun::Function=identityMod,fname="")
     pMis                = Array{RemoteChannel}(length(pForRFs));
@@ -110,6 +110,7 @@ function getMisfitParam(pForRF::RemoteChannel, Wd, dobs, misfit::Function,
     worker = pForRF.where;
     if !isa(Mesh2MeshRF,AbstractFloat)
         Mesh2Mesh     = fetch(Mesh2MeshRF);
+        finalize(Mesh2MeshRF)  # to prevent memory leak
         if worker!=Mesh2MeshRF.where
             error("getMisfitParam::Mesh2Mesh and pFor not on the same worker");
         end

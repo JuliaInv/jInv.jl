@@ -21,12 +21,12 @@ end
 	sigma(m) = f(m) and dsigma(m) = sdiag(df(m))
 
 """
-function fMod(m;f::Function=identity,df::Function=m->ones(length(m)))
+function fMod(m;f::Function=identity,df::Function=m->ones(eltype(m),length(m)))
 	return f(m),sdiag(df(m))
 end
 
 function identityMod(m)
-	return m, UniformScaling(1.0)
+	return m, UniformScaling(one(eltype(m)))
 end
 
 

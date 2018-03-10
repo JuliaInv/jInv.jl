@@ -12,7 +12,7 @@ HessMatVec has different methods to make this efficient in the respective
 cases. Type methods(HessMatVec) for a list.
 
 """
-function HessMatVec(d2F::Array{Float64,1}, x::Array{Float64,1})
+function HessMatVec(d2F::Union{Array{Float64,1},Array{Float32,1}}, x::Union{Array{Float64,1},Array{Float32,1}})
 #=
    Hessian is real diagonal and represented as vector
 =#
@@ -77,9 +77,9 @@ function HessMatVec(x,
 end
 
 
-function HessMatVec(xRef::Future,
+function HessMatVec(xRef::RemoteChannel,
                     pMisRef::RemoteChannel,
-                    sigmaRef::Future,
+                    sigmaRef::RemoteChannel,
                     d2FRef::Future,
                     mvRef::RemoteChannel)
 #=
@@ -95,6 +95,7 @@ function HessMatVec(xRef::Future,
     tic()
     x     = fetch(xRef)
     sigma = fetch(sigmaRef)
+
     pMis  = take!(pMisRef)
     d2F   = fetch(d2FRef)
     commTime = toq()
@@ -128,8 +129,8 @@ function HessMatVec(x,
     # find out which workers are involved
     workerList = getWorkerIds(pMisRefs)
 
-    sigmaRef = Array{Future}(maximum(workers()))
-    yRef = Array{Future}(maximum(workers()))
+    sigmaRef = Array{RemoteChannel}(maximum(workers()))
+    yRef = Array{RemoteChannel}(maximum(workers()))
     zRef = Array{RemoteChannel}(maximum(workers()))
     z = zeros(length(x))
     commTime = 0.0
@@ -147,8 +148,8 @@ function HessMatVec(x,
             @async begin
                 # send model and vector to worker
                 tic()
-                sigmaRef[p] = remotecall(identity,p,sigma)
-                yRef[p]     = remotecall(identity,p,x)
+                sigmaRef[p] = initRemoteChannel(identity,p,sigma)
+                yRef[p]     = initRemoteChannel(identity,p,x)
                 zRef[p]     = initRemoteChannel(identity,p,zeros(length(x)))
                 c1 = toq()
                 updateTimes(c1,0.0)

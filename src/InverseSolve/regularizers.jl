@@ -374,3 +374,12 @@ function logBarrierSquared(m::Vector,z::Vector,M::AbstractMesh, low::Vector, hig
 	d2g = dr.^2;
 	return g,dg,sdiag(d2g);
 end
+
+export TikhonovReg
+function TikhonovReg(m::Vector,mref::Vector,M::AbstractMesh,sigma::SparseMatrixCSC)
+d = (m-mref);
+df = sigma*d;
+f = 0.5*dot(d,df);
+d2f = sigma;
+return f,df,d2f;
+end

@@ -16,7 +16,7 @@ export SSDFun, HuberFun, MVFun, MVFunTotal
 		d2mis       -  diagonal of Hessian
 
 """
-function SSDFun(dc::Array{Float64},dobs::Array{Float64},Wd::Array{Float64})
+function SSDFun(dc::Union{Array{Float64},Array{Float32}},dobs::Union{Array{Float64},Array{Float32}},Wd::Union{Array{Float64},Array{Float32}})
 	res   = vec(dc)-vec(dobs) # predicted - observed data
 	Wd    = vec(Wd)
 	mis   = .5*real(dot(Wd.*res,Wd.*res))  # data misfit
