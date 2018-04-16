@@ -70,6 +70,9 @@ end
 
 # Interpolate a vector x from the global mesh to the local mesh
 function interpGlobalToLocal(x::Vector{Float64}, P::SparseMatrixCSC)
+	n = div(length(x), size(P,1))
+	(length(x) == n * size(P,1)) || error("Incompatible input sizes")
+	x = reshape(x,(size(P,1),n))
 	if (eltype(P.nzval) == Int16) || (eltype(P.nzval) == Int8)
 		nzv = P.nzval
 		rv  = P.rowval
@@ -86,5 +89,5 @@ function interpGlobalToLocal(x::Vector{Float64}, P::SparseMatrixCSC)
 	else
 		y = P' * x
 	end
-	return y
+	return vec(y)
 end
