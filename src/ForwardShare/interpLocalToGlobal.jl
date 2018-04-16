@@ -76,14 +76,16 @@ function interpGlobalToLocal(x::Vector{Float64}, P::SparseMatrixCSC)
 	if (eltype(P.nzval) == Int16) || (eltype(P.nzval) == Int8)
 		nzv = P.nzval
 		rv  = P.rowval
-		y   = zeros(P.n)
+		y   = zeros(P.n,n)
 		@inbounds begin
-			for i = 1 : P.n
-				tmp = 0.0
-				for j = P.colptr[i] : (P.colptr[i+1]-1)
-					tmp += x[rv[j]] / (1 << (-3 * nzv[j])) # = x[rv[j]] * 2 ^ (3 * nzv[j]); nzv[j] <= 0
+			for k = 1:n
+				for i = 1 : P.n
+					tmp = 0.0
+					for j = P.colptr[i] : (P.colptr[i+1]-1)
+						tmp += x[rv[j],k] / (1 << (-3 * nzv[j])) # = x[rv[j],k] * 2 ^ (3 * nzv[j]); nzv[j] <= 0
+					end
+					y[i,k] = tmp
 				end
-				y[i] = tmp
 			end
 		end
 	else
