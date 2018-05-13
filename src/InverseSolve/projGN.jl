@@ -110,9 +110,9 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 	updateHis!(0,His,Jc,norm(projGrad(gc,mc,low,high)),F,Dc,R,alpha[1],countnz(Active),0.0,-1,tMis,tReg)
 
 	if out>=2; print(outStr); end
-	# f = open("jInv.out", "w")
-	# write(f, outStr)
-	# close(f)
+	f = open("jInv.out", "w")
+	write(f, outStr)
+	close(f)
 
 	while outerFlag == -1
 
@@ -120,9 +120,9 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 		outStr = @sprintf("%3d.0\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3d\n",
 		         iter, F, R,alpha[1],Jc/J0,countnz(Active))
 		if out>=2; print(outStr); end
-		# f = open("jInv.out", "a")
-		# write(f, outStr)
-		# close(f)
+		f = open("jInv.out", "a")
+		write(f, outStr)
+		close(f)
 
 		# solve linear system to find search direction
 		tic()
