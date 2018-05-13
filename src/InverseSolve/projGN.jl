@@ -110,9 +110,9 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 	updateHis!(0,His,Jc,norm(projGrad(gc,mc,low,high)),F,Dc,R,alpha[1],countnz(Active),0.0,-1,tMis,tReg)
 
 	if out>=2; print(outStr); end
-	f = open("jInv.out", "w")
-	write(f, outStr)
-	close(f)
+	# f = open("jInv.out", "w")
+	# write(f, outStr)
+	# close(f)
 
 	while outerFlag == -1
 
@@ -120,9 +120,9 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 		outStr = @sprintf("%3d.0\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3d\n",
 		         iter, F, R,alpha[1],Jc/J0,countnz(Active))
 		if out>=2; print(outStr); end
-		f = open("jInv.out", "a")
-		write(f, outStr)
-		close(f)
+		# f = open("jInv.out", "a")
+		# write(f, outStr)
+		# close(f)
 
 		# solve linear system to find search direction
 		tic()
@@ -151,27 +151,45 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 			mt = mc + muLS*delm
 			mt[mt.<low]  = low[mt.<low]
 			mt[mt.>high] = high[mt.>high]
-			## evaluate function
-			sigt, = pInv.modelfun(mt)
-			if isempty(indCredit)
-				Dc,F,dF,d2F,pMis,tMis = computeMisfit(sigt,pMis,false)
-			else
-				Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sigt,false,indCredit)
-			end
-			His.timeMisfit[iter+1,:]+=tMis
-
+			
+			
+			
+			
+			
+			
 			tic()
 			R,dR,d2R = computeRegularizer(pInv.regularizer,mt,pInv.mref,pInv.MInv,alpha)
 			His.timeReg[iter+1] += toq()
-			# objective function
-			Jt  = F  + R
-			if out>=2;
-				println(@sprintf( "   .%d\t%3.2e\t%3.2e\t\t\t%3.2e",
-			           lsIter, F,       R,       Jt/J0))
-			end
+			
+			if R!=Inf # to support barrier functions.
+				## evaluate function
 
-			if Jt < Jc
-			    break
+				sigt, = pInv.modelfun(mt)
+				if isempty(indCredit)
+					Dc,F,dF,d2F,pMis,tMis = computeMisfit(sigt,pMis,false)
+				else
+					Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sigt,false,indCredit)
+				end
+				His.timeMisfit[iter+1,:]+=tMis
+
+			
+				# objective function
+				Jt  = F  + R
+				if out>=2;
+					println(@sprintf( "   .%d\t%3.2e\t%3.2e\t\t\t%3.2e",
+						lsIter, F,       R,       Jt/J0))
+				end
+			
+				if Jt < Jc
+					break
+				end
+			else
+				Jt  = R;
+				F = 0.0;
+				if out>=2;
+					println(@sprintf( "   .%d\t%3.2e\t%3.2e\t\t\t%3.2e",
+						lsIter, F,       R,       Jt/J0))
+				end
 			end
 			muLS /=2; lsIter += 1
 			if lsIter > 6
