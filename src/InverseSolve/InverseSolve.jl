@@ -78,8 +78,6 @@ function Base.display(pInv::InverseParam)
     println("maxStep:              $(pInv.maxStep)")
     println("pcgMaxIter:           $(pInv.pcgMaxIter)")
     println("pcgTol:               $(pInv.pcgTol)")
-    println("pcgTol:               $(pInv.pcgTol)")
-    println("pcgTol:               $(pInv.pcgTol)")
     println("minUpdate:            $(pInv.minUpdate)")
     println("maxIter:              $(pInv.maxIter)")
 end
