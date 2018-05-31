@@ -22,11 +22,10 @@ Examples:
 	Ha = getHessian(sigma, [pMis1;pMis2], [d2F1; d2F2])
 
 """
-function getHessian(sig,  # conductivity on inv mesh (active cells only)
+function getHessian(sig::Vector,  # conductivity on inv mesh (active cells only)
                     pMis::MisfitParam,
                     d2F)
-
-	sigma,dsigma = pMis.modelfun(fetch(sig))
+	sigma,dsigma = pMis.modelfun(sig)
 
 	P = pMis.gloc.PForInv
 	J = getSensMat(sigma,pMis.pFor)
@@ -36,10 +35,10 @@ function getHessian(sig,  # conductivity on inv mesh (active cells only)
 	return dr'*sdiag(d2F)*dr
 end
 
-function getHessian(sig,  # conductivity on inv mesh (active cells only)
+function getHessian(sig::Future,  # conductivity on inv mesh (active cells only)
                     pMis::RemoteChannel,
                     d2F::Union{RemoteChannel,Future})
-	return getHessian(sig,fetch(pMis),fetch(d2F))
+	return getHessian(fetch(fetch(sig)),fetch(pMis),fetch(d2F))
 end
 
 

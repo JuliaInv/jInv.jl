@@ -33,14 +33,14 @@ function projGNexplicit(gc::Vector,pMis,pInv::InverseParam,sig::Vector,dsig,d2F,
 	
 	# remove Active constraints
 	tic()
-	Hr = H[!Active,!Active]
-	gr = gc[!Active]
+	Hr = H[.!(Active),.!(Active)]
+	gr = gc[.!(Active)]
 	dm = 0*gc
 	dr = -(Hr\gr)
-	if any(isinf(dr)) || any(isnan(dr))
+	if any(isinf.(dr)) || any(isnan.(dr))
 		dr = -(pinv(Hr)*gr)
 	end
-	dm[!Active] = dr
+	dm[.!(Active)] = dr
 	timeSolve=toq();
 	
 	# solve and return

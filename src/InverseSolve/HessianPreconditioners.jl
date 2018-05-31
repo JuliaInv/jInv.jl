@@ -1,5 +1,5 @@
 export HessianPreconditioner,getSSORCGRegularizationPreconditioner,getSSORRegularizationPreconditioner,getExactSolveRegularizationPreconditioner
-
+export getEmptyRegularizationPreconditioner
 ############ General Hessian Preconditioner:
 type HessianPreconditioner
 	param
@@ -50,7 +50,7 @@ function getSSORRegularizationPreconditioner(omega::Float64=1.0,tol::Float64=1e-
 end
 
 function applySSOR(Hs::Function, d2R::SparseMatrixCSC,v::Vector,param)
-	x = KrylovMethods.ssor(d2R,v;x=[],tol=param.tol,maxIter=param.maxIter,omega=param.omega,out=-1,storeInterm=false)[1];
+	x = KrylovMethods.ssor(d2R,copy(v);x=[],tol=param.tol,maxIter=param.maxIter,omega=param.omega,out=-1,storeInterm=false)[1];
 	return x;
 end
 
@@ -73,3 +73,21 @@ end
 function setupExactRegSolve(Hs::Function, d2R::SparseMatrixCSC,param)
 	return;
 end
+
+########################################################################################
+function getEmptyRegularizationPreconditioner()
+	return HessianPreconditioner([],applyEmptyRegSolve,setupEmptyRegSolve);
+end
+
+function applyEmptyRegSolve(Hs::Function, d2R::SparseMatrixCSC,v::Vector,param)
+	return copy(v);
+end
+
+function setupEmptyRegSolve(Hs::Function, d2R::SparseMatrixCSC,param)
+	return;
+end
+
+
+
+
+
