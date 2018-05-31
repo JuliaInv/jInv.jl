@@ -191,19 +191,3 @@ function computeMisfit(sigma,pMis::Array,doDerivative::Bool=true,indCredit=colle
 
  	return Dc,F,dF,d2F,pMis,times,indDebit
  end
-
-#  function computeMisfit(sigma,
-#  	                    pMis::SGDMisfitParam,
-#  	                    doDerivative::Bool=true,
-#  	                    indCredit=collect(1:length(pMisRefs)))
-#
-#             pMis.pMisRefs
-#             batchSize = pMis.batchSize
-#             n = pMis.n
-#
-#             # Randomly choose forward problems     with which to Evaluate
-#             # gradient. Well, should do this for grad misfit. Still need to
-#             # compute the misfit using all forward problems right? Or do you
-#             # even need to bother?
-#             draws = rand(1:n,batchSize)
-# end
