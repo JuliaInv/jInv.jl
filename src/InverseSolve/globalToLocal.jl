@@ -1,7 +1,6 @@
 export GlobalToLocal, getGlobalToLocal
 export interpLocalToGlobal, interpGlobalToLocal
 export prepareGlobalToLocal
-export AbstractModel,AbstractModelDerivative,AbstractModelTransform
 
 """
 type jInv.InverseSolve.GlobalToLocal
