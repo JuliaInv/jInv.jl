@@ -55,7 +55,7 @@ function  barrierGNCG(mc,pInv::InverseParam,pMis;rho = 10.0,epsilon = 0.1*(pInv.
 	if isempty(indCredit)
 		Dc,F,dF,d2F,pMis,tMis = computeMisfit(sig,pMis,true)
 	else
-		Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sig,pMis,true,indCredit)
+		Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sig,pMis,true,indCredit=indCredit)
 	end
 	dF = dsig'*dF
 
@@ -131,7 +131,7 @@ function  barrierGNCG(mc,pInv::InverseParam,pMis;rho = 10.0,epsilon = 0.1*(pInv.
 			if isempty(indCredit)
 				Dc,F,dF,d2F,pMis,tMis = computeMisfit(sigt,pMis,false)
 			else
-				Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sigt,false,indCredit)
+				Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sigt,false,indCredit=indCredit)
 			end
 			His.timeMisfit[iter+1,:]+=tMis
 

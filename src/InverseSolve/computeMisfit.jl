@@ -92,8 +92,9 @@ end
 
 function computeMisfit(sigma,
 	pMisRefs::Array{RemoteChannel,1},
-	doDerivative::Bool=true,
-	indCredit=collect(1:length(pMisRefs)))
+	doDerivative::Bool=true;
+	indCredit::AbstractVector=1:length(pMisRefs),
+    printProgress::Bool=false)
 #=
 computeMisfit for multiple forward problems
 
@@ -102,6 +103,8 @@ This method runs in parallel (iff nworkers()> 1 )
 Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
     (i.e. they are stored in memory of a particular worker).
 =#
+
+    n = 1
 
 	F   = 0.0
 	dF  = (doDerivative) ? zeros(length(sigma)) : []
@@ -135,6 +138,14 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 						Dc[idx],Fi,d2F[idx],tt = remotecall_fetch(computeMisfit,p,sigRef[p],pMisRefs[idx],dFiRef[p],doDerivative)
 						updateRes(Fi,idx)
 						updateTimes(tt)
+                        if printProgress && ((length(indDebit)/length(indCredit)) > n*0.1)
+                            if doDerivative
+                                println("Misfit and gradients computed for $(10*n)\% of forward problems")
+                            else
+                                println("Misfit and gradients computed for $(10*n)\% of forward problems")
+                            end
+                            n += 1
+                        end
 					end
 				end
 
