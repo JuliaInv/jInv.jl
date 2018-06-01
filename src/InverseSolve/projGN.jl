@@ -84,7 +84,7 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 	if isempty(indCredit)
 		Dc,F,dF,d2F,pMis,tMis = computeMisfit(sig,pMis,true)
 	else
-		Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sig,pMis,true,indCredit)
+		Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sig,pMis,true,indCredit=indCredit)
 	end
 	dF = dsig'*dF
 	dumpResults(mc,Dc,0,pInv,pMis) # dump initial model and dpred0
@@ -151,16 +151,16 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 			mt = mc + muLS*delm
 			mt[mt.<low]  = low[mt.<low]
 			mt[mt.>high] = high[mt.>high]
-			
-			
-			
-			
-			
-			
+
+
+
+
+
+
 			tic()
 			R,dR,d2R = computeRegularizer(pInv.regularizer,mt,pInv.mref,pInv.MInv,alpha)
 			His.timeReg[iter+1] += toq()
-			
+
 			if R!=Inf # to support barrier functions.
 				## evaluate function
 
@@ -168,18 +168,18 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 				if isempty(indCredit)
 					Dc,F,dF,d2F,pMis,tMis = computeMisfit(sigt,pMis,false)
 				else
-					Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sigt,false,indCredit)
+					Dc,F,dF,d2F,pMis,tMis,indDebit = computeMisfit(sigt,false,indCredit=indCredit)
 				end
 				His.timeMisfit[iter+1,:]+=tMis
 
-			
+
 				# objective function
 				Jt  = F  + R
 				if out>=2;
 					println(@sprintf( "   .%d\t%3.2e\t%3.2e\t\t\t%3.2e",
 						lsIter, F,       R,       Jt/J0))
 				end
-			
+
 				if Jt < Jc
 					break
 				end
