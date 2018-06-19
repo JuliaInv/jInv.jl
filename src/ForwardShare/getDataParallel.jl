@@ -20,7 +20,6 @@ Output:
     pFor   - modified forward problem type
 
 """
-Mesh2MeshTypes = Union{RemoteChannel, Future, SparseMatrixCSC, AbstractFloat}
 
 function getData(sigma::Union{RemoteChannel, Vector},
                  pFor::ForwardProbType,

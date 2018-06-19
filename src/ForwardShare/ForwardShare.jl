@@ -139,6 +139,8 @@ module ForwardShare
 
 	export getSensTMatVec,getSensMatVec, getSensMatSize, getNumberOfData
 
+	Mesh2MeshTypes = Union{RemoteChannel, Future, SparseMatrixCSC, AbstractFloat}
+
 	# # ===== Methods for parallelization =====
 	include("getDataParallel.jl")
 	include("prepareMesh2Mesh.jl")
