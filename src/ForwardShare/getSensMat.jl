@@ -86,3 +86,32 @@ function getSensMat{T<:Mesh2MeshTypes}(sigma::Vector,
     end
     return sensMat
 end
+
+function getSensMat{FPT<:ForwardProbType, T<:Mesh2MeshTypes}(sigma::Vector,
+                                                             param::Array{FPT},
+                                                             Mesh2Mesh::Array{T}=ones(length(param)),
+                                                             workerList::Vector=workers())
+    i=1; nextidx() = (idx = i; i+=1; idx)
+
+    sensMat = Array{Any}(length(param))
+    workerList = intersect(workers(),workerList)
+    if isempty(workerList)
+        error("getSensMat: workers do not exist!")
+    end
+    @sync begin
+        for p=workerList
+            @async begin
+                while true
+                    idx = nextidx()
+                    if idx > length(param)
+                        break
+                    end
+                    sensMat[idx] = remotecall_fetch(getSensMat,p,sigma,param[idx],Mesh2Mesh[idx])
+                end
+            end
+        end
+    end
+    return sensMat
+end
+
+
