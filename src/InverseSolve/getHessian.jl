@@ -35,13 +35,6 @@ function getHessian(sig::Vector,  # conductivity on inv mesh (active cells only)
 	return dr'*sdiag(d2F)*dr
 end
 
-function getHessian(sig::Future,  # conductivity on inv mesh (active cells only)
-                    pMis::RemoteChannel,
-                    d2F::Union{RemoteChannel,Future})
-	return getHessian(fetch(fetch(sig)),fetch(pMis),fetch(d2F))
-end
-
-
 function getHessian(sig,pMis::Array,d2F::Array,workerList=workers())
 
 	Hs = Array{Any}(length(pMis))
@@ -75,3 +68,7 @@ function getHessian(sig,pMis::Array,d2F::Array,workerList=workers())
 
 	return H
 end
+
+getHessian(sig::Union{RemoteChannel,Future}, pMis::Union{RemoteChannel,Future}, d2F::Union{RemoteChannel,Future}) = getHessian(fetch(fetch(sig)),fetch(pMis),fetch(d2F))
+getHessian(sig::Array, pMis::Union{RemoteChannel,Future}, d2F::Union{RemoteChannel,Future}) = getHessian(sig,fetch(pMis),fetch(d2F))
+getHessian(sig::Union{RemoteChannel,Future}, pMis::MisfitParam, d2F::Array) = getHessian(fetch(sig), pMis, d2F)

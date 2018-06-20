@@ -10,70 +10,108 @@ WARNING: For large-scale problems this will be prohibively
 
 Inputs:
 
-	m    - model
-	pFor - forward problems
+	sigma - model
+	pFor  - forward problems
 
 Examples:
 
-	S = getSensMat(m,pFor)            # single pFor
-	S = getSensMat(m,[pFor1;pFor2])   # multiple pFor's
-	S = getSensMat(m,pForRef)         # pFor as remote reference
-"""
-function getSensMat(w::Vector,pFor::ForwardProbType)
-	(n,m) = getSensMatSize(pFor)
-	J    = zeros(n,m)
+	S = getSensMat(sigma, pFor)            # single pFor
 
-	if min(m,n) > 1e4; error("sensitivity matrix is too big to build column- or rowwise."); end
+    Some methods of getData require further arguments.
+
+"""
+function getSensMat(sigma::Vector, 
+					pFor::ForwardProbType)
+
+	(n, m) = getSensMatSize(pFor)
+	sensMat = zeros(n, m)
+
+	if min(m, n) > 1e4
+		error("sensitivity matrix is too big to build column- or rowwise.")
+	end
 
 	if  n < m # decide which way is less work
 		I = eye(n)
-		for k=1:n
-			tv = vec(getSensTMatVec(vec(I[:,k]),w,pFor))
-			J[k,:] = tv
+		for k = 1:n
+			tv = vec(getSensTMatVec(vec(I[:, k]), sigma, pFor))
+			sensMat[k, :] = tv
 		end
 	else
 		I = eye(m)
-		for k=1:m
-			J[:,k] = vec(getSensMatVec(vec(I[:,k]),w,pFor))
+		for k = 1:m
+			sensMat[:, k] = vec(getSensMatVec(vec(I[:, k]), sigma, pFor))
 		end
 	end
-	return J
+	return sensMat
 end
 
-function getSensMat(w,pFor::RemoteChannel)
-	if pFor.where != myid()
-		return remotecall_fetch(getSensMat,pFor.where,w,pFor)
-	end
-	return getSensMat(fetch(w),fetch(pFor))
+function getSensMat(sigma::Union{RemoteChannel, Vector},
+                    pFor::ForwardProbType,
+                    Mesh2Mesh::Mesh2MeshTypes)
+
+    sig = interpGlobalToLocal(fetch(sigma), fetch(Mesh2Mesh))
+    sensMat = getSensMat(sig, pFor)
+    sensMat = remotecall(identity, myid(), sensMat)
+    return sensMat
 end
 
-getSensMat(w::Future,pFor::ForwardProbType) = getSensMat(fetch(w),pFor)
+function getSensMat(sigma::Union{RemoteChannel, Vector},
+                    pFor::RemoteChannel,
+                    Mesh2Mesh::Mesh2MeshTypes=1.)
 
-function getSensMat(m,pFor::Array,workerList=workers())
-
-	S = Array{Any}(length(pFor))
-	i=1; nextidx() = (idx = i; i+=1; idx)
-
-	workerList = intersect(workers(),workerList)
-	if isempty(workerList)
-		error("getSensMat: specified workers do not exist!")
-	end
-
-	mRef = Array{Future}(maximum(workers()))
-
-	@sync begin
-		for p=workerList
-			@async begin
-				mRef[p] = remotecall(identity,p,m)
-				while true
-					idx = nextidx()
-					if idx > length(pFor)
-						break
-					end
-					S[idx]    = remotecall_fetch(getSensMat,p,mRef[p],pFor[idx])
-				end
-			end
-		end
-	end
-	return vcat(tuple(S...)...)
+    pF = take!(pFor)
+    sensMat = getSensMat(fetch(sigma), pF, fetch(Mesh2Mesh))
+    put!(pFor, pF)
+    return sensMat
 end
+
+function getSensMat{T<:Mesh2MeshTypes}(sigma::Vector,
+                 					   param::Array{RemoteChannel},
+                 					   Mesh2Mesh::Array{T}=ones(length(param)))
+
+    sensMat = Array{Future}(length(param))
+    workerList = getWorkerIds(param)
+    sigmaRef = Array{RemoteChannel}(maximum(workers()))
+    @sync begin
+        for p=workerList
+            @async begin
+                sigmaRef[p] = initRemoteChannel(identity, p, sigma)  # send model to worker
+                for idx = 1:length(param)
+                    if p == param[idx].where
+                        sensMat[idx] = remotecall_fetch(getSensMat, p, sigmaRef[p], param[idx], Mesh2Mesh[idx])
+                    end
+                end
+            end
+        end
+    end
+    return sensMat
+end
+
+function getSensMat{FPT<:ForwardProbType, T<:Mesh2MeshTypes}(sigma::Vector,
+                                                             param::Array{FPT},
+                                                             Mesh2Mesh::Array{T}=ones(length(param)),
+                                                             workerList::Vector=workers())
+    i=1; nextidx() = (idx = i; i+=1; idx)
+
+    sensMat = Array{Any}(length(param))
+    workerList = intersect(workers(),workerList)
+    if isempty(workerList)
+        error("getSensMat: workers do not exist!")
+    end
+    @sync begin
+        for p=workerList
+            @async begin
+                while true
+                    idx = nextidx()
+                    if idx > length(param)
+                        break
+                    end
+                    sensMat[idx] = remotecall_fetch(getSensMat,p,sigma,param[idx],Mesh2Mesh[idx])
+                end
+            end
+        end
+    end
+    return sensMat
+end
+
+
