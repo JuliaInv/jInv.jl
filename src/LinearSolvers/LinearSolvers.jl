@@ -1,7 +1,9 @@
 module LinearSolvers
 
 	abstract type AbstractSolver end
-	export   AbstractSolver
+	abstract type AbstractDirectSolver <: AbstractSolver end
+	function factorLinearSystem! end
+	export AbstractSolver, AbstractDirectSolver, factorLinearSystem!
 
 	using KrylovMethods
 

@@ -18,7 +18,7 @@ Example:
 
 	Ainv = getMUMPSsolver()
 """
-type MUMPSsolver<: AbstractSolver
+type MUMPSsolver<: AbstractDirectSolver
 	Ainv
 	doClear::Int
 	ooc::Int
@@ -38,6 +38,17 @@ if hasMUMPS
 		return MUMPSsolver(Ainv,doClear,ooc,sym,0,0.0,0,0.)
 	end
 
+    function factorLinearSystem!(A,param::MUMPSsolver)
+		if param.doClear == 1
+			clear!(param)
+		end
+
+		tic()
+		param.Ainv = factorMUMPS(A, param.sym, param.ooc)
+		param.facTime+=toq()
+		param.nFac+=1
+	end
+
 	function solveLinearSystem!(A,B,X,param::MUMPSsolver,doTranspose::Int=0)
 		if param.doClear == 1
 			clear!(param)
@@ -52,14 +63,14 @@ if hasMUMPS
 
 		tic()
 
-		U = applyMUMPS!(param.Ainv, B,X,doTranspose)
+		applyMUMPS!(param.Ainv, B,X,doTranspose)
 
 		param.solveTime+=toq()
 		param.nSolve+=1
 
-		return U, param
+		return X, param
 	end # function solveLinearSystem MUMPSsolver
-			
+
 	function clear!(M::MUMPSsolver)
 		if isa(M.Ainv,MUMPSfactorization)
 			destroyMUMPS(M.Ainv)
