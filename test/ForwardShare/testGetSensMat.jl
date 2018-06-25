@@ -34,5 +34,8 @@ for k=1:length(pFors)
 	@test nt==n
 
 	At = getSensMat(randn(n),pFors[k])
+	if At[1] isa Future
+	    At = vcat([fetch(Ai) for Ai in At]...)
+	end
 	@test norm(At-A[k],Inf)/norm(A[k],Inf) < 1e-14
 end
