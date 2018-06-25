@@ -18,7 +18,7 @@ Example:
 
 	Ainv = getjInvPardisoSolver()
 """
-type jInvPardisoSolver<: AbstractSolver
+type jInvPardisoSolver<: AbstractDirectSolver
 	Ainv
 	doClear::Int
 	ooc::Int
@@ -40,6 +40,21 @@ if hasPardiso
 		return jInvPardisoSolver(Ainv,doClear,ooc,sym,0,0.0,0,0.0,1,nProcs)
 	end
 
+	function factorLinearSystem!(A,param::jInvPardisoSolver)
+		if param.doClear == 1
+			clear!(param)
+		end
+        X = Vector{eltype(A)}(size(A,1))
+		tic()
+		param.Ainv = MKLPardisoSolver()
+		set_nprocs!(param.Ainv, param.nProcs)
+		param.N    = size(A,1)
+		param,Apard = pardisoSetup(param,A)
+		pardiso(param.Ainv,X,Apard,X)
+		param.facTime+=toq()
+		param.nFac+=1
+	end
+
 	function solveLinearSystem!(A,B,X,param::jInvPardisoSolver,doTranspose=0)
 		if param.doClear == 1
 			clear!(param)
@@ -56,7 +71,7 @@ if hasPardiso
 		end
 
 		tic()
-		# Since pardiso requires CSR matrices as input,
+		# Since pardiso requires CSR matrices as input
 		# and Julia sparse matrices are CSC,
 		# we need to tell pardiso to solve transposed
 		# system when we want untransposed solve and
