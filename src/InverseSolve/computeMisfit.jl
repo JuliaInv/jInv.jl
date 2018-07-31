@@ -27,8 +27,11 @@ Output:
    times - some runtime statistics
 """
 function computeMisfit(sig,
-                       pMis::MisfitParam,doDerivative::Bool=true, doClear::Bool=false)
-
+                       pMis::MisfitParam,doDerivative::Bool=true, doClear::Bool=false;
+                       printProgress=false)
+    if printProgress
+        error("Print progress only works with multiple pFors")
+    end
 #=
  computeMisfit for a single forward problem. Everything is stored in memory on the node executing this function.
 =#
@@ -160,7 +163,8 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 end
 
 
-function computeMisfit(sigma,pMis::Array,doDerivative::Bool=true,indCredit=collect(1:length(pMis)))
+function computeMisfit(sigma,pMis::Array,doDerivative::Bool=true,indCredit=collect(1:length(pMis));
+                       printProgress=false)
 	#
 	#	computeMisfit for multiple forward problems
 	#
