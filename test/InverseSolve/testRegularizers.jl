@@ -17,7 +17,8 @@ regFuns = [
 			(m,mref,M)->diffusionReg(m,mref,M,Iact=Iact),
 			(m,mref,M)->wdiffusionReg(m,mref,M,Iact=Iact),
 			smallnessReg,
-			(m,mref,M)->wTVReg(m,mref,M,Iact=Iact)]
+			(m,mref,M)->wTVReg(m,mref,M,Iact=Iact),
+			(m,mref,M)->anisoTVReg(m,mref,M,Iact=Iact)]
 for k=1:length(regFuns)
 	# checkDerivative of $(regFuns[k])
 

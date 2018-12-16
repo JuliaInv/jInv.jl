@@ -1,4 +1,4 @@
-export diffusionReg, wdiffusionReg, wTVReg, wdiffusionRegNodal,wTVRegNodal,computeRegularizer,smallnessReg,logBarrier,logBarrierSquared
+export diffusionReg, wdiffusionReg, wTVReg,anisoTVReg, wdiffusionRegNodal,wTVRegNodal,computeRegularizer,smallnessReg,logBarrier,logBarrierSquared
 
 function computeRegularizer(regFun::Function,mc::Vector,mref::Vector,MInv::AbstractMesh,alpha)
 	R,dR,d2R = regFun(mc,mref,MInv)
@@ -173,7 +173,36 @@ function wTVReg(m::Vector,mref,M::AbstractMesh; Iact=1.0, C=[],eps=1e-3)
 	return Rc,dR,d2R
 end
 
+"""
+	Rc,dR,d2R = anisoTVReg(m,mref,M,Iact,eps)
 
+	Compute anisotropic total variation regularizer
+
+	Input:
+		m     - model
+		mref  - reference model
+		M     - Mesh
+		Iact  - projector on active cells
+		eps   - conditioning parameter for TV norm (default: 1e-3)
+
+	Output
+		Rc    - value of regularizer
+		dR    - gradient w.r.t. m
+		d2R   - Hessian
+"""
+function anisoTVReg(m::Vector,mref,M::AbstractMesh; Iact=1.0, eps=1e-3)
+	# Rc = sqrt(a1*\\Dx(m-mref)||^2 + .. + a3*\\Dz(m-mref)||^2) + a4*|| m -mref ||^2
+	dm   = m .- mref
+	Div  = getVolume(M)*getDivergenceMatrix(M)
+	Div  = Iact'*(Div)   # project to the active cells
+	v    = ones(size(Div,2)) 
+	
+	wTV  = sqrt.((Div'*dm).^2 .+eps);
+	Rc   = dot(v,wTV);
+	d2R  = Div*(sdiag(v./wTV)*Div')
+	dR   = d2R*dm;
+	return Rc,dR,d2R
+end
 
 """
 	Rc,dR,d2R = wdiffusionRegNodal(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])
