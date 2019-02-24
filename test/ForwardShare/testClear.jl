@@ -1,5 +1,5 @@
 
-using Base.Test
+using Test
 using jInv.ForwardShare
 using jInv.LinearSolvers
 using jInv.Mesh

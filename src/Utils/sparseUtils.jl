@@ -1,7 +1,7 @@
 export sdiag, spoutput
 
 import Base.kron
-import Base.SparseMatrixCSC
+import SparseArrays
 export kron
 
 function sdiag(a::Vector)
@@ -12,8 +12,8 @@ function sdiag(a::Vector)
 	return SparseMatrixCSC(n,n,i,j,a)
 end
 
-kron(v::SparseVector,A::SparseMatrixCSC) = kron(SparseMatrixCSC(v),A)
-kron(A::SparseMatrixCSC,v::SparseVector) = kron(A,SparseMatrixCSC(v))
+# kron(v::SparseVector,A::SparseMatrixCSC) = kron(SparseMatrixCSC(v),A)
+# kron(A::SparseMatrixCSC,v::SparseVector) = kron(A,SparseMatrixCSC(v))
 
 function kron(v1::SparseVector,v2::SparseVector)  
   v = kron(SparseMatrixCSC(v1),SparseMatrixCSC(v2))
@@ -29,7 +29,7 @@ function spoutput( filename::String,
 f = open(filename, "w")
 n = size(A,2)
 
-complexvalue = typeof(A.nzval[1]) == Complex128
+complexvalue = typeof(A.nzval[1]) == ComplexF64
 
 for ir = 1:n
    j1 = A.colptr[ir]

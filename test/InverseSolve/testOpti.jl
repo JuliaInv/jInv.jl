@@ -1,5 +1,5 @@
 @everywhere using FWI
-using Base.Test
+using Test
 # using PyPlot
 
 include("setupFWItests.jl")

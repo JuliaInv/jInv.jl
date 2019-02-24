@@ -1,4 +1,10 @@
 module Utils
+
+using Printf
+using Distributed
+using SparseArrays
+
+
 	include("sparseUtils.jl")
 	include("testing.jl")
 	include("expandPolygon.jl")
@@ -6,10 +12,10 @@ module Utils
 	include("uniqueidx.jl")
 	include("initRemoteChannel.jl")
 	include("variousUtils.jl")
+	
 
 
-
-  import Base.clear!
+  import Distributed.clear!
 	export clear!
 
 	function Base.sub2ind(n::Array{Int64,1},ii::Array{Int64,1},jj::Array{Int64,1},kk::Array{Int64,1})
@@ -63,7 +69,7 @@ module Utils
 	end
 
 
-	function clear!{T,N}(x::Array{T,N})
+	function clear!(x::Array{T,N}) where {T,N}
 		return Array{T}(ntuple((i)->0, N))
 	end
 
@@ -71,7 +77,7 @@ module Utils
 		# return Array(T,0)
 	# end
 
-	function clear!{T}(A::SparseMatrixCSC{T})
+	function clear!(A::SparseMatrixCSC{T}) where {T}
 		return spzeros(0,0);
 	end
 

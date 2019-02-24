@@ -1,5 +1,5 @@
 using jInv.Mesh
-using Base.Test
+using Test
 
 
 print("   test getInterpolationMatrix (RegularMesh) ... ")

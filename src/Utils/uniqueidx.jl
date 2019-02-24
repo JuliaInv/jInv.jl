@@ -7,9 +7,9 @@ b = sorted unique(a)
 ii, jj are permutations:
 a[ii] = b,  b[jj] = a
 """
-function uniqueidx{T<:Integer}( a::Array{T,1} )
+function uniqueidx( a::Array{T,1} ) where {T<:Integer}
 
-   const n = length(a)
+   n = length(a)
 
    #ii = sortperm(a)
    #ii = sortperm(a,alg=MergeSort)
@@ -68,7 +68,7 @@ vectors
 """
 function sortunique( a::Array{Int64,1} )
 
-   const n = length(a)
+   n = length(a)
 
    ii,b = sortpermFast(a)
    ii = []

@@ -1,6 +1,6 @@
 export projSD, projSDhis
 
-type projSDhis
+mutable struct  projSDhis
 	Jc::Array
 	dJ::Array
 	F::Array

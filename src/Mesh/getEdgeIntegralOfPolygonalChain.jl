@@ -31,7 +31,6 @@ export getEdgeIntegralOfPolygonalChain,getStraightLineCurrentIntegral
         For a closed current loop, specify polygon such that
         polygon[1,:] == polygon[end,:]
 """
-
 function getEdgeIntegralOfPolygonalChain(M::TensorMesh3D,polygon::Array{Float64,2};
                                          normalize=false)
 
@@ -189,7 +188,6 @@ end
         and where J prescribes a unit line current
         between points (ax,ay,az) and (bx,by,bz).
 """
-
 function getStraightLineCurrentIntegral(hx,hy,hz,ax,ay,az,bx,by,bz)
 
   # length of line segment

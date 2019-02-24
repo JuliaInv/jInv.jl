@@ -18,7 +18,7 @@ Example:
 
 	Ainv = getjInvPardisoSolver()
 """
-type jInvPardisoSolver<: AbstractDirectSolver
+mutable struct jInvPardisoSolver<: AbstractDirectSolver
 	Ainv
 	doClear::Int
 	ooc::Int
@@ -122,9 +122,9 @@ if hasPardiso
 				x = ones(2)
 				b = ones(2)
 			else
-				A = speye(Complex128, 2)
-				x = ones(Complex128, 2)
-				b = ones(Complex128, 2)
+				A = speye(ComplexF64, 2)
+				x = ones(ComplexF64, 2)
+				b = ones(ComplexF64, 2)
 			end
 			pardiso(param.Ainv,x,A,b)
 			param.Ainv = []

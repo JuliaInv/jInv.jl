@@ -1,5 +1,5 @@
 using jInv.Utils
-using Base.Test
+using Test
 
 v  = rand(1:200,54)
 vu = unique(v)

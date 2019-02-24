@@ -20,7 +20,6 @@ Output:
     pFor   - modified forward problem type
 
 """
-
 function getData(sigma::Union{RemoteChannel, Vector},
                  pFor::ForwardProbType,
                  Mesh2Mesh::Mesh2MeshTypes,
@@ -47,12 +46,12 @@ function getData(sigma::Union{RemoteChannel, Vector},
     return Dobs,pFor
 end
 
-function getData{FPT<:ForwardProbType,T<:Mesh2MeshTypes}(
+function getData(
                  sigma::Vector,
                  pFor::Array{FPT},
                  Mesh2Mesh::Array{T}=ones(length(pFor)),
                  doClear::Bool=false,
-                 workerList::Vector=workers())
+                 workerList::Vector=workers()) where {FPT<:ForwardProbType,T<:Mesh2MeshTypes}
 #=
     parallel forward simulation with dynamic scheduling (i.e., elements in pFor get sent to remote workers on the fly)
 =#
@@ -77,11 +76,11 @@ function getData{FPT<:ForwardProbType,T<:Mesh2MeshTypes}(
     return Dobs,pFor
 end
 
-function getData{T<:Mesh2MeshTypes}(
+function getData(
                  sigma::Vector,
                  pFor::Array{RemoteChannel},
                  Mesh2Mesh::Array{T}=ones(length(pFor)),
-                 doClear::Bool=false)
+                 doClear::Bool=false) where {T<:Mesh2MeshTypes}
 #=
     parallel forward simulation with static scheduling (i.e., pFors are distributed a-priorily)
 =#

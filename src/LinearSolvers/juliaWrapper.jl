@@ -1,18 +1,19 @@
 export JuliaSolver,getJuliaSolver,copySolver
+using SuiteSparse
 
 import Base.\
-function \{T1,T2}(A::Base.SparseArrays.UMFPACK.UmfpackLU{T1},R::SparseMatrixCSC{T2})
+function \(A::SuiteSparse.UMFPACK.UmfpackLU{T1},R::SparseMatrixCSC{T2}) where {T1,T2}
 
 	n,nrhs = size(R)
 	X = zeros(promote_type(T1,T2),n,nrhs)
 	for k=1:nrhs
-		X[:,k] = A\full(vec(R[:,k]))
+		X[:,k] = A\Vector(vec(R[:,k]))
 	end
 	return X
 end
 
 """
-type jInv.LinearSolvers.JuliaSolver<: AbstractSolver
+mutable struct jInv.LinearSolvers.JuliaSolver<: AbstractSolver
 
 Fields:
 
@@ -29,8 +30,7 @@ Example:
 
 	Ainv = getJuliaSolver()
 """
-
-type JuliaSolver<: AbstractSolver
+mutable struct JuliaSolver<: AbstractSolver
 	Ainv
 	sym::Int # 0 = unsymmetric, 1 = symmetric s.t A = A';
 	isTransposed::Int
@@ -77,15 +77,15 @@ function solveLinearSystem!(A::SparseMatrixCSC,B,X,param::JuliaSolver,doTranspos
 	if param.Ainv == []
 		tic()
 		if param.sym==1 && isreal(A)
-			param.Ainv = cholfact(A)
+			param.Ainv = chol(A)
 		elseif param.sym==2 && isreal(A)
-			param.Ainv = ldltfact(A)
+			param.Ainv = ldlt(A)
 		else
 			if param.sym!=0 && !isreal(A)
 				warn("jInv.JuliaSolver: using lufact for complex matrix")
 			end
 
-		  param.Ainv = lufact(A)
+		  param.Ainv = lu(A)
 		end
 		param.facTime+=toq()
 		param.nFac+=1

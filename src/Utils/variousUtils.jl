@@ -10,7 +10,7 @@ end # function removeZeros
 
 #---------------------------------------------------------------------
 
-function complex2real( a::Array{Complex128} )
+function complex2real( a::Array{ComplexF64} )
 # Convert from [a1 a2 ...] to [ ar1 ai1 ar2 ai2 ... ]
 n = length(a)
 b = Array{Float64}(n*2)
@@ -29,7 +29,7 @@ end # function complex2real
 function real2complex( b::Array{Float64} )
 # Convert from [ br1 bi1 br2 bi2 ... ] to [b1 b2 ...]
 n = length(b)
-a = Array{Complex128}(div(n,2))
+a = Array{ComplexF64}(div(n,2))
 
 j = 1
 for i = 1:2:n

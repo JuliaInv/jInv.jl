@@ -1,7 +1,7 @@
 export MUMPSsolver, getMUMPSsolver,copySolver
 
 """
-type MUMPSsolver
+mutable struct MUMPSsolver
 
 Fields:
 
@@ -18,7 +18,7 @@ Example:
 
 	Ainv = getMUMPSsolver()
 """
-type MUMPSsolver<: AbstractDirectSolver
+mutable struct MUMPSsolver<: AbstractDirectSolver
 	Ainv
 	doClear::Int
 	ooc::Int

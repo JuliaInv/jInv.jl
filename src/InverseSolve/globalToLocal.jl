@@ -3,7 +3,7 @@ export interpLocalToGlobal, interpGlobalToLocal
 export prepareGlobalToLocal
 
 """
-type jInv.InverseSolve.GlobalToLocal
+mutable struct jInv.InverseSolve.GlobalToLocal
 
 Maps global model to local model
 
@@ -31,7 +31,7 @@ Example:
 struct GlobalToLocal
 	PForInv::Union{SparseMatrixCSC,AbstractFloat,AbstractModelTransform} # interpolation matrix from fwd mesh to inv mesh
 	sigmaBackground::Union{Vector{Float64},AbstractFloat,AbstractModel} #  (# of cells fwd mesh)
-end # type GlobalToLocal
+end # mutable struct GlobalToLocal
 
 # Constructors
 getGlobalToLocal(P) = GlobalToLocal(P,1e-8)

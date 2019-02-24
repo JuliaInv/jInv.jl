@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 
 A    = sprandn(100,10,.1)
 pFor = LSparam(A,[])

@@ -4,7 +4,7 @@ export getCellCenteredAxes, getNodalAxes
 export getVolume, getVolumeInv, getFaceArea, getFaceAreaInv, getLength, getLengthInv
 
 """
-	type jInv.Mesh.RegularMesh <: AbstractTensorMesh
+	mutable struct jInv.Mesh.RegularMesh <: AbstractTensorMesh
 		
 	Regular mesh in 1D, 2D, and 3D
 	
@@ -58,7 +58,7 @@ export getVolume, getVolumeInv, getFaceArea, getFaceAreaInv, getLength, getLengt
 	M3D  = getRegularMesh([1.2 2.4 2.2 5.0 0 1],[3,4,7])	
 		
 """
-type RegularMesh <: AbstractTensorMesh
+mutable struct RegularMesh <: AbstractTensorMesh
 	domain::Vector{Float64} 
 	h::Vector{Float64} 
 	x0::Vector{Float64}
@@ -339,7 +339,7 @@ function getVolume(Mesh::RegularMesh)
 	return Mesh.V
 end
 function getVolumeInv(Mesh::RegularMesh)
-# Mesh.Vi = getVolumeInv(Mesh::RegularMesh) returns sdiag(1./v)
+# Mesh.Vi = getVolumeInv(Mesh::RegularMesh) returns sdiag(1 ./v)
 	if isempty(Mesh.Vi)
 		Mesh.Vi = (1/prod(Mesh.h))*speye(prod(Mesh.n))
 	end
@@ -363,7 +363,7 @@ function getFaceArea(Mesh::RegularMesh)
 	return Mesh.F
 end
 function getFaceAreaInv(Mesh::RegularMesh)
-# Mesh.Fi = getFaceAreaInv(Mesh::RegularMesh) computes inverse of face areas, returns sdiag(1./a)
+# Mesh.Fi = getFaceAreaInv(Mesh::RegularMesh) computes inverse of face areas, returns sdiag(1 ./a)
 	if isempty(Mesh.Fi)
 		if Mesh.dim==2
 			f1i  = (1/Mesh.h[2])*speye(Mesh.nf[1])
@@ -397,7 +397,7 @@ function getLength(Mesh::RegularMesh)
 end
 
 function getLengthInv(Mesh::RegularMesh)
-# Mesh.L = getLength(Mesh::RegularMesh) computes inverse of edge lengths l, returns sdiag(1./l)
+# Mesh.L = getLength(Mesh::RegularMesh) computes inverse of edge lengths l, returns sdiag(1 ./l)
 	if isempty(Mesh.Li)
 		if Mesh.dim==2
 			l1i  = (1/Mesh.h[1])*speye(Mesh.ne[1])

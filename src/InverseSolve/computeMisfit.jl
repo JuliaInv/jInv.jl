@@ -143,9 +143,9 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 						updateTimes(tt)
                         if printProgress && ((length(indDebit)/length(indCredit)) > n*0.1)
                             if doDerivative
-                                println("Misfit and gradients computed for $(10*n)\% of forward problems")
+                                println("Misfit and gradients computed for $(10*n)% of forward problems")
                             else
-                                println("Misfit and gradients computed for $(10*n)\% of forward problems")
+                                println("Misfit and gradients computed for $(10*n)% of forward problems")
                             end
                             n += 1
                         end
@@ -183,7 +183,7 @@ function computeMisfit(sigma,pMis::Array,doDerivative::Bool=true,indCredit=colle
 	# draw next problem to be solved
 	nextidx() = (idx = (isempty(indCredit)) ? -1 : pop!(indCredit))
 
- 	updateRes(Fi,dFi,idx) = (F+=Fi; dF= (doDerivative)? dF+dFi : []; push!(indDebit,idx))
+ 	updateRes(Fi,dFi,idx) = (F+=Fi; dF= (doDerivative) ? dF+dFi : []; push!(indDebit,idx))
 
 	times = zeros(4);
 	updateTimes(tt) = (times+=tt)

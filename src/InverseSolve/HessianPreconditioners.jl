@@ -1,7 +1,7 @@
 export HessianPreconditioner,getSSORCGRegularizationPreconditioner,getSSORRegularizationPreconditioner,getExactSolveRegularizationPreconditioner
 export getEmptyRegularizationPreconditioner
 ############ General Hessian Preconditioner:
-type HessianPreconditioner
+mutable struct HessianPreconditioner
 	param
 	applyPrec::Function # a function with parameters: Hs::function, d2R::SparseMatrixCSC,v::Vector,param::Any
 	setupPrec::Function # a function with parameters: Hs::function, d2R::SparseMatrixCSC,v::Vector,param::Any
@@ -10,7 +10,7 @@ end
 ############ SSORCG: A preconditioner that inverts the regularization matrix by SSOR - CG ############################
 ###################################################################################################################### 
 
-type SSORCGParam
+mutable struct SSORCGParam
 	diagonal	::Vector
 	auxVec		::Vector
 	omega		::Float64
@@ -39,7 +39,7 @@ end
 ############ SSOR: A preconditioner that inverts the regularization matrix by SSOR only ##############################
 ###################################################################################################################### 
 
-type SSORParam
+mutable struct SSORParam
 	omega		::Float64
 	tol			::Float64
 	maxIter	::Int64

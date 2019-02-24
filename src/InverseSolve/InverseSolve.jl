@@ -10,7 +10,7 @@ import jInv.ForwardShare.ForwardProbType
 
 export getName, AbstractMisfit
 
-abstract type AbstractMisfit end
+abstract type  AbstractMisfit end
 
 export AbstractModel,AbstractModelDerivative,AbstractModelTransform
 
@@ -18,12 +18,16 @@ abstract type AbstractModel end
 abstract type AbstractModelDerivative end
 abstract type AbstractModelTransform end
 
+using Distributed
+using SparseArrays
+using Printf
+
 include("HessianPreconditioners.jl")
 
 include("misfitParam.jl")
 
 """
-type jInv.InverseSolve.InverseParam
+mutable struct jInv.InverseSolve.InverseParam
 
 Type storing parameters for Inversion.
 
@@ -53,7 +57,7 @@ Example:
     mref    = zeros(Minv.nc)
     pInv = getInverseParam(Minv,modelfun,regularizer,alpha,mref)
 """
-mutable struct InverseParam
+mutable struct  InverseParam
     MInv::AbstractMesh
     modelfun::Function
     regularizer::Union{Function,Array{Function}}

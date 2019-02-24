@@ -1,7 +1,7 @@
 export BlockIterativeSolver,getBlockIterativeSolver,solveLinearSystem!
 
 """ 
-type BlockIterativeSolver
+mutable struct BlockIterativeSolver
 	
 Fields:
 
@@ -22,7 +22,7 @@ Fields:
 Example
 getBlockIterativeSolver()
 """
-type BlockIterativeSolver<: AbstractSolver
+mutable struct BlockIterativeSolver<: AbstractSolver
 	IterMethod::Function
 	PC::Symbol
 	maxIter::Int
@@ -90,12 +90,12 @@ function solveLinearSystem!(A,B,X,param::BlockIterativeSolver,doTranspose=0)
 	# build preconditioner The preconditioners here are symmetric anyway.
 	if param.Ainv == []
 		if param.PC==:ssor
-			OmInvD = 1./diag(A);
+			OmInvD = 1 ./diag(A);
 			Xt      = zeros(n,nrhs)
 			M = R -> (Xt[:]=0.0; tic(); Xt=ssorPrecTrans!(A,Xt,R,OmInvD); param.timePC+=toq(); return Xt);
 			param.Ainv= M
 		elseif param.PC==:jac
-			OmInvD = 1./diag(A)
+			OmInvD = 1 ./diag(A)
 			M = R -> (tic(); Xt=R.*OmInvD; param.timePC+=toq(); return Xt); 
 			param.Ainv= M
 		else 

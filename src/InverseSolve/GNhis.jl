@@ -1,7 +1,7 @@
 export GNhis, getGNhis, updateHis!
 
 """
-type jInv.InverseSolve.GNhis
+mutable struct jInv.InverseSolve.GNhis
 	
 stored iteration history of Gauss-Newton methods and variants
 
@@ -23,7 +23,7 @@ timeLinSol     - time for linear solves
 timeGradMisfit - time for gradient computation
 
 """
-type GNhis
+mutable struct GNhis
 	Jc::Array
 	dJ::Array
 	F::Array

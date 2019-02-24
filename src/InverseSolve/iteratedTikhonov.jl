@@ -30,7 +30,6 @@ export iteratedTikhonov
                                  - a structure containing the projGNCG history for each
                                  - alpha value.
 """
-
 function iteratedTikhonov(mc,pInv::InverseParam,pMis,alphaParam,
                           targetMisfit;indCredit=[],dumpResults::Function=dummy,
                           solveGN=projPCG)

@@ -1,5 +1,5 @@
 using jInv.InverseSolve
-using Base.Test
+using Test
 using jInv.Mesh
 using jInv.Utils
 

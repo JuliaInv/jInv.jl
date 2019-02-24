@@ -1,15 +1,17 @@
 export checkDerivative, getRandomTestDirection
 
+using Printf 
+
 function getRandomTestDirection(x0::Float64)
 	return randn()
 end
-function getRandomTestDirection(x0::Complex128)
+function getRandomTestDirection(x0::ComplexF64)
 	return randn()+1im*randn()
 end
 function getRandomTestDirection(x0::Array{Float64})
 	return randn(size(x0))
 end
-function getRandomTestDirection(x0::Array{Complex128})
+function getRandomTestDirection(x0::Array{ComplexF64})
 	return randn(size(x0))+1im*randn(size(x0))
 end
 

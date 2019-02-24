@@ -4,7 +4,7 @@ const ArrayUnionLocRemote = Union{Array{RemoteChannel},Array{Future},Array{Float
 const UnionLocRemote      = Union{RemoteChannel,Future,AbstractFloat}
 
 """
-type jInv.InverseSolve.MisfitParam
+mutable struct jInv.InverseSolve.MisfitParam
 
 Type storing information about one term in the misfit
 
@@ -29,7 +29,7 @@ getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, misfit::Fu
                             modelfun::Function=identityMod,fname="")
 
 """
-type MisfitParam
+mutable struct  MisfitParam
     pFor::ForwardProbType
     Wd
     dobs
@@ -71,7 +71,6 @@ Input for a call:
     fname=""                                 - (optional)
 
 """
-
 function getMisfitParam(pFor::ForwardProbType, Wd, dobs, misfit::Function, modelfun::Function=identityMod, gloc=getGlobalToLocal(1.0))
     return MisfitParam(pFor,Wd,dobs,misfit,modelfun,gloc);
 end

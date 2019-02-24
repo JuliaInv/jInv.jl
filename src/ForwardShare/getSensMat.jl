@@ -65,9 +65,9 @@ function getSensMat(sigma::Union{RemoteChannel, Vector},
     return sensMat
 end
 
-function getSensMat{T<:Mesh2MeshTypes}(sigma::Vector,
+function getSensMat(sigma::Vector,
                  					   param::Array{RemoteChannel},
-                 					   Mesh2Mesh::Array{T}=ones(length(param)))
+                 					   Mesh2Mesh::Array{T}=ones(length(param))) where {T<:Mesh2MeshTypes}
 
     sensMat = Array{Future}(length(param))
     workerList = getWorkerIds(param)
@@ -87,10 +87,10 @@ function getSensMat{T<:Mesh2MeshTypes}(sigma::Vector,
     return sensMat
 end
 
-function getSensMat{FPT<:ForwardProbType, T<:Mesh2MeshTypes}(sigma::Vector,
+function getSensMat(sigma::Vector,
                                                              param::Array{FPT},
                                                              Mesh2Mesh::Array{T}=ones(length(param)),
-                                                             workerList::Vector=workers())
+                                                             workerList::Vector=workers()) where {FPT<:ForwardProbType, T<:Mesh2MeshTypes}
     i=1; nextidx() = (idx = i; i+=1; idx)
 
     sensMat = Array{Any}(length(param))

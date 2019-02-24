@@ -6,7 +6,7 @@ import jInv.Utils
 @everywhere begin
   using jInv.ForwardShare
   using jInv.Mesh
-  using Base.Test
+  using Test
   using jInv.Utils
   type TestProb <: ForwardProbType
   	Mesh::AbstractMesh

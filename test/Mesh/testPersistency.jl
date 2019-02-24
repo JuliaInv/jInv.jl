@@ -1,6 +1,6 @@
 using jInv.Mesh
 using jInv.Utils
-using Base.Test
+using Test
 
 # setup 3D mesh
 nc = [5, 7, 8]

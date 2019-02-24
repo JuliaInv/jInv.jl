@@ -6,13 +6,16 @@ module LinearSolvers
 	export AbstractSolver, AbstractDirectSolver, factorLinearSystem!
 
 	using KrylovMethods
+	using Distributed
+	using SparseArrays
+	using LinearAlgebra
 
 	# check if MUMPS can be used
 	const minMUMPSversion = VersionNumber(0,0,1)
-	hasMUMPS=false
+	global hasMUMPS=false
 	try
 		using MUMPS
-		hasMUMPS = true
+		global hasMUMPS = true
 		if myid()==1
 			vMUMPS = Pkg.installed("MUMPS")
 			if vMUMPS < minMUMPSversion;
@@ -24,10 +27,10 @@ module LinearSolvers
 
 	# check if Pardiso is installed
 	const minPardisoVersion = VersionNumber(0,1,2)
-	hasPardiso = false
+	global hasPardiso = false
 	try
 		using Pardiso
-		hasPardiso = true
+		global hasPardiso = true
 		if myid()==1
 		  vPardiso = Pkg.installed("Pardiso")
 		  if vPardiso < minPardisoVersion
@@ -39,14 +42,14 @@ module LinearSolvers
 	end
 
 	# check if ParSPMatVec is available
-	hasParSpMatVec = false
+	global hasParSpMatVec = false
 	const minVerParSpMatVec = VersionNumber(0,0,1)
-		vParSpMatVec = VersionNumber(0,0,0)
+	global vParSpMatVec = VersionNumber(0,0,0)
 	try
  		using ParSpMatVec
- 		hasParSpMatVec = true
+ 		global hasParSpMatVec = true
  		if myid()==1
- 			vParSpMatVec = Pkg.installed("ParSpMatVec")
+ 			global vParSpMatVec = Pkg.installed("ParSpMatVec")
  			if vParSpMatVec < minVerParSpMatVec;
  				warn("ParSpMatVec is outdated! Please update to version $(minVerParSpMatVec) or higher.")
  			end
@@ -61,7 +64,7 @@ module LinearSolvers
 
 	solveLinearSystem(A,B,param::AbstractSolver,doTranspose::Int=0) = solveLinearSystem!(A,B,zeros(eltype(B),size(B)),param,doTranspose)
 
-	import Base.clear!
+	import Distributed.clear!
 	function clear!(M::AbstractSolver)
 		M.Ainv = []
 	end

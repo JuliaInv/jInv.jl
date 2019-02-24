@@ -1,7 +1,7 @@
 export IterativeSolver,getIterativeSolver,solveLinearSystem!
 
 """ 
-type jInv.LinearSolvers.IterativeSolver <: AbstractSolver
+mutable struct jInv.LinearSolvers.IterativeSolver <: AbstractSolver
 	
 Fields:
 
@@ -23,7 +23,7 @@ Example:
 	getIterativeSolver(cg)
 
 """
-type IterativeSolver<: AbstractSolver
+mutable struct IterativeSolver<: AbstractSolver
 	IterMethod::Function
 	PC::Symbol
 	maxIter::Int
@@ -88,12 +88,12 @@ function solveLinearSystem!(A,B,X,param::IterativeSolver,doTranspose=0)
 	# build preconditioner
 	if param.Ainv == []
 		if param.PC==:ssor
-			OmInvD = 1./diag(A);
+			OmInvD = 1 ./diag(A);
 			x      = zeros(eltype(A),size(B,1))
 			M = r -> (x[:]=0.0; tic(); x=ssorPrecTrans!(A,x,r,OmInvD); param.timePC+=toq(); return x);
 			param.Ainv= M
 		elseif param.PC==:jac
-			OmInvD = 1./diag(A)
+			OmInvD = 1 ./diag(A)
 			M = r -> (tic(); x=r.*OmInvD; param.timePC+=toq(); return x); 
 			param.Ainv= M
 		else 

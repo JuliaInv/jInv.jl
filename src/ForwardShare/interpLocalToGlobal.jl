@@ -11,10 +11,10 @@ convert a local (or global) model to a global (or local) mesh so that
 
 Examples:
     P = prepareMesh2Mesh(Msmall, Mbig, true)
-    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'\*modelInv
+    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'*modelInv
 
     P = prepareMesh2Mesh(Msmall, Mbig, true)
-    modelInv =  interpGlobalToLocal(modelLoc,P) # uncompresses the indices and does P'\*modelInv
+    modelInv =  interpGlobalToLocal(modelLoc,P) # uncompresses the indices and does P'*modelInv
 
 Inputs:
     mLocal  - a model defined on the local (PDE) mesh

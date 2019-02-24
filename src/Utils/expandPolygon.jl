@@ -7,7 +7,7 @@ function expandPolygon( x::Vector{Float64}, y::Vector{Float64},  # polygon point
 # Expand the polygon.  Each line segment goes out a distance of LL
 # in the normal direction.
 	
-const npts = length(x)
+npts = length(x)
 
 if length(y) != npts
    error("length(y) != npts")
@@ -57,7 +57,7 @@ function insidePolygon( x::Vector{Float64}, y::Vector{Float64},  # polygon point
   	                     xp,yp)
 #  Is point (xp,yp) inside polygon defined by x,y ?
 	
-const n = length(x)
+n = length(x)
 
 if length(y) != n
    error("length(y) != n")

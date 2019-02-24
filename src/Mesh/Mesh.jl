@@ -1,14 +1,17 @@
 module Mesh
 
-using Base.BLAS
+using LinearAlgebra.BLAS
 using jInv.Utils
+using SparseArrays
+using Printf
+using Distributed
 
 export AbstractMesh
 export AbstractTensorMesh
 abstract type AbstractMesh end
 abstract type AbstractTensorMesh <: AbstractMesh end
 
-import Base.clear!
+import Distributed.clear!
 function clear!(M::AbstractTensorMesh)
 	M.Div  = clear!(M.Div )
 	M.Grad = clear!(M.Grad)

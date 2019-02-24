@@ -1,6 +1,6 @@
 # Testing sparseUtils
 using jInv.Utils
-using Base.Test
+using Test
 
 # test sdiag
 a = randn(13)

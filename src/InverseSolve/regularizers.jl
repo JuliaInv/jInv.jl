@@ -29,7 +29,7 @@ end
 	Rc,dR,d2R = diffusionReg(m,mref,M,Iact=1.0)
 
 	Compute diffusion regularizer
-		0.5\*||GRAD*(m-mref)||\_V^2
+		0.5*||GRAD*(m-mref)||_V^2
 
 	Input:
 		m     - model
@@ -60,7 +60,7 @@ end
 
 	Compute smallness regularizer (L2 difference to reference model)
 
-		R(m) = 0.5\*||m-mref||\_V^2
+		R(m) = 0.5*||m-mref||_V^2
 
 	Input:
 		m     - model
@@ -119,7 +119,7 @@ function wdiffusionReg(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])
    Af   = getFaceAverageMatrix(M)
 
    #d2R  = Div * sdiag(Af'*vec(diag(V))) * Div' + alpha4*Iact'*V*Iact
-   d2R  = Div * sdiag(1./(Af'*vec(diag(V)))) * Div' + alpha4*Iact'*V*Iact
+   d2R  = Div * sdiag(1 ./(Af'*vec(diag(V)))) * Div' + alpha4*Iact'*V*Iact
 
    dR   = d2R*dm
    Rc   = 0.5*dot(dm,dR)
@@ -221,7 +221,6 @@ end
 		dR    - gradient w.r.t. m
 		d2R   - Hessian
 """
-
 function wdiffusionRegNodal(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])
 	dm = m.-mref;
 	if isempty(C)
@@ -314,8 +313,6 @@ end
 		dg    - gradient w.r.t. m
 		d2g   - Hessian (diagonal matrix). Second derivative is not continous.
 """
-
-
 function logBarrier(m::Vector,z::Vector,M::AbstractMesh, low::Vector, high::Vector ,epsilon = min(0.1*abs(low),0.1*abs(high)))
 	z = copy(m);
 	indProj = zeros(length(m));
@@ -371,8 +368,6 @@ end
 		dg    - gradient w.r.t. m
 		d2g   - Gauss Newton Hessian approximation (diagonal matrix). Second derivative approx is continous.
 """
-
-
 function logBarrierSquared(m::Vector,z::Vector,M::AbstractMesh, low::Vector, high::Vector ,epsilon = min(0.1*abs(low),0.1*abs(high)))
 	if length(find(m.>=high)) + length(find(m.<=low))>0
 		error("m should be in between low and high");

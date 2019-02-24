@@ -60,6 +60,9 @@ module ForwardShare
 
 	using jInv.Mesh
 	using jInv.Utils
+	
+	using Distributed
+	using SparseArrays
 
 	export getSensMatVec
 	"""

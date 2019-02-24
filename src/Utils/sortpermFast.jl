@@ -3,7 +3,7 @@ export sortpermFast
 
 
 function sortpermFast(A::Vector)
-   const n = length(A)
+   n = length(A)
 
    ii = collect(1:n)
    B = copy(A)
@@ -18,7 +18,7 @@ function sortpermFast(A::Vector, D::Vector)
    # Sort A and permute D according to A.
    # For duplicate values in A, keep only values corresponding to
    # the SMALLEST D.
-   const n = length(A)
+   n = length(A)
    if length(D) != n
       error("Lengths of A and D must be the same.")
    end

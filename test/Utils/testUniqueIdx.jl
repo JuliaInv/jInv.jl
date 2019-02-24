@@ -1,5 +1,5 @@
 using jInv.Utils
-using Base.Test
+using Test
 
 
 a = rand(1:300,300)

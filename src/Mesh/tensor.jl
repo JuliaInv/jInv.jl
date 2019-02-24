@@ -4,7 +4,7 @@ export getCellCenteredAxes, getNodalAxes,getBoundaryNodes
 export getVolume, getVolumeInv, getFaceArea, getFaceAreaInv, getLength, getLengthInv
 
 """
-	type jInv.Mesh.TensorMesh3D <: AbstractTensorMesh
+	mutable struct jInv.Mesh.TensorMesh3D <: AbstractTensorMesh
 		
 	Fields:
 	
@@ -57,7 +57,7 @@ export getVolume, getVolumeInv, getFaceArea, getFaceAreaInv, getLength, getLengt
 	M  = getTensorMesh2D(h1,h2,h3)
 	
 """
-type TensorMesh3D <: AbstractTensorMesh
+mutable struct TensorMesh3D <: AbstractTensorMesh
 	h1::Vector{Float64}
 	h2::Vector{Float64}
 	h3::Vector{Float64}
@@ -280,9 +280,9 @@ function getVolume(Mesh::TensorMesh3D)
 return Mesh.V
 end
 function getVolumeInv(Mesh::TensorMesh3D)
-# Mesh.Vi = getVolumeInv(Mesh::TensorMesh3D) returns sdiag(1./v)
+# Mesh.Vi = getVolumeInv(Mesh::TensorMesh3D) returns sdiag(1 ./v)
 	if isempty(Mesh.Vi)
-		Mesh.Vi = kron(sdiag(1./Mesh.h3),kron(sdiag(1./Mesh.h2),sdiag(1./Mesh.h1)))
+		Mesh.Vi = kron(sdiag(1 ./Mesh.h3),kron(sdiag(1 ./Mesh.h2),sdiag(1 ./Mesh.h1)))
 	end
 return Mesh.Vi
 end
@@ -297,11 +297,11 @@ function getFaceArea(Mesh::TensorMesh3D)
 return Mesh.F
 end
 function getFaceAreaInv(Mesh::TensorMesh3D)
-# Mesh.Fi = getFaceAreaInv(Mesh::TensorMesh3D) computes inverse of face areas, returns sdiag(1./a)
+# Mesh.Fi = getFaceAreaInv(Mesh::TensorMesh3D) computes inverse of face areas, returns sdiag(1 ./a)
 	if isempty(Mesh.Fi)
-		f1i  = kron(sdiag(1./Mesh.h3)   ,kron(sdiag(1./Mesh.h2)   ,speye(Mesh.n[1]+1)))
-		f2i  = kron(sdiag(1./Mesh.h3)   ,kron(speye(Mesh.n[2]+1) ,sdiag(1./Mesh.h1)))
-		f3i  = kron(speye(Mesh.n[3]+1) ,kron(sdiag(1./Mesh.h2)   ,sdiag(1./Mesh.h1)))
+		f1i  = kron(sdiag(1 ./Mesh.h3)   ,kron(sdiag(1 ./Mesh.h2)   ,speye(Mesh.n[1]+1)))
+		f2i  = kron(sdiag(1 ./Mesh.h3)   ,kron(speye(Mesh.n[2]+1) ,sdiag(1 ./Mesh.h1)))
+		f3i  = kron(speye(Mesh.n[3]+1) ,kron(sdiag(1 ./Mesh.h2)   ,sdiag(1 ./Mesh.h1)))
 		Mesh.Fi = blkdiag(blkdiag(f1i,f2i),f3i)
 	end
 return Mesh.Fi
@@ -319,11 +319,11 @@ return Mesh.L
 end
 
 function getLengthInv(Mesh::TensorMesh3D)
-# Mesh.L = getLength(Mesh::TensorMesh3D) computes inverse of edge lengths l, returns sdiag(1./l)
+# Mesh.L = getLength(Mesh::TensorMesh3D) computes inverse of edge lengths l, returns sdiag(1 ./l)
 	if isempty(Mesh.Li)
-		l1i = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]+1),sdiag(1./Mesh.h1)))
-		l2i = kron(speye(Mesh.n[3]+1),kron(sdiag(1./Mesh.h2),speye(Mesh.n[1]+1)))
-		l3i = kron(sdiag(1./Mesh.h3),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1]+1)))
+		l1i = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]+1),sdiag(1 ./Mesh.h1)))
+		l2i = kron(speye(Mesh.n[3]+1),kron(sdiag(1 ./Mesh.h2),speye(Mesh.n[1]+1)))
+		l3i = kron(sdiag(1 ./Mesh.h3),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1]+1)))
 		Mesh.Li  = blkdiag(blkdiag(l1i,l2i),l3i);
 	end
 return Mesh.Li

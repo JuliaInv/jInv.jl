@@ -6,7 +6,7 @@ function jInv.InverseSolve.HessMatVec
 
 computes matrix-vector products with Hessian
 
-    H(m)\*x = J(m)\*d2F\*J(m)'\*x
+    H(m)*x = J(m)*d2F*J(m)'*x
 
 HessMatVec has different methods to make this efficient in the respective
 cases. Type methods(HessMatVec) for a list.
@@ -19,7 +19,7 @@ function HessMatVec(d2F::Union{Array{Float64,1},Array{Float32,1}}, x::Union{Arra
     return d2F .* x
 end
 
-function HessMatVec(d2F::Array{Complex128,1}, x::Array{Complex128,1})
+function HessMatVec(d2F::Array{ComplexF64,1}, x::Array{ComplexF64,1})
 #=
    Hessian is complex diagonal and represented as vector
 =#
@@ -33,7 +33,7 @@ function HessMatVec(d2F::SparseMatrixCSC{Float64}, x::Array{Float64,1})
     return d2F * x
 end
 
-function HessMatVec(d2F::SparseMatrixCSC{Complex128}, x::Array{Complex128,1})
+function HessMatVec(d2F::SparseMatrixCSC{ComplexF64}, x::Array{ComplexF64,1})
 #=
    Hessian is complex and sparse, vector is complex
 =#
@@ -41,7 +41,7 @@ function HessMatVec(d2F::SparseMatrixCSC{Complex128}, x::Array{Complex128,1})
 end
 
 
-function HessMatVec(d2F::SparseMatrixCSC{Float64}, x::Array{Complex128,1})
+function HessMatVec(d2F::SparseMatrixCSC{Float64}, x::Array{ComplexF64,1})
 #=
    Hessian is real and sparse, vector is complex
 =#

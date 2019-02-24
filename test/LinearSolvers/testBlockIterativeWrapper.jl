@@ -1,6 +1,6 @@
 using jInv.Mesh
 using jInv.LinearSolvers
-using Base.Test
+using Test
 using KrylovMethods
 
 println("===  Example 2D DivSigGrad ====");

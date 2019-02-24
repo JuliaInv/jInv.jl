@@ -9,7 +9,7 @@ Used for efficiency in mesh-decoupling.
 Examples:
 
     P = prepareMesh2Mesh(Msmall, Mbig, true)
-    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'\*modelInv
+    modelLoc =  interpGlobalToLocal(modelInv,P) # uncompresses the indices and does P'*modelInv
     kwargs = Additional arguments used by getInterpolationMatrix
 
 Inputs:

@@ -11,7 +11,7 @@ export SSDFun, HuberFun, MVFun, MVFunTotal
 
 	Output:
 
-		mis::Real   -  misfit, 0.5\*|dc-dobs|\_Wd^2
+		mis::Real   -  misfit, 0.5*|dc-dobs|_Wd^2
 		dmis        -  gradient
 		d2mis       -  diagonal of Hessian
 
@@ -26,9 +26,9 @@ function SSDFun(dc::Union{Array{Float64},Array{Float32}},dobs::Union{Array{Float
 end # function SSDFun
 
 """
-	For complex data misfit is computed as 0.5\*|real(dc)-(dobs)|\_Wd^2 +  0.5\*|complex(dc)-complex(dobs)|\_W^2
+	For complex data misfit is computed as 0.5*|real(dc)-(dobs)|_Wd^2 +  0.5*|complex(dc)-complex(dobs)|_W^2
 """
-function SSDFun(dc::Array{Complex128},dobs::Array{Complex128},Wd::Array{Complex128})
+function SSDFun(dc::Array{ComplexF64},dobs::Array{ComplexF64},Wd::Array{ComplexF64})
 
 	wdr   = vec(real(Wd)); wdi = vec(imag(Wd))
 	# wdr.*dRe + im*wdi.*dIm
