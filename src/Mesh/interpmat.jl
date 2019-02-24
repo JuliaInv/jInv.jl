@@ -38,7 +38,7 @@ function interpmat(x,y,Xr)
 	# find valid points
 	valid1 = (x[1]-h1[1] .<=Xr[:,1]) .& (Xr[:,1] .<= x[end]+h1[end])
 	valid2 = (y[1]-h2[1] .<=Xr[:,2]) .& (Xr[:,2] .<= y[end]+h2[end])
-	valid =  find( valid1 .& valid2  )
+	valid =  findall( valid1 .& valid2  )
 
 	if isempty(valid)
 	    return spzeros(np,nx*ny)
@@ -58,9 +58,9 @@ function interpmat(x,y,Xr)
 			V1[:,1].*V2[:,2]
 			V1[:,2].*V2[:,2]
 	]
-	V  = V[find(all(IJ[:,2:3] .> 0 ,2))]
-	IJ = IJ[find(all(IJ[:,2:3] .> 0 ,2)),:]
-	return sparse(IJ[:,1], sub2ind((nx,ny),IJ[:,2],IJ[:,3],),V,np,nx*ny)
+	V  = V[LinearIndices(V)[findall(all(IJ[:,2:3] .> 0 ,dims=2))]]
+	IJ = IJ[LinearIndices(IJ)[findall(all(IJ[:,2:3] .> 0 ,dims=2))],:]
+	return sparse(IJ[:,1], LinearIndices((nx,ny))[CartesianIndex.(IJ[:,2],IJ[:,3])],V,np,nx*ny)
 end
 
 function interpmat(x,y,z,Xr)
@@ -76,7 +76,7 @@ function interpmat(x,y,z,Xr)
 	valid1 = (x[1]-h1[1] .<=Xr[:,1]) .& (Xr[:,1] .<= x[end]+h1[end])
 	valid2 = (y[1]-h2[1] .<=Xr[:,2]) .& (Xr[:,2] .<= y[end]+h2[end])
 	valid3 = (z[1]-h3[1] .<=Xr[:,3]) .& (Xr[:,3] .<= z[end]+h3[end])
-	valid =  find( valid1 .& valid2 .& valid3 )
+	valid =  findall( valid1 .& valid2 .& valid3 )
 
 	if isempty(valid)
 	    return spzeros(np,nx*ny*nz)
@@ -105,9 +105,9 @@ function interpmat(x,y,z,Xr)
 			V1[:,1].*V2[:,2].*V3[:,2]
 			V1[:,2].*V2[:,2].*V3[:,2]
 	]
-	V  = V[find(all(IJ[:,2:4] .> 0 ,2))]
-	IJ = IJ[find(all(IJ[:,2:4] .> 0 ,2)),:]
-	return sparse(IJ[:,1], sub2ind((nx,ny,nz),IJ[:,2],IJ[:,3],IJ[:,4]),V,np,nx*ny*nz)
+	V  = V[LinearIndices(V)[findall(all(IJ[:,2:4] .> 0 ,dims=2))]]
+	IJ = IJ[LinearIndices(IJ)[findall(all(IJ[:,2:4] .> 0 ,dims=2))],:]
+	return sparse(IJ[:,1], LinearIndices((nx,ny,nz))[CartesianIndex.(IJ[:,2],IJ[:,3],IJ[:,4])],V,np,nx*ny*nz)
 end
 
 function inter1D(x,ax,valid)
@@ -117,28 +117,28 @@ function inter1D(x,ax,valid)
 	debit = valid
 	for k=length(ax):-1:1; # go from right to left and search left neighbour
 	    p =  (x[debit].-ax[k]) .>=0
-		Ip = find(p)
-	    J[debit[Ip],1] = k
+		Ip = findall(p)
+	    J[debit[Ip],1] .= k
 		# check if right neighbour is in domain
 	    if k < length(ax)
 	        hk = ax[k+1]-ax[k]
-	        J[debit[Ip],2] = k+1
-	        V[debit[Ip],1] = (ax[k+1].-x[debit[Ip]])./hk
-	        V[debit[Ip],2] = (x[debit[Ip]].-ax[k])./hk
+	        J[debit[Ip],2] .= k+1
+	        V[debit[Ip],1] .= (ax[k+1].-x[debit[Ip]])./hk
+	        V[debit[Ip],2] .= (x[debit[Ip]].-ax[k])./hk
 	    else
 	        hk = ax[k]-ax[k-1]
 	        V[debit[Ip],1] = (ax[k]+hk.-x[debit[Ip]])./hk
 	    end
-		debit = debit[find(.!p)]
+		debit = debit[findall(.!p)]
 	end
 	if !isempty(debit)
 	    # check for points between ax[1]-h[1] and ax[1]
 	    hk = ax[2]-ax[1]
 	    P  = x[debit].-(ax[1]-hk)
-	    p  = find( P .>=0 )
-	    J[debit[p],2] = 1
-	    V[debit[p],2] = (x[debit[p],1].-(ax[1]-hk))/hk
-		debit = debit[find(P.<0)]
+	    p  = findall( P .>=0 )
+	    J[debit[p],2] .= 1
+	    V[debit[p],2] .= (x[debit[p],1].-(ax[1]-hk))/hk
+		debit = debit[findall(P.<0)]
 	end
 	if !isempty(debit); error("something is wrong here!"); end;
 	return J,V
@@ -165,7 +165,7 @@ function getEdgeInterpolationMatrix(Mesh::AbstractTensorMesh, x)
 	Qy = interpmat(xn, yc, zn, x)
 	Qz = interpmat(xn, yn, zc, x)
 
-	Q  = blkdiag(blkdiag(Qx,Qy),Qz)
+	Q  = blockdiag(blockdiag(Qx,Qy),Qz)
 
 	return Q
 
@@ -182,7 +182,7 @@ function getFaceInterpolationMatrix(Mesh::AbstractTensorMesh, x)
 	Qy = interpmat(xc, yn, zc, x)
 	Qz = interpmat(xc, yc, zn, x)
 
-	Q  = blkdiag(blkdiag(Qx,Qy),Qz)
+	Q  = blockdiag(blockdiag(Qx,Qy),Qz)
 
 	return Q
 

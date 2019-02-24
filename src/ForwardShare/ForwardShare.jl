@@ -63,6 +63,7 @@ module ForwardShare
 	
 	using Distributed
 	using SparseArrays
+	using LinearAlgebra
 
 	export getSensMatVec
 	"""

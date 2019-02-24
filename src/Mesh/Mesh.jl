@@ -1,5 +1,6 @@
 module Mesh
 
+using LinearAlgebra
 using LinearAlgebra.BLAS
 using jInv.Utils
 using SparseArrays

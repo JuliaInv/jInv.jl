@@ -19,9 +19,7 @@ Meshes = (Mt,Mr,Mt2)
 for k=1:length(Meshes)
 	M = Meshes[k]
 	print("\ttesting differential operators for $(typeof(M))...")
-	Dr = getDivergenceMatrix(M)
-	Cr = getCurlMatrix(M)
-	@test norm(Dr*Cr,Inf)<1e-12
+	@test norm(getDivergenceMatrix(M)*getCurlMatrix(M),Inf)<1e-12
 	
 	Lap = getNodalLaplacianMatrix(M)
 	G   = getNodalGradientMatrix(M)

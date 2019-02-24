@@ -21,6 +21,7 @@ abstract type AbstractModelTransform end
 using Distributed
 using SparseArrays
 using Printf
+using LinearAlgebra
 
 include("HessianPreconditioners.jl")
 

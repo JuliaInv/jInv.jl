@@ -294,16 +294,16 @@ function getNodalAxes(domain,nc)
 	dim = round(Int64,length(domain)/2)
 	
 	if dim==1
-		x1 = collect(linspace(domain[1], domain[2],nc+1))
+		x1 = collect(range(domain[1], step=(domain[2]-domain[1])/nc,length=nc+1))
 		return x1
 	elseif dim==2
-		x1 = collect(linspace(domain[1], domain[2],nc[1]+1))
-		x2 = collect(linspace(domain[3], domain[4],nc[2]+1))
+		x1 = collect(range(domain[1], step=(domain[2]-domain[1])/nc[1],length=nc[1]+1))
+		x2 = collect(range(domain[3], step=(domain[4]-domain[3])/nc[2],length=nc[2]+1))
 		return (x1,x2)
 	elseif dim==3
-		x1 = collect(linspace(domain[1], domain[2],nc[1]+1))
-		x2 = collect(linspace(domain[3], domain[4],nc[2]+1))
-		x3 = collect(linspace(domain[5], domain[6],nc[3]+1))
+		x1 = collect(range(domain[1], step=(domain[2]-domain[1])/nc[1],length=nc[1]+1))
+		x2 = collect(range(domain[3], step=(domain[4]-domain[3])/nc[2],length=nc[2]+1))
+		x3 = collect(range(domain[5], step=(domain[6]-domain[5])/nc[3],length=nc[3]+1))
 		return (x1,x2,x3)
 	end
 end
@@ -316,16 +316,16 @@ function getCellCenteredAxes(domain,nc)
 	dim = round(Int64,length(domain)/2)
 	h   = vec(domain[2:2:end]-domain[1:2:end])./vec(nc)
 	if dim==1
-		x1 = collect(linspace(domain[1]+h[1]/2, domain[2]-h[1]/2, nc[1]))
+		x1 = collect(range(domain[1]+h[1]/2, step=h[1], length=nc[1]))
 		return x1
 	elseif dim==2
-		x1 = collect(linspace(domain[1]+h[1]/2, domain[2]-h[1]/2, nc[1]))
-		x2 = collect(linspace(domain[3]+h[2]/2, domain[4]-h[2]/2, nc[2]))
+		x1 = collect(range(domain[1]+h[1]/2, step=h[1], length=nc[1]))
+		x2 = collect(range(domain[3]+h[2]/2, step=h[2], length=nc[2]))
 		return (x1,x2)
 	elseif dim==3
-		x1 = collect(linspace(domain[1]+h[1]/2, domain[2]-h[1]/2, nc[1]))
-		x2 = collect(linspace(domain[3]+h[2]/2, domain[4]-h[2]/2, nc[2]))
-		x3 = collect(linspace(domain[5]+h[3]/2, domain[6]-h[3]/2, nc[3]))
+		x1 = collect(range(domain[1]+h[1]/2, step=h[1], length=nc[1]))
+		x2 = collect(range(domain[3]+h[2]/2, step=h[2], length=nc[2]))
+		x3 = collect(range(domain[5]+h[3]/2, step=h[3], length=nc[3]))
 		return (x1,x2,x3)
 	end
 end
@@ -334,14 +334,14 @@ end
 function getVolume(Mesh::RegularMesh)
 # Mesh.V = getVolume(Mesh::RegularMesh) computes volumes v, returns diag(v)
 	if isempty(Mesh.V)
-		Mesh.V = prod(Mesh.h)*speye(prod(Mesh.n))
+		Mesh.V = sparse(prod(Mesh.h)*I, Mesh.nc,Mesh.nc)
 	end
 	return Mesh.V
 end
 function getVolumeInv(Mesh::RegularMesh)
 # Mesh.Vi = getVolumeInv(Mesh::RegularMesh) returns sdiag(1 ./v)
 	if isempty(Mesh.Vi)
-		Mesh.Vi = (1/prod(Mesh.h))*speye(prod(Mesh.n))
+		Mesh.Vi = sparse((1/prod(Mesh.h))*I, Mesh.nc,Mesh.nc)
 	end
 	return Mesh.Vi
 end
@@ -350,14 +350,14 @@ function getFaceArea(Mesh::RegularMesh)
 # Mesh.F = getFaceArea(Mesh::RegularMesh) computes face areas a, returns  sdiag(a)
 	if isempty(Mesh.F)
 		if Mesh.dim==2
-			f1  = Mesh.h[2]*speye(Mesh.nf[1])
-			f2  = Mesh.h[1]*speye(Mesh.nf[2])
-			Mesh.F = blkdiag(f1,f2)
+			f1  = Mesh.h[2]*sparse(1.0I,Mesh.nf[1],Mesh.nf[1])
+			f2  = Mesh.h[1]*sparse(1.0I,Mesh.nf[2],Mesh.nf[2])
+			Mesh.F = blockdiag(f1,f2)
 		elseif Mesh.dim==3
-			f1  = (Mesh.h[3]*Mesh.h[2])*speye(Mesh.nf[1])
-			f2  = (Mesh.h[3]*Mesh.h[1])*speye(Mesh.nf[2])
-			f3  = (Mesh.h[2]*Mesh.h[1])*speye(Mesh.nf[3])
-			Mesh.F = blkdiag(blkdiag(f1,f2),f3)
+			f1  = (Mesh.h[3]*Mesh.h[2])*sparse(1.0I,Mesh.nf[1],Mesh.nf[1])
+			f2  = (Mesh.h[3]*Mesh.h[1])*sparse(1.0I,Mesh.nf[2],Mesh.nf[2])
+			f3  = (Mesh.h[2]*Mesh.h[1])*sparse(1.0I,Mesh.nf[3],Mesh.nf[3])
+			Mesh.F = blockdiag(blockdiag(f1,f2),f3)
 		end
 	end
 	return Mesh.F
@@ -366,14 +366,14 @@ function getFaceAreaInv(Mesh::RegularMesh)
 # Mesh.Fi = getFaceAreaInv(Mesh::RegularMesh) computes inverse of face areas, returns sdiag(1 ./a)
 	if isempty(Mesh.Fi)
 		if Mesh.dim==2
-			f1i  = (1/Mesh.h[2])*speye(Mesh.nf[1])
-			f2i  = (1/Mesh.h[1])*speye(Mesh.nf[2])
-			Mesh.Fi = blkdiag(f1i,f2i)
+			f1i  = (1/Mesh.h[2])*sparse(1.0I,Mesh.nf[1],Mesh.nf[1])
+			f2i  = (1/Mesh.h[1])*sparse(1.0I,Mesh.nf[2],Mesh.nf[2])
+			Mesh.Fi = blockdiag(f1i,f2i)
 		elseif Mesh.dim==3
-			f1i  = (1/(Mesh.h[3]*Mesh.h[2]))*speye(Mesh.nf[1])
-			f2i  = (1/(Mesh.h[3]*Mesh.h[1]))*speye(Mesh.nf[2])
-			f3i  = (1/(Mesh.h[2]*Mesh.h[1]))*speye(Mesh.nf[3])
-			Mesh.Fi = blkdiag(blkdiag(f1i,f2i),f3i)
+			f1i  = (1/(Mesh.h[3]*Mesh.h[2]))*sparse(1.0I,Mesh.nf[1],Mesh.nf[1])
+			f2i  = (1/(Mesh.h[3]*Mesh.h[1]))*sparse(1.0I,Mesh.nf[2],Mesh.nf[2])
+			f3i  = (1/(Mesh.h[2]*Mesh.h[1]))*sparse(1.0I,Mesh.nf[3],Mesh.nf[3])
+			Mesh.Fi = blockdiag(blockdiag(f1i,f2i),f3i)
 		end
 	end
 	return Mesh.Fi
@@ -383,14 +383,14 @@ function getLength(Mesh::RegularMesh)
 # Mesh.L = getLength(Mesh::RegularMesh) computes edge lengths l, returns sdiag(l)
 	if isempty(Mesh.L)
 		if Mesh.dim==2
-			l1  = Mesh.h[1]*speye(Mesh.ne[1])
-			l2  = Mesh.h[2]*speye(Mesh.ne[2])
-			Mesh.L   = blkdiag(l1,l2)
+			l1  = Mesh.h[1]*sparse(1.0I,Mesh.ne[1],Mesh.ne[1])
+			l2  = Mesh.h[2]*sparse(1.0I,Mesh.ne[2],Mesh.ne[2])
+			Mesh.L   = blockdiag(l1,l2)
 		elseif Mesh.dim==3
-			l1  = Mesh.h[1]*speye(Mesh.ne[1])
-			l2  = Mesh.h[2]*speye(Mesh.ne[2])
-			l3  = Mesh.h[3]*speye(Mesh.ne[3])
-			Mesh.L   = blkdiag(blkdiag(l1,l2),l3)
+			l1  = Mesh.h[1]*sparse(1.0I,Mesh.ne[1],Mesh.ne[1])
+			l2  = Mesh.h[2]*sparse(1.0I,Mesh.ne[2],Mesh.ne[2])
+			l3  = Mesh.h[3]*sparse(1.0I,Mesh.ne[3],Mesh.ne[3])
+			Mesh.L   = blockdiag(blockdiag(l1,l2),l3)
 		end
 	end
 	return Mesh.L
@@ -400,14 +400,14 @@ function getLengthInv(Mesh::RegularMesh)
 # Mesh.L = getLength(Mesh::RegularMesh) computes inverse of edge lengths l, returns sdiag(1 ./l)
 	if isempty(Mesh.Li)
 		if Mesh.dim==2
-			l1i  = (1/Mesh.h[1])*speye(Mesh.ne[1])
-			l2i  = (1/Mesh.h[2])*speye(Mesh.ne[2])
-			Mesh.Li   = blkdiag(l1i,l2i)
+			l1i  = (1/Mesh.h[1])*sparse(1.0I,Mesh.ne[1],Mesh.ne[1])
+			l2i  = (1/Mesh.h[2])*sparse(1.0I,Mesh.ne[2],Mesh.ne[2])
+			Mesh.Li   = blockdiag(l1i,l2i)
 		elseif Mesh.dim==3
-			l1i  = (1/Mesh.h[1])*speye(Mesh.ne[1])
-			l2i  = (1/Mesh.h[2])*speye(Mesh.ne[2])
-			l3i  = (1/Mesh.h[3])*speye(Mesh.ne[3])
-			Mesh.Li  = blkdiag(blkdiag(l1i,l2i),l3i)
+			l1i  = (1/Mesh.h[1])*sparse(1.0I,Mesh.ne[1],Mesh.ne[1])
+			l2i  = (1/Mesh.h[2])*sparse(1.0I,Mesh.ne[2],Mesh.ne[2])
+			l3i  = (1/Mesh.h[3])*sparse(1.0I,Mesh.ne[3],Mesh.ne[3])
+			Mesh.Li  = blockdiag(blockdiag(l1i,l2i),l3i)
 		end
 	end
 	return Mesh.Li

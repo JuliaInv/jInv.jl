@@ -5,13 +5,15 @@ export getEdgeMassMatrix, getdEdgeMassMatrix, getFaceMassMatrix,
        getdFaceMassMatrix,getNodalMassMatrix,getdNodalMassMatrix
 
 function av(n)
-# A = av(n), 1D average operator
-	return spdiagm((fill(.5,n),fill(.5,n)),(0,1),n,n+1)
+	# A = av(n), 1D average operator
+	I,J,V = SparseArrays.spdiagm_internal(0 => fill(.5,n), 1 => fill(.5,n)) 
+	return sparse(I, J, V, n, n+1)
 end
 
 function ddx(n)
 # D = ddx(n), 1D derivative operator
-	return spdiagm((fill(-1.0,n),fill(1.0,n)),(0,1),n,n+1)
+	I,J,V = SparseArrays.spdiagm_internal(0 => fill(-1.0,n), 1 => fill(1.0,n)) 
+	return sparse(I, J, V, n, n+1)
 end
 
 # --- linear operator
@@ -31,13 +33,13 @@ end
 function getFaceAverageMatrix(Mesh::AbstractTensorMesh)
 	if isempty(Mesh.Af)
 		if Mesh.dim==2
-			A1 = kron(speye(Mesh.n[2]),av(Mesh.n[1]))
-			A2 = kron(av(Mesh.n[2]),speye(Mesh.n[1]))
+			A1 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1]))
+			A2 = kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]))
 			Mesh.Af = [A1 A2]
 		elseif Mesh.dim==3
-			A1 = kron(speye(Mesh.n[3]),kron(speye(Mesh.n[2]),av(Mesh.n[1])))
-			A2 = kron(speye(Mesh.n[3]),kron(av(Mesh.n[2]),speye(Mesh.n[1])))
-			A3 = kron(av(Mesh.n[3]),kron(speye(Mesh.n[2]),speye(Mesh.n[1])))
+			A1 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1])))
+			A2 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
+			A3 = kron(av(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
 			Mesh.Af = [A1 A2 A3]
 		end
 	end
@@ -59,13 +61,13 @@ end
 function getEdgeAverageMatrix(Mesh::AbstractTensorMesh)
 	if isempty(Mesh.Ae)
 		if Mesh.dim==3
-			A1 = kron(av(Mesh.n[3]),kron(av(Mesh.n[2]),speye(Mesh.n[1])))
-			A2 = kron(av(Mesh.n[3]),kron(speye(Mesh.n[2]),av(Mesh.n[1])))
-			A3 = kron(speye(Mesh.n[3]),kron(av(Mesh.n[2]),av(Mesh.n[1])))
+			A1 = kron(av(Mesh.n[3]),kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]) ))
+			A2 = kron(av(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1])))
+			A3 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(av(Mesh.n[2]),av(Mesh.n[1])))
 			Mesh.Ae = [A1 A2 A3]
 		elseif Mesh.dim==2
-			A1 = kron(av(Mesh.n[2]),speye(Mesh.n[1]))
-			A2 = kron(speye(Mesh.n[2]),av(Mesh.n[1]))
+			A1 = kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]))
+			A2 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1]))
 			Mesh.Ae = [A1 A2]
 		else
 			error("getEdgeAverageMatrix not implemented fot $(Mesh.dim)D Meshes")
@@ -213,7 +215,7 @@ getdFaceMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdFaceMassMatrix
 function getNodalMassMatrix(M::AbstractMesh,sigma::Vector)
     An = getNodalAverageMatrix(M)
     V  = getVolume(M)
-    Mn = spdiagm(An'*(V*sigma))
+    Mn = Diagonal(An'*(V*sigma))
   return Mn
 end
 
@@ -261,7 +263,7 @@ end
 function ndgrid(vs::AbstractVector{T}...) where {T}
 	n = length(vs)
 	sz = map(length, vs)
-	out = ntuple(i->Array{T}(sz), n)
+	out = ntuple(i->Array{T}(undef,sz), n)
 	s = 1
 	for i=1:n
 		a = out[i]::Array
@@ -299,13 +301,13 @@ function getDivergenceMatrix(Mesh::AbstractTensorMesh)
 # Mesh.Div = getDivergenceMatrix(Mesh::AbstractTensorMesh) builds face-to-cc divergence operator
 	if isempty(Mesh.Div)
 		if Mesh.dim==2
-			D1 = kron(speye(Mesh.n[2]),ddx(Mesh.n[1]))
-			D2 = kron(ddx(Mesh.n[2]),speye(Mesh.n[1]))
+			D1 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),ddx(Mesh.n[1]))
+			D2 = kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]))
 			Div = [D1 D2]
 		elseif Mesh.dim==3
-			D1 = kron(speye(Mesh.n[3]),kron(speye(Mesh.n[2]),ddx(Mesh.n[1])))
-			D2 = kron(speye(Mesh.n[3]),kron(ddx(Mesh.n[2]),speye(Mesh.n[1])))
-			D3 = kron(ddx(Mesh.n[3]),kron(speye(Mesh.n[2]),speye(Mesh.n[1])))
+			D1 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),ddx(Mesh.n[1])))
+			D2 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
+			D3 = kron(ddx(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
 			Div = [D1 D2 D3]
 		end
 		Vi = getVolumeInv(Mesh)
@@ -319,13 +321,13 @@ function getNodalGradientMatrix(Mesh::AbstractTensorMesh)
 # Mesh.Grad = getNodalGradientMatrix(Mesh::AbstractTensorMesh) builds nodal-to-edge gradient operator
 	if isempty(Mesh.Grad)
 		if Mesh.dim==2
-			G1 = kron(speye(Mesh.n[2]+1),ddx(Mesh.n[1]))
-			G2 = kron(ddx(Mesh.n[2]),speye(Mesh.n[1]+1))
+			G1 = kron(sparse(1.0I, Mesh.n[2]+1, Mesh.n[2]+1),ddx(Mesh.n[1]))
+			G2 = kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1]+1, Mesh.n[1]+1))
 			Grad =[G1; G2]
 		elseif Mesh.dim==3
-			G1 = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]+1),ddx(Mesh.n[1])))
-			G2 = kron(speye(Mesh.n[3]+1),kron(ddx(Mesh.n[2]),speye(Mesh.n[1]+1)))
-			G3 = kron(ddx(Mesh.n[3]),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1]+1)))
+			G1 = kron(sparse(1.0I, Mesh.n[3]+1, Mesh.n[3]+1),kron(sparse(1.0I, Mesh.n[2]+1, Mesh.n[2]+1),ddx(Mesh.n[1])))
+			G2 = kron(sparse(1.0I, Mesh.n[3]+1, Mesh.n[3]+1),kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1]+1, Mesh.n[1]+1)))
+			G3 = kron(ddx(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2]+1, Mesh.n[2]+1),sparse(1.0I, Mesh.n[1]+1, Mesh.n[1]+1)))
 			Grad =[G1; G2; G3]
 		end
 		Li  = getLengthInv(Mesh)
@@ -339,14 +341,14 @@ function getCurlMatrix(Mesh::AbstractTensorMesh)
 	if isempty(Mesh.Curl)
 		if Mesh.dim==3
 			# The Curl from edges to faces
-			Dyz = kron(ddx(Mesh.n[3]),kron(speye(Mesh.n[2]),speye(Mesh.n[1]+1)))
-			Dzy = kron(speye(Mesh.n[3]),kron(ddx(Mesh.n[2]),speye(Mesh.n[1]+1)))
+			Dyz = kron(ddx(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),sparse(1.0I, Mesh.n[1]+1, Mesh.n[1]+1)))
+			Dzy = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1]+1, Mesh.n[1]+1)))
 
-			Dxz = kron(ddx(Mesh.n[3]),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1])))
-			Dzx = kron(speye(Mesh.n[3]),kron(speye(Mesh.n[2]+1),ddx(Mesh.n[1])))
+			Dxz = kron(ddx(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2]+1, Mesh.n[2]+1),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
+			Dzx = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2]+1, Mesh.n[2]+1),ddx(Mesh.n[1])))
 
-			Dxy = kron(speye(Mesh.n[3]+1),kron(ddx(Mesh.n[2]),speye(Mesh.n[1])))
-			Dyx = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]),ddx(Mesh.n[1])))
+			Dxy = kron(sparse(1.0I, Mesh.n[3]+1, Mesh.n[3]+1),kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
+			Dyx = kron(sparse(1.0I, Mesh.n[3]+1, Mesh.n[3]+1),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),ddx(Mesh.n[1])))
 
 			# curl on the edges
 			Curl = [

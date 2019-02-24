@@ -23,19 +23,17 @@ massMatrices = ( (getEdgeMassMatrix,getdEdgeMassMatrix),
                  (getNodalMassMatrix,getdNodalMassMatrix), 
                  (getFaceMassMatrix,getdFaceMassMatrix))
 
-k=2
-j = 2;
 for k=1:length(Meshes)
 	for j=1:length(massMatrices)
 		println("\ttest $(massMatrices[j][1]) on $(typeof(Meshes[k]))")
 		M  = Meshes[k]
-		Mf = massMatrices[j][1]
-		dMf = massMatrices[j][2]
-		Av = Mf(M,sig);
+		Mf3 = massMatrices[j][1]
+		dMf3 = massMatrices[j][2]
+		Av = Mf3(M,sig);
 		vt = randn(size(Av,1))
 		
 	
-		chkDir, = checkDerivative(sig->Mf(M,sig)*vt,sig->dMf(M,sig,vt),sig,out=false)
+		chkDir, = checkDerivative(sig->Mf3(M,sig)*vt,sig->dMf3(M,sig,vt),sig,out=false)
 		@test chkDir
 	end
 end

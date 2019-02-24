@@ -1,3 +1,4 @@
+using LinearAlgebra
 using jInv.Mesh
 using Test
 
@@ -32,23 +33,23 @@ for k=1:length(Meshes)
         ib, iin = getBoundaryNodes(M);
 
         # Check if there are 0s in X and Y at boundary nodes
-        @test length(X[ib])-length(find( x->(x < eps(Float32)), abs.(X[ib])))>0
-        @test length(Y[ib])-length(find( x->(x < eps(Float32)), abs.(Y[ib])))>0
+        @test length(X[ib]).-length(findall( x->(x < eps(Float32)), abs.(X[ib])))>0
+        @test length(Y[ib]).-length(findall( x->(x < eps(Float32)), abs.(Y[ib])))>0
 
         # Check if there are 1s in X and Y at boundary nodes
-        @test length(X[ib])-length(find( x->(x < eps(Float32)), abs.(X[ib]-1)))>0
-        @test length(Y[ib])-length(find( x->(x < eps(Float32)), abs.(Y[ib]-1)))>0
+        @test length(X[ib]).-length(findall( x->(x < eps(Float32)), abs.(X[ib].-1)))>0
+        @test length(Y[ib]).-length(findall( x->(x < eps(Float32)), abs.(Y[ib].-1)))>0
 
         # Check that there aren't 0s in X, Y at inner nodes
-        @test length(X[iin])-length(find(X[iin]))==0
-        @test length(Y[iin])-length(find(Y[iin]))==0
+        @test length(X[iin]).-length(findall(x->x!=0, X[iin]))==0
+        @test length(Y[iin]).-length(findall(x->x!=0, Y[iin]))==0
 
         # Check that there aren't 1s in X, Y at inner nodes
-        @test length(X[iin])-length(find(X[iin]-1))==0
-        @test length(Y[iin])-length(find(Y[iin]-1))==0
+        @test length(X[iin]).-length(findall(x->x!=1,X[iin]))==0
+        @test length(Y[iin]).-length(findall(x->x!=1,Y[iin]))==0
 
 
-        elseif M.dim==3
+    elseif M.dim==3
 
         X = getNodalGrid(M)[:,1];
         Y = getNodalGrid(M)[:,2];
@@ -56,24 +57,24 @@ for k=1:length(Meshes)
         ib, iin = getBoundaryNodes(M);
 
         # Check if there are 0s in X, Y, and Z at boundary nodes
-        @test length(X[ib])-length(find( x->(x < eps(Float32)), abs.(X[ib])))>0
-        @test length(Y[ib])-length(find( x->(x < eps(Float32)), abs.(Y[ib])))>0
-        @test length(Y[ib])-length(find( x->(x < eps(Float32)), abs.(Z[ib])))>0
+        @test length(X[ib])-length(findall( x->(x < eps(Float32)), abs.(X[ib])))>0
+        @test length(Y[ib])-length(findall( x->(x < eps(Float32)), abs.(Y[ib])))>0
+        @test length(Y[ib])-length(findall( x->(x < eps(Float32)), abs.(Z[ib])))>0
 
         # Check if there are 1s in X, Y, and Z at boundary nodes
-        @test length(X[ib])-length(find( x->(x < eps(Float32)), abs.(X[ib]-1)))>0
-        @test length(Y[ib])-length(find( x->(x < eps(Float32)), abs.(Y[ib]-1)))>0
-        @test length(Y[ib])-length(find( x->(x < eps(Float32)), abs.(Z[ib]-1)))>0
+        @test length(X[ib])-length(findall( x->(x < eps(Float32)), abs.(X[ib].-1)))>0
+        @test length(Y[ib])-length(findall( x->(x < eps(Float32)), abs.(Y[ib].-1)))>0
+        @test length(Y[ib])-length(findall( x->(x < eps(Float32)), abs.(Z[ib].-1)))>0
 
         # Check that there aren't 0s in X,Y,Z at inner nodes
-        @test length(X[iin])-length(find(X[iin]))==0
-        @test length(Y[iin])-length(find(Y[iin]))==0
-        @test length(Z[iin])-length(find(Z[iin]))==0
+        @test length(X[iin]).-length(findall(x->x!=0,X[iin]))==0
+        @test length(Y[iin]).-length(findall(x->x!=0,Y[iin]))==0
+        @test length(Z[iin]).-length(findall(x->x!=0,Z[iin]))==0
 
         # Check that there aren't 1s in X,Y,Z at inner nodes
-        @test length(X[iin])-length(find(X[iin]-1))==0
-        @test length(Y[iin])-length(find(Y[iin]-1))==0
-        @test length(Z[iin])-length(find(Z[iin]-1))==0
+        @test length(X[iin]).-length(findall(x->x!=1, X[iin]))==0
+        @test length(Y[iin]).-length(findall(x->x!=1, Y[iin]))==0
+        @test length(Z[iin]).-length(findall(x->x!=1, Z[iin]))==0
 
     end
 

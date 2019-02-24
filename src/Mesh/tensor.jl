@@ -289,20 +289,20 @@ end
 function getFaceArea(Mesh::TensorMesh3D)
 # Mesh.F = getFaceArea(Mesh::TensorMesh3D) computes face areas a, returns  sdiag(a)
 	if isempty(Mesh.F)
-		f1  = kron(sdiag(Mesh.h3)      ,kron(sdiag(Mesh.h2)      ,speye(Mesh.n[1]+1)))
-		f2  = kron(sdiag(Mesh.h3)      ,kron(speye(Mesh.n[2]+1) ,sdiag(Mesh.h1)))
-		f3  = kron(speye(Mesh.n[3]+1) ,kron(sdiag(Mesh.h2)      ,sdiag(Mesh.h1)))
-		Mesh.F = blkdiag(blkdiag(f1,f2),f3)
+		f1  = kron(sdiag(Mesh.h3)      ,kron(sdiag(Mesh.h2)      ,sparse(1.0I,Mesh.n[1]+1,Mesh.n[1]+1)))
+		f2  = kron(sdiag(Mesh.h3)      ,kron(sparse(1.0I,Mesh.n[2]+1,Mesh.n[2]+1) ,sdiag(Mesh.h1)))
+		f3  = kron(sparse(1.0I,Mesh.n[3]+1,Mesh.n[3]+1) ,kron(sdiag(Mesh.h2)      ,sdiag(Mesh.h1)))
+		Mesh.F = blockdiag(blockdiag(f1,f2),f3)
 	end
 return Mesh.F
 end
 function getFaceAreaInv(Mesh::TensorMesh3D)
 # Mesh.Fi = getFaceAreaInv(Mesh::TensorMesh3D) computes inverse of face areas, returns sdiag(1 ./a)
 	if isempty(Mesh.Fi)
-		f1i  = kron(sdiag(1 ./Mesh.h3)   ,kron(sdiag(1 ./Mesh.h2)   ,speye(Mesh.n[1]+1)))
-		f2i  = kron(sdiag(1 ./Mesh.h3)   ,kron(speye(Mesh.n[2]+1) ,sdiag(1 ./Mesh.h1)))
-		f3i  = kron(speye(Mesh.n[3]+1) ,kron(sdiag(1 ./Mesh.h2)   ,sdiag(1 ./Mesh.h1)))
-		Mesh.Fi = blkdiag(blkdiag(f1i,f2i),f3i)
+		f1i  = kron(sdiag(1 ./Mesh.h3)   ,kron(sdiag(1 ./Mesh.h2)   ,sparse(1.0I,Mesh.n[1]+1,Mesh.n[1]+1)))
+		f2i  = kron(sdiag(1 ./Mesh.h3)   ,kron(sparse(1.0I,Mesh.n[2]+1,Mesh.n[2]+1) ,sdiag(1 ./Mesh.h1)))
+		f3i  = kron(sparse(1.0I,Mesh.n[3]+1,Mesh.n[3]+1) ,kron(sdiag(1 ./Mesh.h2)   ,sdiag(1 ./Mesh.h1)))
+		Mesh.Fi = blockdiag(blockdiag(f1i,f2i),f3i)
 	end
 return Mesh.Fi
 end
@@ -310,10 +310,10 @@ end
 function getLength(Mesh::TensorMesh3D)
 # Mesh.L = getLength(Mesh::TensorMesh3D) computes edge lengths l, returns sdiag(l)
 	if isempty(Mesh.L)
-		l1  = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]+1),sdiag(Mesh.h1)))
-		l2  = kron(speye(Mesh.n[3]+1),kron(sdiag(Mesh.h2),speye(Mesh.n[1]+1)))
-		l3  = kron(sdiag(Mesh.h3),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1]+1)))
-		Mesh.L   = blkdiag(blkdiag(l1,l2),l3);
+		l1  = kron(sparse(1.0I,Mesh.n[3]+1,Mesh.n[3]+1),kron(sparse(1.0I,Mesh.n[2]+1,Mesh.n[2]+1),sdiag(Mesh.h1)))
+		l2  = kron(sparse(1.0I,Mesh.n[3]+1,Mesh.n[3]+1),kron(sdiag(Mesh.h2),sparse(1.0I,Mesh.n[1]+1,Mesh.n[1]+1)))
+		l3  = kron(sdiag(Mesh.h3),kron(sparse(1.0I,Mesh.n[2]+1,Mesh.n[2]+1),sparse(1.0I,Mesh.n[1]+1,Mesh.n[1]+1)))
+		Mesh.L   = blockdiag(blockdiag(l1,l2),l3);
 	end
 return Mesh.L
 end
@@ -321,10 +321,10 @@ end
 function getLengthInv(Mesh::TensorMesh3D)
 # Mesh.L = getLength(Mesh::TensorMesh3D) computes inverse of edge lengths l, returns sdiag(1 ./l)
 	if isempty(Mesh.Li)
-		l1i = kron(speye(Mesh.n[3]+1),kron(speye(Mesh.n[2]+1),sdiag(1 ./Mesh.h1)))
-		l2i = kron(speye(Mesh.n[3]+1),kron(sdiag(1 ./Mesh.h2),speye(Mesh.n[1]+1)))
-		l3i = kron(sdiag(1 ./Mesh.h3),kron(speye(Mesh.n[2]+1),speye(Mesh.n[1]+1)))
-		Mesh.Li  = blkdiag(blkdiag(l1i,l2i),l3i);
+		l1i = kron(sparse(1.0I,Mesh.n[3]+1,Mesh.n[3]+1),kron(sparse(1.0I,Mesh.n[2]+1,Mesh.n[2]+1),sdiag(1 ./Mesh.h1)))
+		l2i = kron(sparse(1.0I,Mesh.n[3]+1,Mesh.n[3]+1),kron(sdiag(1 ./Mesh.h2),sparse(1.0I,Mesh.n[1]+1,Mesh.n[1]+1)))
+		l3i = kron(sdiag(1 ./Mesh.h3),kron(sparse(1.0I,Mesh.n[2]+1,Mesh.n[2]+1),sparse(1.0I,Mesh.n[1]+1,Mesh.n[1]+1)))
+		Mesh.Li  = blockdiag(blockdiag(l1i,l2i),l3i);
 	end
 return Mesh.Li
 end
@@ -346,7 +346,7 @@ function getBoundaryNodes(M::AbstractTensorMesh)
     N = M.n
     
     # nodal matrix
-    nodal_mat = 1:prod(N+1)
+    nodal_mat = 1:prod(N.+1)
     
     # check dimension
     if M.dim==2

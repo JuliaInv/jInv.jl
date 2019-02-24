@@ -86,19 +86,19 @@ for ip = 1:np
     d  = sqrt(dx^2 + dy^2 + dz^2)
     tol = d * eps(Float64)
     if abs(dx) > tol
-      tx = (x - ax) / dx
+      tx = (x .- ax) / dx
       tx = tx[(tx .>=0) .& (tx .<= 1)]
     else
       tx = Float64[]
     end
     if abs(dy) > tol
-      ty = (y - ay) / dy
+      ty = (y .- ay) / dy
       ty = ty[(ty .>=0) .& (ty .<= 1)]
     else
       ty = Float64[]
     end
     if abs(dz) > tol
-      tz = (z - az) / dz
+      tz = (z .- az) / dz
       tz = tz[(tz .>=0) .& (tz .<= 1)]
     else
       tz = Float64[]

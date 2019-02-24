@@ -3,7 +3,7 @@ module Utils
 using Printf
 using Distributed
 using SparseArrays
-
+using LinearAlgebra
 
 	include("sparseUtils.jl")
 	include("testing.jl")
