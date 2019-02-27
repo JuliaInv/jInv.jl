@@ -134,7 +134,7 @@ function main()
 	for j=1:nworkers()
 		pForp[j] = @spawnat workers()[j] DivSigGradParam(M,Q,P,[1.0],Ainv)
 		pFors[j] = @spawnat workers()[j] DivSigGradParam(M,Q[:,1],P,[1.0],Ainv)
-		glocp[j] = @spawnat workers()[j] speye(Bool,M.nc)
+		glocp[j] = @spawnat workers()[j] sparse(I,M.nc,M.nc)
 	end
 	
 	# warm up

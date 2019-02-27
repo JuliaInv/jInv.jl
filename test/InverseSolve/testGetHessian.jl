@@ -1,3 +1,11 @@
+using Test
+using LinearAlgebra
+using SparseArrays
+using Distributed
+
+using jInv.Utils
+using jInv.Mesh
+using jInv.InverseSolve
 
 # build domain and true image
 domain = [0.0 1.0 0.0 1.0]
@@ -7,7 +15,7 @@ xc     = getCellCenteredGrid(Minv)
 xtrue = sin.(2*pi*xc[:,1]).*sin.(pi*xc[:,2])
 
 # get noisy data
-A     = speye(Minv.nc)
+A     = sparse(1.0I,Minv.nc,Minv.nc)
 ids   = sort(rand(1:Minv.nc,round(Int64,Minv.nc*.8)))
 A     = A[ids,:]
 btrue = A*xtrue
@@ -25,7 +33,7 @@ pFor2  = LSparam(A[i2,:],[])
 
 
 sigmaBack = zeros(length(xtrue))
-Iact         = speye(Minv.nc);
+Iact         = sparse(1.0I,Minv.nc,Minv.nc);
 gl1          = getGlobalToLocal(1.0,sigmaBack)
 gl2          = getGlobalToLocal(Iact,sigmaBack)
 
@@ -43,6 +51,7 @@ pMis =  getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 pMisRefs    = Array{RemoteChannel}(2)
 pMisRefs[1] = initRemoteChannel(getMisfitParam,workers()[1],pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 pMisRefs[2] = initRemoteChannel(getMisfitParam,workers()[min(2,nworkers())],pFor2,Wd2,bd2,SSDFun,fMod,gl2)
+
 
 pForRefs = Array{RemoteChannel}(4)
 pForRefs[1] = initRemoteChannel(LSparam,workers()[1],A[i3,:],[])

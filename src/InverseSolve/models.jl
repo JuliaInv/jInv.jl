@@ -14,7 +14,7 @@ function expMod(m)
 end
 
 """
-	sigma,dsigma = fMod(model;f::Function=identity,df::Function=m->speye(length(m)))
+	sigma,dsigma = fMod(model;f::Function=identity,df::Function=m->sparse(1.0I,length(m),length(m)))
 
 	maps model parameter to conductivity via
 
@@ -42,7 +42,7 @@ export boundMod
 function boundMod(m; boundLow = 0.0, boundHigh = 1.0)
 	u        = tanh.(m)
 	d        = 0.5 * (boundHigh - boundLow)
-	sigma    = d * (u + 1.0) + boundLow
-	dsigmadm = sdiag(d * (1.0 - u .* u))
+	sigma    = d * (u .+ 1.0) .+ boundLow
+	dsigmadm = sdiag(d * (1.0 .- u .* u))
 	return sigma, dsigmadm
 end

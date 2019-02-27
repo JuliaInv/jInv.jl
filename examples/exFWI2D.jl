@@ -115,7 +115,7 @@ end
 
 # setup active cells and background for the inversion.
 N = prod(Minv.n+1);
-Iact = speye(Bool,N);
+Iact = sparse(I,N,N);
 mback   = zeros(Float64,N);
 
 ########################################################################################################

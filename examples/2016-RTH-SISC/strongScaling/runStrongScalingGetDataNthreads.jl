@@ -139,7 +139,7 @@ function main()
 		# inds = unique(min(size(Q,2),(j-1)*ppw+(1:ppw)))
 		pForp[j] = @spawnat workers()[j] DivSigGradParam(M,full(Q[:,1:nworkers():end]),P,[1.0],copySolver(Ainv));
 		pFors[j] = @spawnat workers()[j] DivSigGradParam(M,full(Q[:,1:2]),P,[1.0],copySolver(Ainvt));
-		glocp[j] = @spawnat workers()[j] speye(Bool,M.nc)
+		glocp[j] = @spawnat workers()[j] sparse(I,M.nc,M.nc)
 	end
 	
 	# warm up

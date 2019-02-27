@@ -11,7 +11,7 @@ Mr     = getRegularMesh(domain,n)
 G      = getNodalGradientMatrix(Mr);
 m      = spdiagm(exp.(randn(size(G,1))));
 Ar     = G'*m*G;
-Ar     = Ar + 1e-1*norm(Ar,1)*speye(size(Ar,2));
+Ar     = Ar + 1e-1*norm(Ar,1)*sparse(1.0I,size(Ar,2),size(Ar,2));
 N      = size(Ar,2);
 B      = Ar*rand(N,4);
 
@@ -33,7 +33,7 @@ m = 4
 sBiCG.PC = :jac
 sBiCG.doClear=true
 sBiCG.out=0
-A = sprandn(n,n,5/n) + 10*speye(n)
+A = sprandn(n,n,5/n) + 10*sparse(1.0I,n,n)
 B = randn(n,m)
 X, = solveLinearSystem(A,B,sBiCG)
 @test vecnorm(A*X - B)/vecnorm(B) < sBiCG.tol

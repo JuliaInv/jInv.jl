@@ -76,7 +76,7 @@ function smallnessReg(m::Vector,mref,M::AbstractMesh)
 	dm   = m .- mref
 	dR   = dm
 	Rc   = 0.5*dot(dm,dm)
-	return Rc,dR,speye(length(m))
+	return Rc,dR,sparse(1.0I,length(m),length(m))
 end
 
 function wdiffusionReg(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])

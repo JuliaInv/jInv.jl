@@ -9,7 +9,8 @@ p,e,o = checkDerivative(f,dfRight,randn(),out=true)
 @test p==true
 
 F = x->x.^2
-dFRight = x-> 2*diagm(x)
+dFRight = x-> Diagonal(2*x)
+
 x0 = randn(10).+2
 p,e,o = checkDerivative(F,dFRight,x0,out=true)
 @test p==true

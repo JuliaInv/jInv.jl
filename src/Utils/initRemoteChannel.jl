@@ -19,7 +19,7 @@ function initRemoteChannel(func::Union{Function,Type}, pid::Int64, args...; kwar
   return RemoteChannel(()->initChannel(func,args,kwargs), pid)
 end
 
-function initChannel(func::Union{Function,Type},args::Tuple,kwargs::Array)
+function initChannel(func::Union{Function,Type},args::Tuple,kwargs)
   obj = func(args...; kwargs...)
   chan = Channel{typeof(obj)}(1)
   put!(chan,obj)

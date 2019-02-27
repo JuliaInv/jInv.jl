@@ -5,7 +5,7 @@ n      = [16,16]
 Minv   = getRegularMesh(domain,n)
 xc     = getCellCenteredGrid(Minv)
 xtrue  = sin.(2*pi*xc[:,1]).*sin.(pi*xc[:,2])
-A      = speye(Minv.nc)
+A      = sparse(1.0I,Minv.nc,Minv.nc)
 ids    = sort(rand(1:Minv.nc,round(Int64,Minv.nc*.8)))
 A      = A[ids,:]
 btrue  = A*xtrue
@@ -16,7 +16,7 @@ i2     = (round(Int64,size(A,1)/2)+1:size(A,1))
 pFor1  = LSparam(A[i1,:],[])
 pFor2  = LSparam(A[i2,:],[])
 sigmaBack    = zeros(length(xtrue))
-Iact         = speye(Minv.nc)
+Iact         = sparse(1.0I,Minv.nc,Minv.nc)
 gl1          = getGlobalToLocal(1.0,sigmaBack)
 gl2          = getGlobalToLocal(Iact,sigmaBack)
 

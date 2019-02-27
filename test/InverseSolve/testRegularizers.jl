@@ -9,7 +9,7 @@ n     = [12;13;10]
 M     = getRegularMesh(domain,n)
 idx   = ones(Int,(n[1],n[2],n[3]))
 idx[:,:,1:5] = 0
-Iact  = speye(Bool,M.nc)
+Iact  = sparse(I,M.nc,M.nc)
 Iact  = Iact[:,vec(idx).==1]
 mc    = randn(size(Iact,2))
 
@@ -37,7 +37,7 @@ end
 regFuns = [wdiffusionRegNodal;wTVRegNodal]
 idx   = ones(Int,(n[1]+1,n[2]+1,n[3]+1))
 idx[:,:,1:5] = 0
-Iact  = speye(Bool,prod(M.n+1))
+Iact  = sparse(I,prod(M.n.+1),prod(M.n.+1))
 Iact  = Iact[:,vec(idx).==1]
 mc    = randn(size(Iact,2))
 
@@ -60,7 +60,7 @@ end
 regFuns = [logBarrier;logBarrierSquared]
 idx   = ones(Int,(n[1]+1,n[2]+1,n[3]+1))
 idx[:,:,1:5] = 0
-Iact  = speye(Bool,prod(M.n+1))
+Iact  = sparse(I,prod(M.n.+1),prod(M.n.+1))
 Iact  = Iact[:,vec(idx).==1]
 mc    = ones(size(Iact,2)) + 0.05*randn(size(Iact,2));
 

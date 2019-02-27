@@ -7,7 +7,7 @@ xc     = getCellCenteredGrid(Minv)
 xtrue = sin.(2*pi*xc[:,1]).*sin.(pi*xc[:,2])
 
 # get noisy data
-A     = speye(Minv.nc)
+A     = sparse(1.0I,Minv.nc,Minv.nc)
 ids   = sort(rand(1:Minv.nc,round(Int64,Minv.nc*.8)))
 A     = A[ids,:]
 btrue = A*xtrue
@@ -25,7 +25,7 @@ pFor2  = LSparam(A[i2,:],[])
 
 
 sigmaBack = zeros(length(xtrue))
-Iact         = speye(Minv.nc);
+Iact         = sparse(1.0I,Minv.nc,Minv.nc);
 gl1          = getGlobalToLocal(1.0,sigmaBack)
 gl2          = getGlobalToLocal(Iact,sigmaBack)
 
@@ -73,8 +73,8 @@ Wd[2] = Wd4;
 pMisRefs[3:4] = getMisfitParam(pForRefs[1:2],Wd,dobs,SSDFun,Iact,sigmaBack,Mesh2Mesh);
 pMisRefs[5:6] = getMisfitParam(pForRefs[3:4],Wd,dobs,SSDFun,Iact,sigmaBack); # single mesh
 
-M2M3		 = speye(Minv.nc);
-M2M4		 = speye(Minv.nc);
+M2M3		 = sparse(1.0I,Minv.nc,Minv.nc);
+M2M4		 = sparse(1.0I,Minv.nc,Minv.nc);
 pMis    = Array{MisfitParam}(6)
 pMis[1] = getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1);
 pMis[2] = getMisfitParam(pFor2,Wd2,bd2,SSDFun,fMod,gl2);

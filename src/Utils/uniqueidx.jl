@@ -19,7 +19,7 @@ function uniqueidx( a::Array{T,1} ) where {T<:Integer}
 
 
   # jj = invperm(ii)  # inverse permutation
-   jj = Array{T}(n)
+   jj = Array{T}(undef,n)
 
 
    nunique = n  # counter for # of unique values

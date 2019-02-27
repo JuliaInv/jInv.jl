@@ -42,7 +42,7 @@ P = generateSrcRcvProjOperators(Minv.n+1,rcvNodeMap);
 
 N = prod(Minv.n+1);
 
-Iact = speye(N);
+Iact = sparse(1.0I,N,N);
 mback   = zeros(Float64,N);
 ## Setting the sea constant:
 mask = zeros(N);

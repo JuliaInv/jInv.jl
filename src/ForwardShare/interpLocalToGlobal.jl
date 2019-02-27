@@ -26,11 +26,11 @@ Outputs:
     mLocal  - a model defined on the local (PDE) mesh
 """
 function interpLocalToGlobal(x::Vector{Float64}, P::AbstractFloat,y0::AbstractFloat=0.0)
-	return P * x + y0
+	return P * x .+ y0
 end
 
 function interpGlobalToLocal(x::Vector{Float64}, P::AbstractFloat,y0::AbstractFloat=0.0)
-	return P * x + y0
+	return P * x .+ y0
 end
 
 function interpGlobalToLocal(x,P)

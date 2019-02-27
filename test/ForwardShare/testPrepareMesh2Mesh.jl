@@ -8,7 +8,7 @@ import jInv.Utils
   using jInv.Mesh
   using Test
   using jInv.Utils
-  type TestProb <: ForwardProbType
+  mutable struct TestProb <: ForwardProbType
   	Mesh::AbstractMesh
   end
 end
@@ -16,7 +16,7 @@ end
 Minv = getRegularMesh([0 1 0 2 0 3],[12 14 16])
 Mfor = getRegularMesh([0 1 0 2 0 3],[6 7 8])
 pFor = TestProb(Mfor)
-pFors = Array{RemoteChannel}(2)
+pFors = Array{RemoteChannel}(undef,2)
 workerList  = workers()
 nw          = nworkers()
 pFors[1]    = initRemoteChannel(identity,workerList[1%nw+1],pFor)

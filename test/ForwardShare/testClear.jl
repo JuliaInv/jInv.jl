@@ -4,7 +4,7 @@ using jInv.ForwardShare
 using jInv.LinearSolvers
 using jInv.Mesh
 
-type TestForwardProbType <: ForwardProbType
+mutable struct TestForwardProbType <: ForwardProbType
     M
     Sources
     Obs

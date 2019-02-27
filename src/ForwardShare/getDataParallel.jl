@@ -57,7 +57,7 @@ function getData(
 =#
     i=1; nextidx() = (idx = i; i+=1; idx)
 
-    Dobs = Array{Any}(length(pFor))
+    Dobs = Array(undef,length(pFor))
     workerList = intersect(workers(),workerList)
     if isempty(workerList)
         error("getData: workers do not exist!")

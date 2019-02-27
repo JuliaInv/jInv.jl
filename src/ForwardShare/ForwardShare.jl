@@ -164,14 +164,14 @@ module ForwardShare
 			P.Obs     = clear!(P.Obs)
 		end
 		if clearAll || clearFields
-		if any(fieldnames(P) .== :Fields)
+		if any(fieldnames(typeof(P)) .== :Fields)
 			P.Fields = clear!(P.Fields)
 		end
 
 	end
 
 	if clearAll || clearAinv
-	if any(fieldnames(P) .== :Ainv)
+	if any(fieldnames(typeof(P)) .== :Ainv)
 	   clear!(P.Ainv)
 	end
 	end

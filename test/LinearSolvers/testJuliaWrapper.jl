@@ -9,7 +9,7 @@ Mr     = getRegularMesh(domain,n)
 G      = getNodalGradientMatrix(Mr);
 m      = spdiagm(exp.(randn(size(G,1))));
 Ar     = G'*m*G;
-Ar     = Ar + 1e-1*norm(Ar,1)*speye(size(Ar,2));
+Ar     = Ar + 1e-1*norm(Ar,1)*sparse(1.0I,size(Ar,2),size(Ar,2));
 N      = size(Ar,2);
 b      = Ar*rand(N,1);
 bs     = Ar*rand(N,3);
@@ -33,7 +33,7 @@ println("\n")
 
 
 println("===  Test Julia wrapper with shifted (complex) Laplacian ====");
-Ar     = G'*m*G +  (1+1im)*speye(size(Ar,2));
+Ar     = G'*m*G +  (1+1im)*sparse(1.0I,size(Ar,2),size(Ar,2));
 b      = Ar*rand(N,1);
 bs     = Ar*rand(N,3);
 Bs     = (b,sparse(b),bs,sparse(bs));
@@ -59,7 +59,7 @@ println("===  Test Julia Wrapper: nonsymmetric matrices ====");
 n = 100
 sNonSym  = getJuliaSolver(sym = 0);
 sNonSym  = copySolver(sNonSym);
-A = sprandn(n,n,5/n) + 10*speye(n)
+A = sprandn(n,n,5/n) + 10*sparse(1.0I,n,n)
 B = randn(n)
 
 X, = solveLinearSystem(A,B,sNonSym,0);
