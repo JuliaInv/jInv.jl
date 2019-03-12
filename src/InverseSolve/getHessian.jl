@@ -37,7 +37,7 @@ end
 
 function getHessian(sig,pMis::Array,d2F::Array,workerList=workers())
 
-	Hs = Array{Any}(length(pMis))
+	Hs = Array{Any}(undef, length(pMis))
 	i=1; nextidx() = (idx = i; i+=1; idx)
 
 	workerList = intersect(workers(),workerList)
@@ -45,7 +45,7 @@ function getHessian(sig,pMis::Array,d2F::Array,workerList=workers())
 		error("getHessian: specified workers do not exist!")
 	end
 
-	sigRef = Array{Future}(maximum(workerList))
+	sigRef = Array{Future}(undef, maximum(workerList))
 
 	@sync begin
 		for p=workerList

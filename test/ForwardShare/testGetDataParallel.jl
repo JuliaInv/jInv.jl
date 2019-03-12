@@ -26,7 +26,7 @@ D, = getData(xtrue,localPfors)
 @test norm([fetch(D[1]);fetch(D[2])]-btrue)/norm(btrue) < 1e-10
 
 #Test with forward problems on remote workers
-pForRefs    = Array{RemoteChannel}(2)
+pForRefs    = Array{RemoteChannel}(undef,2)
 workerList  = workers()
 nw          = nworkers()
 pForRefs[1] = initRemoteChannel(LSparam,workerList[1%nw+1],A[i1,:],[])

@@ -92,25 +92,25 @@ function HessMatVec(xRef::RemoteChannel,
     end
 
     # fetching and taking: should be no-ops as all RemoteRefs live on my worker
-    tic()
+    t = time_ns();
     x     = fetch(xRef)
     sigma = fetch(sigmaRef)
 
     pMis  = take!(pMisRef)
     d2F   = fetch(d2FRef)
-    commTime = toq()
+    commTime = (time_ns() - t)/1e+9;
 
     # compute HessMatVec
-    tic()
-    mvi  = HessMatVec(x,pMis,sigma,d2F)
-    compTime = toq()
+
+    compTime =@elapsed mvi  = HessMatVec(x,pMis,sigma,d2F)
+
 
     # putting: should be no ops.
-    tic()
+    t = time_ns();
     mv   = take!(mvRef)
     put!(mvRef,mv+mvi)
     put!(pMisRef,pMis)
-    commTime +=toq()
+    commTime += (time_ns() - t)/1e+9;
 
     return true,commTime,compTime
 end
@@ -124,34 +124,28 @@ function HessMatVec(x,
 #=
    Hessian includes multiple forward problem all stored as RemoteChannels or Futures
 =#
-    tic()
 
     # find out which workers are involved
     workerList = getWorkerIds(pMisRefs)
 
-    sigmaRef = Array{RemoteChannel}(maximum(workers()))
-    yRef = Array{RemoteChannel}(maximum(workers()))
-    zRef = Array{RemoteChannel}(maximum(workers()))
+    sigmaRef = Array{RemoteChannel}(undef,maximum(workers()))
+    yRef = Array{RemoteChannel}(undef,maximum(workers()))
+    zRef = Array{RemoteChannel}(undef,maximum(workers()))
     z = zeros(length(x))
     commTime = 0.0
     compTime = 0.0
     updateTimes(c1,c2) = (commTime+=c1; compTime+=c2)
     updateMV(x) = (z+=x)
 
-    tic()
-    c2 = toq()
-    updateTimes(0.0,c2)
-
-    tic()
     @sync begin
         for p = workerList
             @async begin
                 # send model and vector to worker
-                tic()
+                t = time_ns(); 
                 sigmaRef[p] = initRemoteChannel(identity,p,sigma)
                 yRef[p]     = initRemoteChannel(identity,p,x)
                 zRef[p]     = initRemoteChannel(identity,p,zeros(length(x)))
-                c1 = toq()
+                c1 = (time_ns() - t)/1e+9;
                 updateTimes(c1,0.0)
 
                 # do the actual computation
@@ -163,21 +157,12 @@ function HessMatVec(x,
                 end
 
                 # get back result (timing is a mixture of addition and computation)
-                tic()
-                updateMV(fetch(zRef[p]))
-                c1 = toq()
+                c1 = @elapsed updateMV(fetch(zRef[p]))
                 updateTimes(c1,0.0)
             end
         end
     end
-    chkTime =toq()
-
-    tic()
     matvc = z
-    c2 = toq()
-    updateTimes(0.0,c2)
-
-    totalTime = toq()
     return matvc
 end
 

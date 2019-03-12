@@ -49,7 +49,7 @@ function diffusionReg(m::Vector,mref,M::AbstractMesh;Iact=1.0)
 	Div  = Iact'*Div   # project to the active cells
 	V    = getVolume(M)
 	Af   = getFaceAverageMatrix(M)
-	d2R  = Div * sdiag(Af'*vec(diag(V))) * Div'
+	d2R  = Div * sdiag(Af'*vec(Vector(diag(V)))) * Div'
 	dR   = d2R*dm
 	Rc   = 0.5*dot(dm,dR)
 	return Rc,dR,d2R
@@ -118,8 +118,8 @@ function wdiffusionReg(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])
 
    Af   = getFaceAverageMatrix(M)
 
-   #d2R  = Div * sdiag(Af'*vec(diag(V))) * Div' + alpha4*Iact'*V*Iact
-   d2R  = Div * sdiag(1 ./(Af'*vec(diag(V)))) * Div' + alpha4*Iact'*V*Iact
+   #d2R  = Div * sdiag(Af'*Vector(diag(V))) * Div' + alpha4*Iact'*V*Iact
+   d2R  = Div * sdiag(1 ./(Af'*Vector(diag(V)))) * Div' + alpha4*Iact'*V*Iact
 
    dR   = d2R*dm
    Rc   = 0.5*dot(dm,dR)
@@ -162,7 +162,7 @@ function wTVReg(m::Vector,mref,M::AbstractMesh; Iact=1.0, C=[],eps=1e-3)
 		Wt   = sdiag([alpha1*ones(M.nf[1]);alpha2*ones(M.nf[2])])
 	end
 	Div  = Iact'*(Div*Wt)   # project to the active cells
-	V    = getVolume(M); v = diag(V)
+	V    = getVolume(M); v = Vector(diag(V))
 	Af   = getFaceAverageMatrix(M)
 
 	wTV  = sqrt.(Af*(Div'*dm).^2 .+eps);
@@ -234,7 +234,7 @@ function wdiffusionRegNodal(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, 
 
 	V    = getVolume(M);
 	Af   = getEdgeAverageMatrix(M)
-	v    = (Af'*diag(V))
+	v    = (Af'*Vector(diag(V)))
 	Wt   = sdiag(Wt.*(v.*Wt));
 
 	Av = getNodalAverageMatrix(M);
@@ -276,10 +276,10 @@ function wTVRegNodal(m::Vector, mref::Vector, M::AbstractMesh; Iact=1.0, C=[])
 	d2R  = C[4]*mass;
 	Rc   = 0.5*dot(dm,d2R*dm);
 
-	v      = diag(V)
+	v      = Vector(diag(V))
 	Af     = getEdgeAverageMatrix(M)
 	Grad   = Wt*getNodalGradientMatrix(M)*Iact;
-	wTV    = sqrt.(Af*((Grad*dm).^2+eps));
+	wTV    = sqrt.(Af*(((Grad*dm).^2).+eps));
 	Rc     += dot(v,wTV);
 	d2R    += Grad'*sdiag(Af'*(v./wTV))*Grad;
 	dR     = d2R*dm
@@ -314,25 +314,26 @@ end
 		d2g   - Hessian (diagonal matrix). Second derivative is not continous.
 """
 function logBarrier(m::Vector,z::Vector,M::AbstractMesh, low::Vector, high::Vector ,epsilon = min(0.1*abs(low),0.1*abs(high)))
+	
+	if length(findall(m.>=high)) + length(findall(m.<=low))>0
+		return Inf, zeros(length(m)), spzeros(length(m),length(m));
+	end
+	
 	z = copy(m);
 	indProj = zeros(length(m));
-
-	if length(find(m.>=high)) + length(find(m.<=low))>0
-		error("m should be strictly in between low and high ",length(find(m.>=high)) + length(find(m.<=low)));
-	end
 
 	low = low + epsilon;
 	high = high - epsilon;
 	t = z.<low;
-	indProj[t]  = 1.0;
+	indProj[t]  .= 1.0;
 	z[t]  = low[t];
 	t = z.>high;
-	indProj[t] = 1.0;
+	indProj[t] .= 1.0;
 	z[t] = high[t];
 
-	e 	= (epsilon+1e-10);
+	e 	= (epsilon.+1e-10);
 	dm  = (m-z)./e;
-	f   = 1 - dm.^2; # > 0
+	f   = 1.0 .- dm.^2; # > 0
 	if minimum(f) < 0.0
 		error("negative f");
 	end
@@ -369,23 +370,23 @@ end
 		d2g   - Gauss Newton Hessian approximation (diagonal matrix). Second derivative approx is continous.
 """
 function logBarrierSquared(m::Vector,z::Vector,M::AbstractMesh, low::Vector, high::Vector ,epsilon = min(0.1*abs(low),0.1*abs(high)))
-	if length(find(m.>=high)) + length(find(m.<=low))>0
-		error("m should be in between low and high");
+	if length(findall(m.>=high)) + length(findall(m.<=low))>0
+		return Inf, zeros(length(m)), spzeros(length(m),length(m));
 	end
 	z = copy(m);
 	indProj = zeros(length(m));
 	low = low + epsilon;
 	high = high - epsilon;
 	t = z.<low;
-	indProj[t]  = 1.0;
+	indProj[t]  .= 1.0;
 	z[t]  = low[t];
 	t = z.>high;
-	indProj[t] = 1.0;
+	indProj[t] .= 1.0;
 	z[t] = high[t];
 
-	e 	= (epsilon+1e-10);
+	e 	= (epsilon.+1e-10);
 	dm  = (m-z)./e;
-	f   = 1 - dm.^2; # > 0
+	f   = 1.0 .- dm.^2; # > 0
 	if minimum(f) < 0.0
 		error("negative f");
 	end
