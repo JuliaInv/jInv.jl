@@ -2,9 +2,9 @@ using jInv.InverseSolve
 
 n = 100 * 3
 
-dc   = rand(n)+2
-dobs = rand(n)+3
-wd   = rand(n)+1
+dc   = rand(n).+2
+dobs = rand(n).+3
+wd   = rand(n).+1
 dd   = rand(n)
 
 for misfitFun in [ SSDFun HuberFun ]

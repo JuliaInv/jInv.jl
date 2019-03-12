@@ -57,7 +57,7 @@ function getData(
 =#
     i=1; nextidx() = (idx = i; i+=1; idx)
 
-    Dobs = Array(undef,length(pFor))
+    Dobs = Array{Any}(undef,length(pFor))
     workerList = intersect(workers(),workerList)
     if isempty(workerList)
         error("getData: workers do not exist!")
@@ -85,9 +85,9 @@ function getData(
     parallel forward simulation with static scheduling (i.e., pFors are distributed a-priorily)
 =#
 
-    Dobs = Array{Future}(length(pFor))
+    Dobs = Array{Future}(undef, length(pFor))
     workerList = getWorkerIds(pFor)
-    sigmaRef = Array{RemoteChannel}(maximum(workers()))
+    sigmaRef = Array{RemoteChannel}(undef, maximum(workers()))
     @sync begin
         for p=workerList
             @async begin

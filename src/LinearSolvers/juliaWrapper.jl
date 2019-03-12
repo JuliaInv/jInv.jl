@@ -1,19 +1,19 @@
-export JuliaSolver,getJuliaSolver,copySolver
-using SuiteSparse
+export JuliaSolver,getJuliaSolver,copySolver,solveLinearSystem,solveLinearSystem!,setupSolver
 
-import Base.\
-function \(A::SuiteSparse.UMFPACK.UmfpackLU{T1},R::SparseMatrixCSC{T2}) where {T1,T2}
+## This did not work in 0.7. Check this in the future.
+# import Base.\
+# function \{T1,T2}(A::Base.SparseArrays.UMFPACK.UmfpackLU{T1},R::SparseMatrixCSC{T2})
 
-	n,nrhs = size(R)
-	X = zeros(promote_type(T1,T2),n,nrhs)
-	for k=1:nrhs
-		X[:,k] = A\Vector(vec(R[:,k]))
-	end
-	return X
-end
+	# n,nrhs = size(R)
+	# X = zeros(promote_type(T1,T2),n,nrhs)
+	# for k=1:nrhs
+		# X[:,k] = A\full(vec(R[:,k]))
+	# end
+	# return X
+# end
 
 """
-mutable struct jInv.LinearSolvers.JuliaSolver<: AbstractSolver
+mutable struct jInvLinearSolvers.JuliaSolver<: AbstractSolver
 
 Fields:
 
@@ -60,14 +60,39 @@ end
 
 solveLinearSystem(A,B,param::JuliaSolver,doTranspose::Int=0) = solveLinearSystem!(A,B,[],param,doTranspose)
 
+function setupSolver(A::SparseMatrixCSC,param::JuliaSolver)
+	tt = time_ns();
+	if param.sym==1 && isreal(A)
+		param.Ainv = cholesky(A)
+	elseif param.sym==2 && isreal(A)
+		param.Ainv = ldlt(A)
+	else
+		param.Ainv = lu(A);
+	end
+	param.facTime+= (tt-time_ns())/1e+9; 
+	param.nFac+=1
+	return param;
+end
+
+
+
 function solveLinearSystem!(A::SparseMatrixCSC,B,X,param::JuliaSolver,doTranspose=0)
+	if issparse(B)
+		#println("");
+		#@warn("jInv: Julia solvers do not support sparse RHSs for now. Check in the future");
+		if length(size(B))==1
+			B = Vector(B);
+		else
+			B = Matrix(B);
+		end
+	end
 	if param.doClear == 1
 		clear!(param)
 	end
 	if param.sym==0
 		if doTranspose==1 && param.isTransposed==0
 			clear!(param);
-			A = A';
+			A = sparse(A');
 			param.isTransposed = 1;
 		end
 		if doTranspose==0 && param.isTransposed==1
@@ -75,25 +100,12 @@ function solveLinearSystem!(A::SparseMatrixCSC,B,X,param::JuliaSolver,doTranspos
 		end
 	end
 	if param.Ainv == []
-		tic()
-		if param.sym==1 && isreal(A)
-			param.Ainv = chol(A)
-		elseif param.sym==2 && isreal(A)
-			param.Ainv = ldlt(A)
-		else
-			if param.sym!=0 && !isreal(A)
-				warn("jInv.JuliaSolver: using lufact for complex matrix")
-			end
-
-		  param.Ainv = lu(A)
-		end
-		param.facTime+=toq()
-		param.nFac+=1
+		param = setupSolver(A,param);
 	end
-
-	tic()
+	
+	tt = time_ns()
 	U = param.Ainv\B;
-	param.solveTime+=toq()
+	param.solveTime+=(tt-time_ns())/1e+9; 
 	param.nSolve+=1
 
 	return U, param

@@ -90,13 +90,13 @@ function solveLinearSystem!(A,B,X,param::BlockIterativeSolver,doTranspose=0)
 	# build preconditioner The preconditioners here are symmetric anyway.
 	if param.Ainv == []
 		if param.PC==:ssor
-			OmInvD = 1 ./diag(A);
+			OmInvD = 1 ./Vector(diag(A));
 			Xt      = zeros(n,nrhs)
-			M = R -> (Xt[:]=0.0; tic(); Xt=ssorPrecTrans!(A,Xt,R,OmInvD); param.timePC+=toq(); return Xt);
+			M = R -> (Xt[:].=0.0; param.timePC+=@elapsed Xt=ssorPrecTrans!(A,Xt,R,OmInvD); return Xt);
 			param.Ainv= M
 		elseif param.PC==:jac
-			OmInvD = 1 ./diag(A)
-			M = R -> (tic(); Xt=R.*OmInvD; param.timePC+=toq(); return Xt); 
+			OmInvD = 1 ./Vector(diag(A))
+			M = R -> (param.timePC+=@elapsed Xt=R.*OmInvD; return Xt); 
 			param.Ainv= M
 		else 
 			error("PCGsolver: preconditioner $(param.PC) not implemented.")
@@ -105,32 +105,32 @@ function solveLinearSystem!(A,B,X,param::BlockIterativeSolver,doTranspose=0)
 	end
 	
 	if issparse(B)
-		B = full(B);
+		B = Matrix(B);
 	end
 	# solve systems
 	Y    = zeros(n,nrhs)
 	doTranspose = (param.isTranspose) ? mod(doTranspose+1,2) : doTranspose
 	if hasParSpMatVec
 		if (param.sym==1) ||  ((param.sym != 1) && (doTranspose == 1)) 
-			Af = X -> (tic(); ParSpMatVec.Ac_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y,param.nthreads); param.timeMV+=toq(); return Y)
+			Af = X -> (param.timeMV+=@elapsed ParSpMatVec.Ac_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y,param.nthreads); return Y)
 		elseif (param.sym != 1) && (doTranspose == 0)
-			Af = X -> (tic(); ParSpMatVec.A_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y,param.nthreads); param.timeMV+=toq(); return Y)
+			Af = X -> (param.timeMV+=@elapsed ParSpMatVec.A_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y,param.nthreads); return Y)
 		end
 			
 	else
 		if (param.sym==1) ||  ((param.sym != 1) && (doTranspose == 1)) 
-			Af = X -> (tic(); Ac_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y); param.timeMV+=toq(); return Y)
+			Af = X -> (param.timeMV+=@elapsed Ac_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y); return Y)
 		elseif (param.sym != 1) && (doTranspose == 0)
-			Af = X -> (tic(); A_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y); param.timeMV+=toq(); return Y)
+			Af = X -> (param.timeMV+=@elapsed A_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y);  return Y)
 		end
 	end
-	X[:]=0.0	
-	tic()
+	X[:].=0.0	
+	t = time_ns();
 	
 	X,flag,err,iter = param.IterMethod(Af,B,X=X,M=param.Ainv,tol=param.tol,
 										maxIter=param.maxIter,out=param.out)
 	param.nIter+=iter*nrhs
-	param.timeSolve+=toq();
+	param.timeSolve+=(t-time_ns())/1e+9;
 	return X, param
 end # function solveLinearSystem 
 

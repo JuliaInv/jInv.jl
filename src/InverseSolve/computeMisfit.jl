@@ -38,20 +38,11 @@ function computeMisfit(sig,
 
     times = zeros(4)
     sigma,dsigma = pMis.modelfun(sig)
-    tic();
-        sigmaloc = interpGlobalToLocal(sigma,pMis.gloc.PForInv,pMis.gloc.sigmaBackground);
-    times[1]=toq()
-    tic()
-        Dc,pMis.pFor  = getData(sigmaloc,pMis.pFor)      # fwd model to get predicted data
-    times[2]=toq()
-    tic()
-        F,dF,d2F = pMis.misfit(Dc,pMis.dobs,pMis.Wd)
-    times[3]=toq()
-
+    times[1] = @elapsed   sigmaloc = interpGlobalToLocal(sigma,pMis.gloc.PForInv,pMis.gloc.sigmaBackground);    
+    times[2] = @elapsed   Dc,pMis.pFor  = getData(sigmaloc,pMis.pFor)      # fwd model to get predicted data
+    times[3] = @elapsed   F,dF,d2F = pMis.misfit(Dc,pMis.dobs,pMis.Wd)
     if doDerivative
-        tic()
-        dF = dsigma'*interpLocalToGlobal(getSensTMatVec(dF,sigmaloc,pMis.pFor),pMis.gloc.PForInv)
-        times[4]=toq()
+        times[4] = @elapsed dF = dsigma'*interpLocalToGlobal(getSensTMatVec(dF,sigmaloc,pMis.pFor),pMis.gloc.PForInv)
     end
 
     if doClear; clear!(pMis.pFor.Ainv); end
@@ -111,8 +102,8 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
 
 	F   = 0.0
 	dF  = (doDerivative) ? zeros(length(sigma)) : []
-	d2F = Array{Any}(length(pMisRefs));
-	Dc  = Array{Future}(size(pMisRefs))
+	d2F = Array{Any}(undef, length(pMisRefs));
+	Dc  = Array{Future}(undef,size(pMisRefs))
 
 	indDebit = []
 	updateRes(Fi,idx) = (F+=Fi;push!(indDebit,idx))
@@ -123,8 +114,8 @@ Note: ForwardProblems and Mesh-2-Mesh Interpolation are RemoteRefs
         push!(workerList,pMisRefs[k].where)
     end
     workerList = unique(workerList)
-    sigRef = Array{RemoteChannel}(maximum(workers()))
-	dFiRef = Array{RemoteChannel}(maximum(workers()))
+    sigRef = Array{RemoteChannel}(undef,maximum(workers()))
+	dFiRef = Array{RemoteChannel}(undef,maximum(workers()))
 
 	times = zeros(4);
 	updateTimes(tt) = (times+=tt)
@@ -176,8 +167,8 @@ function computeMisfit(sigma,pMis::Array,doDerivative::Bool=true,indCredit=colle
 	numFor   = length(pMis)
  	F        = 0.0
     dF       = (doDerivative) ? zeros(length(sigma)) : []
- 	d2F      = Array{Any}(numFor)
- 	Dc       = Array{Any}(numFor)
+ 	d2F      = Array{Any}(undef,numFor)
+ 	Dc       = Array{Any}(undef,numFor)
 	indDebit = []
 
 	# draw next problem to be solved

@@ -31,11 +31,13 @@ function projPCG(H::Function,gc::Vector,Active::BitArray,Precond::Function,cgTol
 	cgiter     = 0
 	resid      = - .!Active.*gc
 	normResid0 = norm(resid)
+	rdlast = 0.0;
+	pc = 0.0;
 	while true
 		cgiter += 1
-		tic()
-		dc = .!Active.*Precond(resid)
-		his[cgiter,2]=toq()
+
+		his[cgiter,2]= @elapsed dc = .!Active.*Precond(resid)
+
 		rd = dot(resid,dc)
 
 		#  Compute conjugate direction pc.
@@ -47,9 +49,9 @@ function projPCG(H::Function,gc::Vector,Active::BitArray,Precond::Function,cgTol
 		end
 
 		#  Form product Hessian*pc.
-		tic()
-		Hp = H(pc)
-		his[cgiter,3] = toq()
+
+		his[cgiter,3] = @elapsed Hp = H(pc)
+
 
 		Hp = .!Active.*Hp
 		#  Update delm and residual.
