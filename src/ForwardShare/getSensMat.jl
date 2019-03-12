@@ -31,15 +31,15 @@ function getSensMat(sigma::Vector,
 	end
 
 	if  n < m # decide which way is less work
-		In = Matrix{Float64}(I, n, n);
+		I = eye(n)
 		for k = 1:n
-			tv = vec(getSensTMatVec(vec(In[:, k]), sigma, pFor))
+			tv = vec(getSensTMatVec(vec(I[:, k]), sigma, pFor))
 			sensMat[k, :] = tv
 		end
 	else
-		Im = Matrix{Float64}(I, m, m);
+		I = eye(m)
 		for k = 1:m
-			sensMat[:, k] = vec(getSensMatVec(vec(Im[:, k]), sigma, pFor))
+			sensMat[:, k] = vec(getSensMatVec(vec(I[:, k]), sigma, pFor))
 		end
 	end
 	return sensMat
@@ -69,9 +69,9 @@ function getSensMat(sigma::Vector,
                  					   param::Array{RemoteChannel},
                  					   Mesh2Mesh::Array{T}=ones(length(param))) where {T<:Mesh2MeshTypes}
 
-    sensMat = Array{Future}(undef,length(param))
+    sensMat = Array{Future}(length(param))
     workerList = getWorkerIds(param)
-    sigmaRef = Array{RemoteChannel}(undef,maximum(workers()))
+    sigmaRef = Array{RemoteChannel}(maximum(workers()))
     @sync begin
         for p=workerList
             @async begin
@@ -93,7 +93,7 @@ function getSensMat(sigma::Vector,
                                                              workerList::Vector=workers()) where {FPT<:ForwardProbType, T<:Mesh2MeshTypes}
     i=1; nextidx() = (idx = i; i+=1; idx)
 
-    sensMat = Array{Any}(undef,length(param))
+    sensMat = Array{Any}(length(param))
     workerList = intersect(workers(),workerList)
     if isempty(workerList)
         error("getSensMat: workers do not exist!")

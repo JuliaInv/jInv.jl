@@ -48,7 +48,7 @@ function iteratedTikhonov(mc,pInv::InverseParam,pMis,alphaParam,
         push!(hist,GNhist)
         pInv.mref  = mc
         pInv.alpha = pInv.alpha/alphaFac
-        GNiterIdx  = findall(hist[end].F .> 0.0)
+        GNiterIdx  = find(hist[end].F .> 0.0)
         println(hist[end].F)
         if minimum(hist[end].F[GNiterIdx]) <= targetMisfit
             tikhonovFlag = 1

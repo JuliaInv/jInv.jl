@@ -51,7 +51,7 @@ end
 
 import jInv.Utils.clear!
 function clear!(pFor::LSparam)
-	pFor.A = SparseMatrixCSC(I, 0, 0);
+	pFor.A = speye(0);
 	pFor.Ainv = [];
 end
 

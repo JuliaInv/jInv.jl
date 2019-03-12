@@ -40,22 +40,24 @@ function computeGradMisfit(sigmaRef::RemoteChannel,
 		warn("computeGradMisfit: Problem on worker $(myid()) not all remote refs are stored here, but rrlocs=$rrlocs")
 	end
 
-	t = time_ns();
+	tic()
 	pMis  = take!(pMisRef) # this is a no-op if pFor is stored on this worker
 	sigma = fetch(sigmaRef)
 	Dc    = fetch(DcRef)
-    finalize(DcRef)  # to prevent memory leak
-	commTime = (time_ns() - t)/1e+9;
 
+   finalize(DcRef)  # to prevent memory leak
 
-	compTime = @elapsed dFt  = computeGradMisfit(sigma,Dc,pMis)
+	commTime = toq()
 
+	tic()
+	dFt  = computeGradMisfit(sigma,Dc,pMis)
+	compTime = toq()
 
-	t = time_ns();
+	tic()
 	dFi  = take!(dFiRef)
 	put!(dFiRef,dFi+dFt)
 	put!(pMisRef,pMis)    # does not require communication if PF lives on this worker
-	commTime += (time_ns() - t)/1e+9;
+	commTime += toq()
 
 #	if commTime/compTime > 1.0
 #		warn("computeGradMisfit: Communication time larger than computation time! commTime/compTime = $(commTime/compTime)")
@@ -76,6 +78,7 @@ function computeGradMisfit(sigma,
 	#	Note: models and forward problems are represented as RemoteReferences.
 	#
 	#
+	tic()
 	# find out which workers are involved
 	workerList = []
 	for k=1:length(pMisRefs)
@@ -83,8 +86,8 @@ function computeGradMisfit(sigma,
 	end
 	workerList = unique(workerList)
 	# send sigma to all workers
-	sigmaRef = Array{RemoteChannel}(undef,maximum(workers()))
-	dFiRef   = Array{RemoteChannel}(undef,maximum(workers()))
+	sigmaRef = Array{RemoteChannel}(maximum(workers()))
+	dFiRef   = Array{RemoteChannel}(maximum(workers()))
 	dF = zeros(length(sigma))
 
 	commTime = 0.0
@@ -92,14 +95,16 @@ function computeGradMisfit(sigma,
 	updateTimes(c1,c2) = (commTime+=c1; compTime+=c2)
 	updateDF(x) = (dF+=x)
 
+
+	tic()
 	@sync begin
 		for p = workers()
 				@async begin
 					# send model to worker and get a remote ref
-					 t = time_ns(); 
+					tic()
 						sigmaRef[p] = initRemoteChannel(identity,p,sigma)   # send sigma to workers
-						dFiRef[p] = initRemoteChannel(identity,p,zeros(length(sigma))) # get remote Ref to part of gradient
-					c1 = (time_ns() - t)/1e+9;
+						  dFiRef[p] = initRemoteChannel(identity,p,zeros(length(sigma))) # get remote Ref to part of gradient
+					c1 = toq()
 					updateTimes(c1,0.0)
 
 					# the actual computation
@@ -111,12 +116,16 @@ function computeGradMisfit(sigma,
 					end
 
 					# fetch result and add
-					c1 = @elapsed updateDF(fetch(dFiRef[p]))
+					tic()
+					updateDF(fetch(dFiRef[p]))
+					c1 = toq()
 					updateTimes(c1,0.0)
 				end
 		end
 	end
-	
+	chkTime=toq()
+
+	totalTime = toq()
 	return dF
 end
 

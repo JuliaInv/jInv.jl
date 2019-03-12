@@ -48,12 +48,12 @@ Wd4          = Wd[i4]
 
 pMis =  getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 
-pMisRefs    = Array{RemoteChannel}(undef, 2)
+pMisRefs    = Array{RemoteChannel}(2)
 pMisRefs[1] = initRemoteChannel(getMisfitParam,workers()[1],pFor1,Wd1,bd1,SSDFun,fMod,gl1)
 pMisRefs[2] = initRemoteChannel(getMisfitParam,workers()[min(2,nworkers())],pFor2,Wd2,bd2,SSDFun,fMod,gl2)
 
 
-pForRefs = Array{RemoteChannel}(undef, 4)
+pForRefs = Array{RemoteChannel}(4)
 pForRefs[1] = initRemoteChannel(LSparam,workers()[1],A[i3,:],[])
 pForRefs[2] = initRemoteChannel(LSparam,workers()[min(2,nworkers())],A[i4,:],[])
 pForRefs[3] = initRemoteChannel(LSparam,workers()[min(3,nworkers())],A[i3,:],[])
@@ -61,7 +61,7 @@ pForRefs[4] = initRemoteChannel(LSparam,workers()[min(4,nworkers())],A[i4,:],[])
 
 
 alpha        = 1.
-x0           = (sum(xtrue)/length(xtrue))*ones(Minv.nc)
+x0           = mean(xtrue)*ones(Minv.nc)
 
 boundsLow    = minimum(xtrue)*ones(Minv.nc)
 boundsHigh   = maximum(xtrue)*ones(Minv.nc)

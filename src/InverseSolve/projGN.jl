@@ -90,8 +90,9 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 	dumpResults(mc,Dc,0,pInv,pMis) # dump initial model and dpred0
 
 	# compute regularizer
-
-	tReg = @elapsed R,dR,d2R = computeRegularizer(pInv.regularizer,mc,pInv.mref,pInv.MInv,alpha)
+	tic()
+	R,dR,d2R = computeRegularizer(pInv.regularizer,mc,pInv.mref,pInv.MInv,alpha)
+	tReg = toq()
 
 	# objective function
 	Jc  = F  + R
@@ -106,7 +107,7 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 
 	outStr = @sprintf("\n %4s\t%08s\t%08s\t%08s\t%08s\t%08s\n",
 					  	"i.LS", "F", "R","alpha[1]","Jc/J0","#Active")
-	updateHis!(0,His,Jc,norm(projGrad(gc,mc,low,high)),F,Dc,R,alpha[1],count(!iszero, Active),0.0,-1,tMis,tReg)
+	updateHis!(0,His,Jc,norm(projGrad(gc,mc,low,high)),F,Dc,R,alpha[1],countnz(Active),0.0,-1,tMis,tReg)
 
 	if out>=2; print(outStr); end
 	f = open("jInv.out", "w")
@@ -117,14 +118,16 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 
 		iter += 1
 		outStr = @sprintf("%3d.0\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3d\n",
-		         iter, F, R,alpha[1],Jc/J0,count(!iszero, Active))
+		         iter, F, R,alpha[1],Jc/J0,countnz(Active))
 		if out>=2; print(outStr); end
 		f = open("jInv.out", "a")
 		write(f, outStr)
 		close(f)
 
 		# solve linear system to find search direction
-		His.timeLinSol[iter+1] += @elapsed  delm,hisLinSol = solveGN(gc,pMis,pInv,sig,dsig,d2F,d2R,Active)
+		tic()
+		delm,hisLinSol = solveGN(gc,pMis,pInv,sig,dsig,d2F,d2R,Active)
+		His.timeLinSol[iter+1]+= toq()
 		push!(His.hisLinSol,hisLinSol)
 
 		# scale step
@@ -149,7 +152,14 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 			mt[mt.<low]  = low[mt.<low]
 			mt[mt.>high] = high[mt.>high]
 
-			His.timeReg[iter+1] += @elapsed R,dR,d2R = computeRegularizer(pInv.regularizer,mt,pInv.mref,pInv.MInv,alpha)
+
+
+
+
+
+			tic()
+			R,dR,d2R = computeRegularizer(pInv.regularizer,mt,pInv.mref,pInv.MInv,alpha)
+			His.timeReg[iter+1] += toq()
 
 			if R!=Inf # to support barrier functions.
 				## evaluate function
@@ -199,7 +209,7 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 		Active = (mc .<=low) .| (mc.>=high)  # Compute active set
 
 		#  Check stopping criteria for outer iteration.
-		updateHis!(iter,His,Jc,-1.0,F,Dc,R,alpha[1],count(!iszero, Active),stepNorm,lsIter,tMis,tReg)
+		updateHis!(iter,His,Jc,-1.0,F,Dc,R,alpha[1],countnz(Active),stepNorm,lsIter,tMis,tReg)
 
 		dumpResults(mc,Dc,iter,pInv,pMis);
 		if stepNorm < stepTol
@@ -209,12 +219,13 @@ function  projGN(mc,pInv::InverseParam,pMis;indCredit=[],
 			break
 		end
 		# Evaluate gradient
-
+		tic()
 		if isempty(indCredit)
-			His.timeGradMisfit[iter+1]+= @elapsed dF = computeGradMisfit(sig,Dc,pMis)
+			dF = computeGradMisfit(sig,Dc,pMis)
 		else
-			His.timeGradMisfit[iter+1]+= @elapsed dF = computeGradMisfit(sig,Dcp,pMis,indDebit)
+			dF = computeGradMisfit(sig,Dcp,pMis,indDebit)
 		end
+		His.timeGradMisfit[iter+1]+=toq()
 
 		dF = dsig'*dF
 		gc = dF + dR

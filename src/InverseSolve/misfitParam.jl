@@ -79,10 +79,10 @@ function getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, m
                             Iact,sigmaBack::Union{Vector,AbstractFloat,AbstractModel},
                             Mesh2MeshRFs::ArrayUnionLocRemote=ones(length(pForRFs)),
                             modelfun::Function=identityMod,fname="")
-    pMis                = Array{RemoteChannel}(undef, length(pForRFs));
+    pMis                = Array{RemoteChannel}(length(pForRFs));
     # the next references are for not to broadcast Iact and sigmaBackground
-    IactRFs            = Array{Future}(undef,maximum(workers()));
-    sigmaBackgroundRFs = Array{Future}(undef,maximum(workers()));
+    IactRFs            = Array{Future}(maximum(workers()));
+    sigmaBackgroundRFs = Array{Future}(maximum(workers()));
 
     @sync begin
         for p=workers()

@@ -70,7 +70,7 @@ using LinearAlgebra
 
 
 	function clear!(x::Array{T,N}) where {T,N}
-		return Array{T,N}(undef,ntuple((i)->0, N))
+		return Array(undef,ntuple((i)->0, N))
 	end
 
 	# function clear!{T}(x::Vector{T})

@@ -104,7 +104,9 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow)
 
 
 	# compute regularizer
-	tReg = @elapsed R,dR,d2R = computeRegularizer(pInv.regularizer,mc,pInv.mref,pInv.MInv,alpha)
+	tic()
+	R,dR,d2R = computeRegularizer(pInv.regularizer,mc,pInv.mref,pInv.MInv,alpha)
+	tReg = toq()
 
 	# objective function
 	Jc  = F  + R
@@ -119,7 +121,7 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow)
 
 	outStr = @sprintf("%4s\t%08s\t%08s\t%08s\t%08s\t%08s\n",
 					  	"i.LS", "F", "R","alpha[1]","Jc/J0","#Active")
-	updateHis!(0,His,Jc,norm(projGrad(gc,mc,low,high)),F,Dc,R,alpha[1],count(!iszero, Active),0.0,-1,tMis,tReg)
+	updateHis!(0,His,Jc,norm(projGrad(gc,mc,low,high)),F,Dc,R,alpha[1],countnz(Active),0.0,-1,tMis,tReg)
 
 	if out>=2; print(outStr); end
 	f = open("projSD.out", "w")
@@ -130,7 +132,7 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow)
 
 		iter += 1
 		outStr = @sprintf("%3d.0\t%3.2e\t%3.2e\t%3.2e\t%3.2e\t%3d\n",
-		         iter, F, R,alpha[1],Jc/J0,count(!iszero, Active))
+		         iter, F, R,alpha[1],Jc/J0,countnz(Active))
 		if out>=2; print(outStr); end
 		f = open("jInv.out", "a")
 		write(f, outStr)
@@ -153,9 +155,9 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow)
 			end
 			His.timeMisfit[iter+1,:]+=tMis
 
-			
-			His.timeReg[iter+1] += @elapsed R,dR,d2R = computeRegularizer(pInv.regularizer,mt,pInv.mref,pInv.MInv,alpha)
-
+			tic()
+			R,dR,d2R = computeRegularizer(pInv.regularizer,mt,pInv.mref,pInv.MInv,alpha)
+			His.timeReg[iter+1] += toq()
 			# objective function
 			Jt  = F  + R
 			if out>=2;
@@ -184,7 +186,7 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow)
 		Active = (mc .<=low) .| (mc.>=high)  # Compute active set
 
 		#  Check stopping criteria for outer iteration.
-		updateHis!(iter,His,Jc,-1,F,Dc,R,alpha[1],count(!iszero, Active),stepNorm,lsIter,tMis,tReg)
+		updateHis!(iter,His,Jc,-1,F,Dc,R,alpha[1],countnz(Active),stepNorm,lsIter,tMis,tReg)
 
 		dumpResults(mc,Dc,iter,pInv,pMis);
 		if stepNorm < stepTol
@@ -194,13 +196,13 @@ function  projSD(mc,pInv::InverseParam,pMis; proj=x->min.(max.(x,pInv.boundsLow)
 			break
 		end
 		# Evaluate gradient
-		t = time_ns();
+		tic()
 		if isempty(indCredit)
 			dF = computeGradMisfit(sig,Dc,pMis)
 		else
 			dF = computeGradMisfit(sig,Dcp,pMis,indDebit)
 		end
-		His.timeGradMisfit[iter+1]+=(time_ns() - t)/1e+9;
+		His.timeGradMisfit[iter+1]+=toq()
 
 		dF = dsig'*dF
 		gc = dF + dR

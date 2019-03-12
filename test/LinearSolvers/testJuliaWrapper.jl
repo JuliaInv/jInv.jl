@@ -1,14 +1,13 @@
 using jInv.Mesh
 using jInv.LinearSolvers
-using SparseArrays
-using LinearAlgebra
 using Test
+
 println("===  Test Julia wrapper with symmetric (real) matrix ====");
 domain = [0.0, 1.0, 0.0, 1.0];
-n      = [33,17];
+n      = [30,33];
 Mr     = getRegularMesh(domain,n)
 G      = getNodalGradientMatrix(Mr);
-m      = sparse(Diagonal(exp.(randn(size(G,1)))));
+m      = spdiagm(exp.(randn(size(G,1))));
 Ar     = G'*m*G;
 Ar     = Ar + 1e-1*norm(Ar,1)*sparse(1.0I,size(Ar,2),size(Ar,2));
 N      = size(Ar,2);
@@ -57,7 +56,7 @@ println("\n")
 
 
 println("===  Test Julia Wrapper: nonsymmetric matrices ====");
-n = 50
+n = 100
 sNonSym  = getJuliaSolver(sym = 0);
 sNonSym  = copySolver(sNonSym);
 A = sprandn(n,n,5/n) + 10*sparse(1.0I,n,n)
@@ -66,10 +65,10 @@ B = randn(n)
 X, = solveLinearSystem(A,B,sNonSym,0);
 @test norm(A*X - B)/norm(B) < 1e-10
 
-# multiple sparse rhs - 
-# Bs = sprandn(n,10,.3)
-# X, = solveLinearSystem(A,Bs,sNonSym,0);
-# @test norm(A*X - Bs,Inf)/norm(Bs,Inf) < 1e-10
+# multiple sparse rhs
+Bs = sprandn(n,10,.3)
+X, = solveLinearSystem(A,Bs,sNonSym,0);
+@test norm(A*X - Bs,Inf)/norm(Bs,Inf) < 1e-10
 
 
 X, = solveLinearSystem(A,B,sNonSym,1);

@@ -9,7 +9,7 @@ module LinearSolvers
 	using Distributed
 	using SparseArrays
 	using LinearAlgebra
-	using Pkg
+
 	# check if MUMPS can be used
 	const minMUMPSversion = VersionNumber(0,0,1)
 	global hasMUMPS=false

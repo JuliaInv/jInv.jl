@@ -38,7 +38,7 @@ Wd2          = Wd[i2]
 Wd3          = Wd[i3]
 Wd4          = Wd[i4]
 
-pMisRefs    = Array{RemoteChannel}(undef, 6)
+pMisRefs    = Array{RemoteChannel}(6)
 workerList  = workers()
 nw          = nworkers()
 pMisRefs[1] = initRemoteChannel(getMisfitParam,workerList[1%nw + 1],
@@ -46,19 +46,17 @@ pMisRefs[1] = initRemoteChannel(getMisfitParam,workerList[1%nw + 1],
 pMisRefs[2] = initRemoteChannel(getMisfitParam,workerList[2%nw + 1],
                                 pFor2,Wd2,bd2,SSDFun,fMod,gl2)
 
-pForRefs = Array{RemoteChannel}(undef, 4)
+pForRefs = Array{RemoteChannel}(4)
 pForRefs[1] = initRemoteChannel(LSparam,workerList[3%nw+1],A[i3,:],[])
 pForRefs[2] = initRemoteChannel(LSparam,workerList[4%nw+1],A[i4,:],[])
 pForRefs[3] = initRemoteChannel(LSparam,workerList[5%nw+1],A[i3,:],[])
 pForRefs[4] = initRemoteChannel(LSparam,workerList[6%nw+1],A[i4,:],[])
 
-speye_t = (n)->SparseMatrixCSC(I, n, n);
-
-Mesh2Mesh = Array{Future}(undef, 2)
+Mesh2Mesh = Array{Future}(2)
 for i=1:length(Mesh2Mesh)
 	k = pForRefs[i].where
 	if i==1
-		Mesh2Mesh[i] = remotecall(speye_t,k,Minv.nc);
+		Mesh2Mesh[i] = remotecall(speye,k,Minv.nc);
 		wait(Mesh2Mesh[i]);
 	elseif i==2
 		Mesh2Mesh[i] = remotecall(identity,k,1.0);
@@ -66,8 +64,8 @@ for i=1:length(Mesh2Mesh)
 	end
 end
 
-Wd = Array{Array{Float64}}(undef, 2);
-dobs = Array{Array{Float64}}(undef, 2);
+Wd = Array{Array{Float64}}(2);
+dobs = Array{Array{Float64}}(2);
 dobs[1] = bd3;
 dobs[2] = bd4;
 Wd[1] = Wd3;
@@ -77,7 +75,7 @@ pMisRefs[5:6] = getMisfitParam(pForRefs[3:4],Wd,dobs,SSDFun,Iact,sigmaBack); # s
 
 M2M3		 = sparse(1.0I,Minv.nc,Minv.nc);
 M2M4		 = sparse(1.0I,Minv.nc,Minv.nc);
-pMis    = Array{MisfitParam}(undef, 6)
+pMis    = Array{MisfitParam}(6)
 pMis[1] = getMisfitParam(pFor1,Wd1,bd1,SSDFun,fMod,gl1);
 pMis[2] = getMisfitParam(pFor2,Wd2,bd2,SSDFun,fMod,gl2);
 pMis[3] = fetch(pMisRefs[3]);
@@ -87,7 +85,7 @@ pMis[6] = fetch(pMisRefs[6]);
 
 # setup pInv
 alpha        = 1.
-x0           = (sum(xtrue)./length(xtrue))*ones(Minv.nc)
+x0           = mean(xtrue)*ones(Minv.nc)
 boundsLow    = minimum(xtrue)*ones(Minv.nc)
 boundsHigh   = maximum(xtrue)*ones(Minv.nc)
 sigmaBack    = zeros(Minv.nc)
@@ -99,7 +97,7 @@ x1, = projGN(x0,pInv,pMis)
 
 pInv.maxIter = 5
 x2, = projGN(x0,pInv,pMisRefs)
-@test norm(x1-x2)/norm(x1) .< 1e-12
+@test norm(x1-x2)/norm(x1) < 1e-12
 
 clear!(pMisRefs);
 for k=1:length(pMis)

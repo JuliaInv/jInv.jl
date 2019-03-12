@@ -25,7 +25,7 @@ Outputs:
 """
 function prepareMesh2Mesh(Mfwd::AbstractMesh, Minv::AbstractMesh, compact::Bool=true; kwargs...)
 
-    P = sparse(getInterpolationMatrix(Minv,Mfwd; kwargs...)');
+    P = getInterpolationMatrix(Minv,Mfwd; kwargs...)'
     if compact
         Ps = SparseMatrixCSC(P.m,P.n,round.(UInt32,P.colptr),round.(UInt32,P.rowval),round.(Int8,log2.(P.nzval)/3))
     else
@@ -44,7 +44,7 @@ end
 
 function prepareMesh2Mesh(pFor::Array{RemoteChannel},Minv::AbstractMesh,compact::Bool=true; kwargs...)
 
-    Mesh2Mesh = Array{RemoteChannel}(undef, length(pFor))
+    Mesh2Mesh = Array{RemoteChannel}(length(pFor))
     # find out which workers are involved
     workerList = []
     for k=1:length(pFor)
@@ -52,7 +52,7 @@ function prepareMesh2Mesh(pFor::Array{RemoteChannel},Minv::AbstractMesh,compact:
     end
     workerList = unique(workerList)
     # send sigma to all workers
-    MinvRef = Array{Future}(undef, maximum(workers()))
+    MinvRef = Array{Future}(maximum(workers()))
 
     @sync begin
         for p=workerList
