@@ -21,7 +21,7 @@ jInv consists of five submodules:
 
 # Requirements
 
-jInv is intended for use with Julia versions 0.6. and requires:
+jInv is intended for use with Julia versions 0.7. and requires:
 
 1. [`KrylovMethods.jl`](https://github.com/lruthotto/KrylovMethods.jl)  - iterative methods for solving (sparse) linear systems.
 
