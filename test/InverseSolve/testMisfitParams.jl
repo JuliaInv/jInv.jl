@@ -107,6 +107,6 @@ for k=1:length(pMis)
 end
 
 #Finalize pFor references
-for pf in pForRefs
-	finalize(pf)
+for pFo in pForRefs
+	finalize(pFo)
 end

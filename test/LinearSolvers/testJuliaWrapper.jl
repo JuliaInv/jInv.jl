@@ -25,8 +25,8 @@ for j=1:length(Bs)
 	print("nrhs=$(size(Bs[j],2)), issparse(rhs)=$(issparse(Bs[j])) : ")
 	for k=1:length(sols)
 		print("sym=$(sols[k].sym), ")
-		x,  = solveLinearSystem(Ar,Bs[j],sols[k]);
-		@test norm(Ar*x-Bs[j],Inf)/norm(Bs[j],Inf) < 1e-10
+		xtt1,  = solveLinearSystem(Ar,Bs[j],sols[k]);
+		@test norm(Ar*xtt1-Bs[j],Inf)/norm(Bs[j],Inf) < 1e-10
 	end
 	print("\n")
 end
@@ -48,8 +48,8 @@ for j=1:length(Bs)
 	print("nrhs=$(size(Bs[j],2)), issparse(rhs)=$(issparse(Bs[j])) : ")
 	for k=1:length(sols)
 		print("sym=$(sols[k].sym), ")
-		x,  = solveLinearSystem(Ar,Bs[j],sols[k]);
-		@test norm(Ar*x-Bs[j],Inf)/norm(Bs[j],Inf) < 1e-10
+		xtt2,  = solveLinearSystem(Ar,Bs[j],sols[k]);
+		@test norm(Ar*xtt2-Bs[j],Inf)/norm(Bs[j],Inf) < 1e-10
 	end
 	print("\n")
 end

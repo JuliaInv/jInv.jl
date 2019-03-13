@@ -22,8 +22,8 @@ gl2          = getGlobalToLocal(Iact,sigmaBack)
 
 #Test with locally stored forward problems
 localPfors = [pFor1;pFor2]
-D, = getData(xtrue,localPfors)
-@test norm([fetch(D[1]);fetch(D[2])]-btrue)/norm(btrue) < 1e-10
+D1, = getData(xtrue,localPfors)
+@test norm([fetch(D1[1]);fetch(D1[2])]-btrue)/norm(btrue) < 1e-10
 
 #Test with forward problems on remote workers
 pForRefs    = Array{RemoteChannel}(undef,2)
@@ -31,12 +31,12 @@ workerList  = workers()
 nw          = nworkers()
 pForRefs[1] = initRemoteChannel(LSparam,workerList[1%nw+1],A[i1,:],[])
 pForRefs[2] = initRemoteChannel(LSparam,workerList[2%nw+1],A[i2,:],[])
-D,pForRefs = getData(xtrue,pForRefs,ones(length(pForRefs)),true)
-@test norm([fetch(D[1]);fetch(D[2])]-btrue)/norm(btrue) < 1e-10
+D2,pForRefs = getData(xtrue,pForRefs,ones(length(pForRefs)),true)
+@test norm([fetch(D2[1]);fetch(D2[2])]-btrue)/norm(btrue) < 1e-10
 
 #Test doClear flag.
-@test fetch(pForRefs[1]).A    == speye(0)
+@test fetch(pForRefs[1]).A    == sparse(I,0,0)
 @test fetch(pForRefs[1]).Ainv == []
-@test fetch(pForRefs[2]).A    == speye(0)
+@test fetch(pForRefs[2]).A    == sparse(I,0,0)
 @test fetch(pForRefs[2]).Ainv == []
-@test_throws Exception D, = getData(xtrue,pForRefs)
+@test_throws Exception D3, = getData(xtrue,pForRefs)

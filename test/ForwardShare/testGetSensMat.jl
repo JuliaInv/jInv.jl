@@ -11,7 +11,7 @@ pFor   = LSparam(A[2],[])
 # parallel with dynamic scheduling
 pForp  = [pFor1; pFor2];
 # remote references
-pForRef    = Array{RemoteChannel}(2)
+pForRef    = Array{RemoteChannel}(undef,2)
 i1     = (1:round(Int64,size(A[3],1)/2))
 i2     = (round(Int64,size(A[3],1)/2)+1:size(A[3],1))
 A1     = A[3][i1,:]
@@ -27,13 +27,13 @@ for k=1:length(pFors)
 	# test getSensMatVec for pFor as $(typeof(pFors[k]))...
 	(mt,nt) = getSensMatSize(pFors[k])
 	nd      = getNumberOfData(pFors[k])
-	(m,n) = size(A[k])
+	(mk,nk) = size(A[k])
 
 	@test mt==nd
-	@test m==mt
-	@test nt==n
+	@test mk==mt
+	@test nt==nk
 
-	At = getSensMat(randn(n),pFors[k])
+	At = getSensMat(randn(nk),pFors[k])
 	if At[1] isa Future
 	    At = vcat([fetch(Ai) for Ai in At]...)
 	end

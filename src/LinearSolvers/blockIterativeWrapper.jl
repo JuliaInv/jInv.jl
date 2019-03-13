@@ -119,9 +119,10 @@ function solveLinearSystem!(A,B,X,param::BlockIterativeSolver,doTranspose=0)
 			
 	else
 		if (param.sym==1) ||  ((param.sym != 1) && (doTranspose == 1)) 
-			Af = X -> (param.timeMV+=@elapsed Ac_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y); return Y)
+			Af = X -> (param.timeMV+=@elapsed mul!(Y,adjoint(A),X,one(eltype(A)),zero(eltype(A)));  return Y)
+			# Ac_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y); return Y)
 		elseif (param.sym != 1) && (doTranspose == 0)
-			Af = X -> (param.timeMV+=@elapsed A_mul_B!(one(eltype(A)),A,X,zero(eltype(A)),Y);  return Y)
+			Af = X -> (param.timeMV+=@elapsed mul!(Y,A,X,one(eltype(A)),zero(eltype(A)));  return Y)
 		end
 	end
 	X[:].=0.0	

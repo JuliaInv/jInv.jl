@@ -118,11 +118,11 @@ if hasPardiso
 			set_phase!(param.Ainv,-1)
 			# Real or complex matrix type
 			if param.sym in [1, 2, -2, 11]
-				A = speye(2)
+				A = sparse(1.0I,2,2);
 				x = ones(2)
 				b = ones(2)
 			else
-				A = speye(ComplexF64, 2)
+				A = sparse(one(ComplexF64)*I, 2,2)
 				x = ones(ComplexF64, 2)
 				b = ones(ComplexF64, 2)
 			end
