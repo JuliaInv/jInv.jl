@@ -5,7 +5,9 @@ os:
   - linux
 
 julia:
-  - 0.6
+  - 0.7
+  - 1.0
+  - 1.1
 
 notifications:
   email: false
@@ -14,9 +16,9 @@ before_install:
    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 
 script:
-    - julia -p 4 --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("jInv");  Pkg.test("jInv";coverage=true)'
+    - julia -p 4 --check-bounds=yes -e 'using Pkg; Pkg.add(PackageSpec(url=pwd())); Pkg.build("jInv");  Pkg.test("jInv";coverage=true)'
 
 after_success:
-  - julia -e 'cd(Pkg.dir("jInv")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  - julia -e 'Pkg.clone("https://github.com/JuliaDocs/Documenter.jl")'
-  - julia -e 'cd(Pkg.dir("jInv")); include(joinpath("docs", "make.jl"))'
+  - julia -e 'using Pkg; cd(Pkg.dir("jInv")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'using Pkg; Pkg.add("Documenter")'
+  - julia -e 'using Pkg; cd(Pkg.dir("jInv")); include(joinpath("docs", "make.jl"))'
