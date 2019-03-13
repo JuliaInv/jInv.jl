@@ -16,8 +16,8 @@ before_install:
    - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 
 script:
-    - julia -p 4 --check-bounds=yes -e 'using Pkg; Pkg.add(PackageSpec(url=pwd())); Pkg.build("jInv");  Pkg.test("jInv";coverage=true)'
-
+    #- julia -p 4 --check-bounds=yes -e 'using Pkg; Pkg.add(PackageSpec(url=pwd())); Pkg.build("jInv");  Pkg.test("jInv";coverage=true)'
+    - julia -p 4 --check-bounds=yes -e 'using Pkg; Pkg.build();  Pkg.test("jInv";coverage=true)'
 after_success:
   - julia -e 'using Pkg; cd(Pkg.dir("jInv")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   - julia -e 'using Pkg; Pkg.add("Documenter")'
