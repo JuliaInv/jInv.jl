@@ -331,36 +331,52 @@ function getCellCenteredAxes(domain,nc)
 end
 
 # --- linear operators for tensor mesh
-function getVolume(Mesh::RegularMesh)
+function getVolume(Mesh::RegularMesh;saveMat::Bool=true)
 # Mesh.V = getVolume(Mesh::RegularMesh) computes volumes v, returns diag(v)
 	if isempty(Mesh.V)
-		Mesh.V = sparse(prod(Mesh.h)*I, Mesh.nc,Mesh.nc)
+		V = sparse(prod(Mesh.h)*I, Mesh.nc,Mesh.nc)
+		if saveMat
+			Mesh.V = V;
+		end
+		return V;
+	else
+		return Mesh.V;
 	end
-	return Mesh.V
-end
-function getVolumeInv(Mesh::RegularMesh)
-# Mesh.Vi = getVolumeInv(Mesh::RegularMesh) returns sdiag(1 ./v)
-	if isempty(Mesh.Vi)
-		Mesh.Vi = sparse((1/prod(Mesh.h))*I, Mesh.nc,Mesh.nc)
-	end
-	return Mesh.Vi
 end
 
-function getFaceArea(Mesh::RegularMesh)
+function getVolumeInv(Mesh::RegularMesh; saveMat::Bool = true)
+# Mesh.Vi = getVolumeInv(Mesh::RegularMesh) returns sdiag(1 ./v)
+	if isempty(Mesh.Vi)
+		Vi = sparse((1/prod(Mesh.h))*I, Mesh.nc,Mesh.nc)
+		if saveMat
+			Mesh.Vi = Vi;
+		end
+		return Vi;
+	else
+		return Mesh.Vi;
+	end
+end
+
+function getFaceArea(Mesh::RegularMesh; saveMat = true)
 # Mesh.F = getFaceArea(Mesh::RegularMesh) computes face areas a, returns  sdiag(a)
 	if isempty(Mesh.F)
 		if Mesh.dim==2
 			f1  = Mesh.h[2]*sparse(1.0I,Mesh.nf[1],Mesh.nf[1])
 			f2  = Mesh.h[1]*sparse(1.0I,Mesh.nf[2],Mesh.nf[2])
-			Mesh.F = blockdiag(f1,f2)
+			F = blockdiag(f1,f2)
 		elseif Mesh.dim==3
 			f1  = (Mesh.h[3]*Mesh.h[2])*sparse(1.0I,Mesh.nf[1],Mesh.nf[1])
 			f2  = (Mesh.h[3]*Mesh.h[1])*sparse(1.0I,Mesh.nf[2],Mesh.nf[2])
 			f3  = (Mesh.h[2]*Mesh.h[1])*sparse(1.0I,Mesh.nf[3],Mesh.nf[3])
-			Mesh.F = blockdiag(blockdiag(f1,f2),f3)
+			F = blockdiag(blockdiag(f1,f2),f3)
 		end
+		if saveMat
+			Mesh.F = F;
+		end
+		return F;
+	else
+		return Mesh.F;
 	end
-	return Mesh.F
 end
 function getFaceAreaInv(Mesh::RegularMesh)
 # Mesh.Fi = getFaceAreaInv(Mesh::RegularMesh) computes inverse of face areas, returns sdiag(1 ./a)

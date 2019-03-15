@@ -1,14 +1,34 @@
 export getFaceAverageMatrix, getEdgeAverageMatrix, getNodalAverageMatrix
 export ndgrid, meshgrid
-export getDivergenceMatrix, getNodalGradientMatrix, getCurlMatrix, getNodalLaplacianMatrix
+export getDivergenceMatrix, getNodalGradientMatrix, getCurlMatrix, getNodalLaplacianMatrix,getNodalDivSigGradMatrix
 export getEdgeMassMatrix, getdEdgeMassMatrix, getFaceMassMatrix,
        getdFaceMassMatrix,getNodalMassMatrix,getdNodalMassMatrix
+export avN2C, avN2C_Nearest
 
-function av(n)
-	# A = av(n), 1D average operator
-	I,J,V = SparseArrays.spdiagm_internal(0 => fill(.5,n), 1 => fill(.5,n)) 
+
+
+## The matrix below properly averages Nodes to cells using 0.5,0.5
+## However, we usually use this matrix the other way around: cells to nodes.
+## Then, we need to decide what to do with the boundary. This matrix averages with 0.
+## This matrix is used as default for all averging operators
+function avN2C(n)
+	# A = avN2C(n), 1D average operator
+	I,J,V = SparseArrays.spdiagm_internal(0 => fill(.5,n), 1 => fill(.5,n))
 	return sparse(I, J, V, n, n+1)
 end
+
+
+## The matrix below, uses a nearest neighbor interpolation on the boundaries, so that avN2C_Nearest'*ones = ones.
+## This is important for geometric multigrid to work.
+function avN2C_Nearest(n)
+	# A = av(n), 1D average operator
+	I,J,V = SparseArrays.spdiagm_internal(0 => fill(.5,n), 1 => fill(.5,n))
+	av = sparse(I, J, V, n, n+1);
+	av[1,1] = 1.0;
+	av[end,end] = 1.0;
+	return av;
+end
+
 
 function ddx(n)
 # D = ddx(n), 1D derivative operator
@@ -30,21 +50,30 @@ end
 		Mesh::Abstract Mesh
 
 """
-function getFaceAverageMatrix(Mesh::AbstractTensorMesh)
+function getFaceAverageMatrix(Mesh::AbstractTensorMesh; saveMat::Bool = true, avN2C::Function = avN2C)
 	if isempty(Mesh.Af)
 		if Mesh.dim==2
-			A1 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1]))
-			A2 = kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]))
-			Mesh.Af = [A1 A2]
+			A1 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),avN2C(Mesh.n[1]))
+			A2 = kron(avN2C(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]))
+			Af = [A1 A2]
 		elseif Mesh.dim==3
-			A1 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1])))
-			A2 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
-			A3 = kron(av(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1])))
-			Mesh.Af = [A1 A2 A3]
+			I1 = sparse(1.0I, Mesh.n[1], Mesh.n[1]); 
+			I2 = sparse(1.0I, Mesh.n[2], Mesh.n[2]);
+			I3 = sparse(1.0I, Mesh.n[3], Mesh.n[3]);
+			A1 = kron(I3,kron(I2,avN2C(Mesh.n[1])))
+			A2 = kron(I3,kron(avN2C(Mesh.n[2]),I1))
+			A3 = kron(avN2C(Mesh.n[3]),kron(I2,I1))
+			Af = [A1 A2 A3]
 		end
+		if saveMat
+			Mesh.Af = Af;
+		end
+		return Af;
+	else
+		return Mesh.Af
 	end
-	return Mesh.Af
 end
+
 
 """
  	function jInv.Mesh.getEdgeAverageMatrix
@@ -58,23 +87,34 @@ end
 		Mesh::Abstract Mesh
 
 """
-function getEdgeAverageMatrix(Mesh::AbstractTensorMesh)
+function getEdgeAverageMatrix(Mesh::AbstractTensorMesh; saveMat::Bool = true, avN2C::Function = avN2C)
 	if isempty(Mesh.Ae)
 		if Mesh.dim==3
-			A1 = kron(av(Mesh.n[3]),kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]) ))
-			A2 = kron(av(Mesh.n[3]),kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1])))
-			A3 = kron(sparse(1.0I, Mesh.n[3], Mesh.n[3]),kron(av(Mesh.n[2]),av(Mesh.n[1])))
-			Mesh.Ae = [A1 A2 A3]
+			Av1 = avN2C(Mesh.n[1]);
+			Av2 = avN2C(Mesh.n[2]);
+			Av3 = avN2C(Mesh.n[3]);
+			A1 = kron(Av3,kron(Av2,speye(Mesh.n[1]) ))
+			A2 = kron(Av3,kron(speye(Mesh.n[2]),Av1))
+			A3 = kron(speye(Mesh.n[3]),kron(Av2,Av1))
+			Ae = [A1 A2 A3]
 		elseif Mesh.dim==2
-			A1 = kron(av(Mesh.n[2]),sparse(1.0I, Mesh.n[1], Mesh.n[1]))
-			A2 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),av(Mesh.n[1]))
-			Mesh.Ae = [A1 A2]
+			Av1 = avN2C(Mesh.n[1]);
+			Av2 = avN2C(Mesh.n[2]);
+			A1 = kron(Av2,sparse(1.0I, Mesh.n[1], Mesh.n[1]))
+			A2 = kron(sparse(1.0I, Mesh.n[2], Mesh.n[2]),Av1)
+			Ae = [A1 A2]
 		else
 			error("getEdgeAverageMatrix not implemented fot $(Mesh.dim)D Meshes")
 		end
+		if saveMat
+			Mesh.Ae = Ae;
+		end
+		return Ae;
+	else
+		return Mesh.Ae
 	end
-	return Mesh.Ae
 end
+
 
 """
  	function jInv.Mesh.getNodalAverageMatrix
@@ -86,18 +126,23 @@ end
 		Mesh::Abstract Mesh
 
 """
-function getNodalAverageMatrix(Mesh::AbstractTensorMesh)
+function getNodalAverageMatrix(Mesh::AbstractTensorMesh; saveMat::Bool = true, avN2C::Function = avN2C)
 # Mesh.An = getNodalAverageMatrix(Mesh::TensorMesh3D) builds nodal-to-cc average operator
 	if isempty(Mesh.An)
 		if Mesh.dim==2
-			Mesh.An = kron(av(Mesh.n[2]),av(Mesh.n[1]))
+			An = kron(avN2C(Mesh.n[2]),avN2C(Mesh.n[1]))
 		elseif Mesh.dim==3
-			Mesh.An = kron(av(Mesh.n[3]),kron(av(Mesh.n[2]),av(Mesh.n[1])))
+			An = kron(avN2C(Mesh.n[3]),kron(avN2C(Mesh.n[2]),avN2C(Mesh.n[1])))
 		else
 			error("getNodalAverageMatrix: Dimension must be 2 or 3")
 		end
+		if saveMat
+			Mesh.An = An;
+		end
+		return An;
+	else
+		return Mesh.An
 	end
-	return Mesh.An
 end
 
 """
@@ -164,10 +209,10 @@ getdEdgeMassMatrix(M::AbstractMesh,sigma::Vector,v::Vector) = getdEdgeMassMatrix
 	Output:
 		SparseMatrixCSC{Float64,Int64}
 """
-function getFaceMassMatrix(M::AbstractMesh,sigma::Vector)
-	Af    = getFaceAverageMatrix(M)
-	V     = getVolume(M)
-	Massf = sdiag(Af'*(V*sigma))
+function getFaceMassMatrix(M::AbstractMesh,sigma::Vector; saveMat::Bool = true, avN2C::Function = avN2C)
+	Af    = getFaceAverageMatrix(M;saveMat=saveMat,avN2C=avN2C)
+	V     = getVolume(M;saveMat=saveMat)
+	Massf = sdiag(Af'*(V*sigma));
 	return Massf
 end
 
@@ -297,7 +342,7 @@ function meshgrid(vx::AbstractVector{T}, vy::AbstractVector{T},
 end
 
 # --- differential operators
-function getDivergenceMatrix(Mesh::AbstractTensorMesh)
+function getDivergenceMatrix(Mesh::AbstractTensorMesh;saveMat = true)
 # Mesh.Div = getDivergenceMatrix(Mesh::AbstractTensorMesh) builds face-to-cc divergence operator
 	if isempty(Mesh.Div)
 		if Mesh.dim==2
@@ -312,14 +357,19 @@ function getDivergenceMatrix(Mesh::AbstractTensorMesh)
 		end
 		Vi = getVolumeInv(Mesh)
 		F  = getFaceArea(Mesh)
-		Mesh.Div = Vi*(Div*F)
+		Div = Vi*(Div*F);
+		if saveMat
+			Mesh.Div = Div;
+		end
+		return Div;
+	else
+		return Mesh.Div;
 	end
-	return Mesh.Div
 end
 
-function getNodalGradientMatrix(Mesh::AbstractTensorMesh)
+function getNodalGradientMatrix(Mesh::AbstractTensorMesh; saveMat::Bool = true)
 # Mesh.Grad = getNodalGradientMatrix(Mesh::AbstractTensorMesh) builds nodal-to-edge gradient operator
-	if isempty(Mesh.Grad)
+	if isempty(Mesh.Grad) 
 		if Mesh.dim==2
 			G1 = kron(sparse(1.0I, Mesh.n[2]+1, Mesh.n[2]+1),ddx(Mesh.n[1]))
 			G2 = kron(ddx(Mesh.n[2]),sparse(1.0I, Mesh.n[1]+1, Mesh.n[1]+1))
@@ -331,9 +381,15 @@ function getNodalGradientMatrix(Mesh::AbstractTensorMesh)
 			Grad =[G1; G2; G3]
 		end
 		Li  = getLengthInv(Mesh)
-		Mesh.Grad = Li*Grad
+		Grad = Li*Grad;
+		if saveMat
+			Mesh.Grad = Grad
+		end
+		return Grad;
+	else
+		return Mesh.Grad
 	end
-	return Mesh.Grad
+	
 end
 
 function getCurlMatrix(Mesh::AbstractTensorMesh)
@@ -367,10 +423,25 @@ function getCurlMatrix(Mesh::AbstractTensorMesh)
 	return Mesh.Curl
 end
 
-function getNodalLaplacianMatrix(Mesh::AbstractTensorMesh)
+function getNodalLaplacianMatrix(Mesh::AbstractTensorMesh; saveMat::Bool = true)
+	
 	if isempty(Mesh.nLap)
 		G = getNodalGradientMatrix(Mesh)
-		Mesh.nLap = G'*G
+		L = G'*G;
+		if saveMat 
+			Mesh.nLap = L;
+		end
+		return L;
+	else
+		return Mesh.nLap;
 	end
-	return Mesh.nLap
+	
+	
+end
+
+function getNodalDivSigGradMatrix(M::AbstractTensorMesh,sig::Vector; saveMat::Bool = true,avN2C::Function = avN2C)
+ 	G       = getNodalGradientMatrix(M, saveMat = saveMat)
+	Ae      = getEdgeAverageMatrix(M, saveMat = saveMat,avN2C = avN2C);
+    L       = (G'*sparse(Diagonal(Ae'*(sig))))*G
+	return L
 end

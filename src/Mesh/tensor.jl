@@ -272,19 +272,29 @@ function getFaceGrids(h1,h2,h3)
 end
 
 # --- linear operators for tensor mesh
-function getVolume(Mesh::TensorMesh3D)
+function getVolume(Mesh::TensorMesh3D;saveMat::Bool=true)
 # Mesh.V = getVolume(Mesh::TensorMesh3D) computes volumes v, returns diag(v)
-	if isempty(Mesh.V)
-		Mesh.V = kron(sdiag(Mesh.h3),kron(sdiag(Mesh.h2),sdiag(Mesh.h1)))
+	if isempty(Mesh.Vi)
+		V = kron(sdiag(Mesh.h3),kron(sdiag(Mesh.h2),sdiag(Mesh.h1)))
+		if saveMat
+			Mesh.V = V;
+		end
+		return V;
+	else
+		return Mesh.V
 	end
-return Mesh.V
 end
-function getVolumeInv(Mesh::TensorMesh3D)
+function getVolumeInv(Mesh::TensorMesh3D;saveMat::Bool=true)
 # Mesh.Vi = getVolumeInv(Mesh::TensorMesh3D) returns sdiag(1 ./v)
 	if isempty(Mesh.Vi)
-		Mesh.Vi = kron(sdiag(1 ./Mesh.h3),kron(sdiag(1 ./Mesh.h2),sdiag(1 ./Mesh.h1)))
+		Vi = kron(sdiag(1 ./Mesh.h3),kron(sdiag(1 ./Mesh.h2),sdiag(1 ./Mesh.h1)))
+		if saveMat
+			Mesh.Vi = Vi;
+		end
+		return Vi;
+	else
+		return Mesh.Vi
 	end
-return Mesh.Vi
 end
 function getFaceArea(Mesh::TensorMesh3D)
 # Mesh.F = getFaceArea(Mesh::TensorMesh3D) computes face areas a, returns  sdiag(a)

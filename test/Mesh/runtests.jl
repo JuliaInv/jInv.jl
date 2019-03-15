@@ -9,4 +9,5 @@
 	@testset "testPersistency.jl" begin include("testPersistency.jl") end
 	@testset "testIntPolyChain.jl" begin include("testIntPolyChain.jl") end
 	@testset "testMassMatrices.jl" begin include("testMassMatrices.jl") end
+	@testset "testForward.jl" begin include("testForward.jl") end
 end
