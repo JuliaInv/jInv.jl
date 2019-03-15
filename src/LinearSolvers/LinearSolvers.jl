@@ -10,10 +10,13 @@ module LinearSolvers
 	using SparseArrays
 	using LinearAlgebra
 	using Pkg
-	using ParSpMatVec
 	# check if ParSPMatVec is available
-	global hasParSpMatVec = ParSpMatVec.isBuilt();
-
+	global hasParSpMatVec = false
+	try
+		using ParSpMatVec;
+		global hasParSpMatVec = ParSpMatVec.isBuilt();
+	catch 
+	end
 	
 	# check if MUMPS can be used
 	const minMUMPSversion = VersionNumber(0,0,1)
