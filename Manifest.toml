@@ -59,7 +59,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[ParSpMatVec]]
 deps = ["BinDeps", "Distributed", "LinearAlgebra", "Pkg", "Printf", "SparseArrays", "Test"]
-git-tree-sha1 = "73b851102363d2b0550d57eb876640996105f551"
+git-tree-sha1 = "877dcb75dea2a310f4c88d7f40c573329ba0d3fa"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaInv/ParSpMatVec.jl.git"
 uuid = "46e045f0-2ea7-11e9-2e29-a9e59055879a"
