@@ -10,6 +10,11 @@ module LinearSolvers
 	using SparseArrays
 	using LinearAlgebra
 	using Pkg
+	using ParSpMatVec
+	# check if ParSPMatVec is available
+	global hasParSpMatVec = ParSpMatVec.isBuilt();
+
+	
 	# check if MUMPS can be used
 	const minMUMPSversion = VersionNumber(0,0,1)
 	global hasMUMPS=false
@@ -41,25 +46,8 @@ module LinearSolvers
 	catch
 	end
 
-	# check if ParSPMatVec is available
-	global hasParSpMatVec = false
-	const minVerParSpMatVec = VersionNumber(0,0,1)
-	global vParSpMatVec = VersionNumber(0,0,0)
-	try
- 		using ParSpMatVec
- 		global hasParSpMatVec = true
- 		if myid()==1
- 			global vParSpMatVec = Pkg.installed("ParSpMatVec")
- 			if vParSpMatVec < minVerParSpMatVec;
- 				warn("ParSpMatVec is outdated! Please update to version $(minVerParSpMatVec) or higher.")
- 			end
- 		end
-	catch
-	end
-	if hasParSpMatVec
-		using ParSpMatVec
-	end
-
+	
+	
 	export solveLinearSystem!,solveLinearSystem
 
 	solveLinearSystem(A,B,param::AbstractSolver,doTranspose::Int=0) = solveLinearSystem!(A,B,zeros(eltype(B),size(B)),param,doTranspose)
