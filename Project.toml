@@ -1,7 +1,7 @@
 name = "jInv"
 uuid = "3dacf901-f8cd-5544-86ed-7a705f85c244"
 authors = ["Eran Treister <erantreister@gmail.com>"]
-version = "0.7.0"
+version = "0.7.1"
 
 [compat]
 julia = "1"
