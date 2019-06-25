@@ -1,13 +1,16 @@
 name = "jInv"
-uuid = "dfd06120-4570-11e9-1976-1f1543b65420"
+uuid = "3dacf901-f8cd-5544-86ed-7a705f85c244"
 authors = ["Eran Treister <erantreister@gmail.com>"]
 version = "0.7.0"
+
+[compat]
+julia = "1"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 KrylovMethods = "9a2cd570-f05c-5dc1-9209-93ad6f5727f7"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-ParSpMatVec = "46e045f0-2ea7-11e9-2e29-a9e59055879a"
+ParSpMatVec = "ccf9b6e2-7ea7-596a-9d65-09863b18e8cc"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
