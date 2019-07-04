@@ -15,19 +15,19 @@ module LinearSolvers
 	try
 		using ParSpMatVec;
 		global hasParSpMatVec = ParSpMatVec.isBuilt();
-	catch 
+	catch
 	end
-	
+
 	# check if MUMPS can be used
 	const minMUMPSversion = VersionNumber(0,0,1)
 	global hasMUMPS=false
 	try
-		using MUMPS
+		using MUMPSjInv
 		global hasMUMPS = true
 		if myid()==1
-			vMUMPS = Pkg.installed("MUMPS")
+			vMUMPS = Pkg.installed()["MUMPSjInv"]
 			if vMUMPS < minMUMPSversion;
-				warn("MUMPS is outdated! Please update to version $(minMUMPSversion) or higher.")
+				warn("MUMPSjInv is outdated! Please update to version $(minMUMPSversion) or higher.")
 			end
 		end
 	catch
@@ -40,7 +40,7 @@ module LinearSolvers
 		using Pardiso
 		global hasPardiso = true
 		if myid()==1
-		  vPardiso = Pkg.installed("Pardiso")
+		  vPardiso = Pkg.installed()["Pardiso"]
 		  if vPardiso < minPardisoVersion
 		    warn("jInv Pardiso support requires Pardiso.jl version $(minPardisoVersion) or greater. Pardiso support will not be loaded")
 		    hasPardiso = false
@@ -49,8 +49,8 @@ module LinearSolvers
 	catch
 	end
 
-	
-	
+
+
 	export solveLinearSystem!,solveLinearSystem
 
 	solveLinearSystem(A,B,param::AbstractSolver,doTranspose::Int=0) = solveLinearSystem!(A,B,zeros(eltype(B),size(B)),param,doTranspose)

@@ -45,13 +45,13 @@ if hasPardiso
 			clear!(param)
 		end
         X = Vector{eltype(A)}(size(A,1))
-		tic()
+		param.facTime+=@elapsed begin
 		param.Ainv = MKLPardisoSolver()
 		set_nprocs!(param.Ainv, param.nProcs)
 		param.N    = size(A,1)
 		param,Apard = pardisoSetup(param,A)
 		pardiso(param.Ainv,X,Apard,X)
-		param.facTime+=toq()
+		end
 		param.nFac+=1
 	end
 
@@ -60,22 +60,22 @@ if hasPardiso
 			clear!(param)
 		end
 		if param.Ainv==[]
-			tic()
+			param.facTime+=@elapsed begin
 			param.Ainv = MKLPardisoSolver()
 			set_nprocs!(param.Ainv, param.nProcs)
 			param.N    = size(A,1)
 			param,Apard = pardisoSetup(param,A)
 			pardiso(param.Ainv,X,Apard,full(B))
-			param.facTime+=toq()
+			end
 			param.nFac+=1
 		end
 
-		tic()
 		# Since pardiso requires CSR matrices as input
 		# and Julia sparse matrices are CSC,
 		# we need to tell pardiso to solve transposed
 		# system when we want untransposed solve and
 		#vice versa
+		param.solveTime+=@elapsed begin
 		if (param.sym in [1, 3, 11, 13]) && (doTranspose == 0)
 		  set_iparm!(param.Ainv, 12, 2)
 		else
@@ -84,7 +84,7 @@ if hasPardiso
 		set_phase!(param.Ainv,33)
 		set_iparm!(param.Ainv, 27, 0) #Deactivate matrix checker
 		pardiso(param.Ainv,X,A,full(B))
-		param.solveTime+=toq()
+		end
 		param.nSolve+=1
 
 		return X, param

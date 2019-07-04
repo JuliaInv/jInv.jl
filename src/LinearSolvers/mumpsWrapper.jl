@@ -43,9 +43,9 @@ if hasMUMPS
 			clear!(param)
 		end
 
-		tic()
-		param.Ainv = factorMUMPS(A, param.sym, param.ooc)
-		param.facTime+=toq()
+		param.facTime+= @elapsed begin
+			param.Ainv = factorMUMPS(A, param.sym, param.ooc)
+		end
 		param.nFac+=1
 	end
 
@@ -55,17 +55,15 @@ if hasMUMPS
 		end
 
 		if param.Ainv==[]
-			tic()
+			param.facTime+= @elapsed begin
 			param.Ainv = factorMUMPS(A, param.sym, param.ooc)
-			param.facTime+=toq()
+			end
 			param.nFac+=1
 		end
 
-		tic()
-
-		applyMUMPS!(param.Ainv, B,X,doTranspose)
-
-		param.solveTime+=toq()
+		param.solveTime+= @elapsed begin
+			applyMUMPS!(param.Ainv, B,X,doTranspose)
+		end
 		param.nSolve+=1
 
 		return X, param

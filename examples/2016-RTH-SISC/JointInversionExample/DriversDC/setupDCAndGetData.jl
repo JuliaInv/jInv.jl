@@ -44,7 +44,7 @@ if isfile(dataFile)
 	end
 	if size(sigtrue)!=size(mf["sigtrue"]) || norm(sigtrue-mf["sigtrue"],Inf)>1e-8
 		println("sigma changed. need to recompute data.")
-		redoData = true; 
+		redoData = true;
 	end
         if length(mf["dobs"])!=size(Receivers,2)*nsrc
 		println("receivers have changed. need to recompute data.")
@@ -54,13 +54,11 @@ end
 
 if redoData || !isfile(dataFile)
 	println("get DC data for true model")
-	tic()
-	dobsDC,     = getData(Mesh2Mesh'*vec(sigtrue),pFor)
-	toc()
+
+	@time dobsDC,     = getData(Mesh2Mesh'*vec(sigtrue),pFor)
 	println("get DC data for homogeneous model")
-	tic()
-	dobs0,     = getData(Mesh2Mesh'*vec(sigref),pFor)
-	toc()
+
+	@time dobs0,     = getData(Mesh2Mesh'*vec(sigref),pFor)
 	# if worker!=0
 		# dobs0 = fetch(dobs0[1]);
 		# dobsDC = fetch(dobsDC[1]);
@@ -74,7 +72,7 @@ else
 	dobs0  = mf["dobs0"]
 end
 
-	
 
-return pFor,Sources,Receivers,Wd,dobsDC,dobs0 
+
+return pFor,Sources,Receivers,Wd,dobsDC,dobs0
 end

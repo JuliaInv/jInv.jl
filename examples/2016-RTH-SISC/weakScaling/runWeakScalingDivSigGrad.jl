@@ -12,9 +12,9 @@ include("getDCResistivitySourcesAndRecAll.jl")
 
 function parse_commandline()
 	s = ArgParseSettings()
-	
+
 	@add_arg_table s begin
-	
+
 	"--n1"
 		help = "number of cells in x1 direction "
 		arg_type = Int
@@ -48,18 +48,18 @@ end
 
 function main()
 	parsed_args = parse_commandline()
-	
+
 	nInv      = [128;128;64]
 	m         = 1500 + 3000*rand(tuple(nInv...))
-	# random conductivity model can be replaced by SEG model described in 
+	# random conductivity model can be replaced by SEG model described in
 	#
-	# Aminzadeh, F., Brac, J., and Kunz, T., 1997. 3D Salt and Overthrust models. SEG/EAGE Modeling Series, No. 1: Distribution CD of Salt and 	
+	# Aminzadeh, F., Brac, J., and Kunz, T., 1997. 3D Salt and Overthrust models. SEG/EAGE Modeling Series, No. 1: Distribution CD of Salt and
 	# Overthrust models, SEG Book Series Tulsa, Oklahoma
 	#
 	# matfile   = matread("3Dseg12812864.mat")
 	# m         = matfile["VELc"]
-	
-	
+
+
 	n1 = parsed_args["n1"]
 	n2 = parsed_args["n2"]
 	n3 = parsed_args["n3"]
@@ -67,25 +67,25 @@ function main()
 	nthreads = parsed_args["nthreads"]
 
 	out = parsed_args["out"]
-	
+
 	# set number of threads for openblac
 	set_num_threads(nthreads)
-	
+
 	solver = parsed_args["solver"]
-	
+
 	domain  = [0;13.5;0;13.5;0;4.2]
 	n       = [n1;n2;n3]
-	
-	M    = getRegularMesh(domain,n)	
-	MInv = getRegularMesh(domain,nInv)	
+
+	M    = getRegularMesh(domain,n)
+	MInv = getRegularMesh(domain,nInv)
 	Q,P  = getDCResistivitySourcesAndRecAll(M,srcSpacing=[ns,ns])
 	Q    = Q[:,1:10]
 	nsrc = size(Q,2)
-	
+
 	@printf "problem size: n1=%d\tn2=%d\tn3=%d\tns=%d\n" n1 n2 n3 nsrc
 	@printf "nworkers()=%d\n" nworkers()
 	@printf "nthreads=%d \n" nthreads
-	
+
 	if solver==3
 		@printf "solver=MUMPS\n\n"
 		@printf "warmup\ttotal\tfactorization\tsolve\n"
@@ -95,7 +95,7 @@ function main()
 	elseif solver==1
 		@printf "solver=PCG\n\n"
 		@printf "warmup\ttotal\titer\tprecond\tcgTime\tmatvec\n"
-	end	
+	end
 	Ainv = []
 	if solver==1
 		Ainv   = getIterativeSolver(KrylovMethods.cg,out=-1,sym=1,PC=:jac);
@@ -111,7 +111,7 @@ function main()
 		Ainv = getMUMPSsolver()
 	elseif solver 		== 4
 		levels      	= 5;
-		numCores 		= nthreads; 
+		numCores 		= nthreads;
 		maxIter     	= 20;
 		relativeTol 	= 1e-8;
 		relaxType   	= "SPAI";
@@ -124,33 +124,33 @@ function main()
 		Ainvt   			= getSA_AMGsolver(MG, "PCG",sym=1,out=-1);
 		Ainv   			= getSA_AMGsolver(MG, "PCG",sym=1,out=-1);
 	end
-		
+
 	pForp = Array{RemoteRef{Channel{Any}}}(nworkers())
 	pFors = Array{RemoteRef{Channel{Any}}}(nworkers())
 	Mesh2Mesh  = getInterpolationMatrix(MInv,M)'
 	m          = Mesh2Mesh'*vec(m)
 	glocp      = Array{RemoteRef{Channel{Any}}}(nworkers())
-	
+
 	for j=1:nworkers()
 		pForp[j] = @spawnat workers()[j] DivSigGradParam(M,Q,P,[1.0],Ainv)
 		pFors[j] = @spawnat workers()[j] DivSigGradParam(M,Q[:,1],P,[1.0],Ainv)
 		glocp[j] = @spawnat workers()[j] sparse(I,M.nc,M.nc)
 	end
-	
+
 	# warm up
-	tic() 
+	wTime = @elapsed begin
 	res = getData(vec(m),pFors,glocp)
-	wTime = toq()
+	end
 	@printf "%3.2f\t" wTime
 	clear!(res[1])
 	clear!(res[2])
 	clear!(pFors)
-	
-	tic(); 
+
+	tTime = @elapsed begin
 	getData(vec(m),pForp,glocp)
-	tTime = toq();
+	end
 	@printf "%3.2f\t" tTime
-	
+
 	if solver==3
 		fTime = 0.0; sTime =0.0
 		for p=1:length(pForp)
@@ -161,7 +161,7 @@ function main()
 		fTime /= nworkers()
 		sTime /= nworkers()
 		@printf "%3.4f\t\t%3.4f\n" fTime sTime
-		
+
 		f = open(out,"a")
 		str = @sprintf "%d,%d,%d,%d,%d,%d,,%3.5f,%3.5f,%3.5f,%3.5f\n" nworkers() solver n1 n2 n3 nsrc wTime tTime fTime sTime
 		write(f,str )
@@ -181,7 +181,7 @@ function main()
 		cgTime /=nworkers()
 		mvTime /=nworkers()
 		@printf "%5d\t%3.4f\t%3.4f\t%3.4f\n" nIter  pcTime cgTime mvTime
-		
+
 		f = open(out,"a")
 		str = @sprintf "%d,%d,%d,%d,%d,%d,%3.5f,%3.5f,%3.5f,%3.5f,%3.5f,%d\n" nworkers() solver n1 n2 n3 nsrc wTime tTime pcTime cgTime mvTime nIter
 		write(f,str )
@@ -197,7 +197,6 @@ function main()
 		end
 		@printf "%5d\t%3.4f\t%3.4f\t\n" nIter tsetup tSol
 	end
-	
+
 end
 main()
-

@@ -3,7 +3,7 @@ export projGNexplicit
 """
 function projGNexplicit(gc,pMis,pInv,sig,dsig,d2F,d2R,Active)
 
-explicitly builds and solves projected normal equation. 
+explicitly builds and solves projected normal equation.
 
 Inputs:
 
@@ -24,15 +24,15 @@ function projGNexplicit(gc::Vector,pMis,pInv::InverseParam,sig::Vector,dsig,d2F,
 		return 0*gc,[0.0;0.0]
 	end
 	# get Hessian of misfit
-	tic();
+	timeBuild = @elapsed begin
 	Hm = getHessian(sig,pMis,d2F)
-	timeBuild = toq();
-	
+	end;
+
 	# build overall Hessian
 	H  = dsig'*Hm*dsig + d2R
-	
+
 	# remove Active constraints
-	tic()
+	timeSolve = @elapsed begin
 	Hr = H[.!(Active),.!(Active)]
 	gr = gc[.!(Active)]
 	dm = 0*gc
@@ -41,8 +41,8 @@ function projGNexplicit(gc::Vector,pMis,pInv::InverseParam,sig::Vector,dsig,d2F,
 		dr = -(pinv(Hr)*gr)
 	end
 	dm[.!(Active)] = dr
-	timeSolve=toq();
-	
+	end
+
 	# solve and return
 	return dm,[timeBuild;timeSolve]
 end

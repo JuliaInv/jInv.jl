@@ -1,7 +1,9 @@
 name = "jInv"
+license = "MIT"
+desc = "Flexible Framework for Parallel PDE Parameter Estimation"
 uuid = "3dacf901-f8cd-5544-86ed-7a705f85c244"
 authors = ["Eran Treister <erantreister@gmail.com>"]
-version = "0.7.1"
+version = "0.7.3"
 
 [compat]
 julia = "1"
@@ -15,3 +17,4 @@ Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+MUMPSjInv = "bf6389e2-cca1-5e17-ac22-36425c4ccbb4"
