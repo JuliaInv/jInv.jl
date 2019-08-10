@@ -1,0 +1,142 @@
+Two benchmarking tests were performed for both real and complex systems. The real matrices were discretizations of divGrad formed using getDivGrad.jl. The complex matrices were divGrad plus an imaginary identity matrix. Each matrix was factored and the factorization stored. The solution was then computed by calling applyMUMPS. The timings below are wall-times for single calls to applyMUMPS, measured using
+
+runtime = @elapsed begin
+x = applyMUMPS(...)
+end
+
+Sparse right hand sides were constructed as CSC sparse matrices and dense right hand sides by
+
+rhsDense = full(rhsSparse)
+
+The first test used a right hand side with only 3 non-zeros entries per rhs. Other tests used random sparse rhs constructed with the sprandn function.
+
+Legend:
+denseRHS  = wall-time for solve with dense right hand sides
+sparseRHS = wall-time for solve with sparse right hand sides
+speedup = denseRHS/sparseRHS
+
+real Matrix, structured rhs
+
+32^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.02381   | 0.03934  |  1.65267 |
+| 10   | 0.07058   | 0.19299  |  2.73420 |
+| 100  | 0.58156   | 1.10050  |  1.89231 |
+| 500  | 1.94701   | 3.87147  |  1.98842 |
+
+
+48^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.10048   | 0.12679  |  1.26185 |
+| 10   | 0.26378   | 0.45265  |  1.71601 |
+| 100  | 1.57705   | 3.37714  |  2.14143 |
+| 500  | 7.28596   | 15.40005 |  2.11366 |
+
+
+64^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.26901   | 0.40192  |  1.49406 |
+| 10   | 0.78484   | 1.47147  |  1.87488 |
+| 100  | 4.84735   | 11.13566 |  2.29727 |
+| 500  | 23.52151  | 54.71050 |  2.32598 |
+
+----------------------------------------------------
+
+real Matrix, random rhs (1% non-zeros)
+
+32^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.03009   | 0.03804  |  1.26397 |
+| 10   | 0.09250   | 0.11824  |  1.27833 |
+| 100  | 0.65933   | 0.79760  |  1.20971 |
+| 500  | 3.25809   | 3.99209  |  1.22528 |
+
+48^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.12548   | 0.12796  |  1.01978 |
+| 10   | 0.40030   | 0.47098  |  1.17655 |
+| 100  | 2.86912   | 3.39611  |  1.18367 |
+| 500  | 13.85715  | 17.20182 |  1.24137 |
+
+64^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.37237   | 0.40218  |  1.08006 |
+| 10   | 1.24305   | 1.40451  |  1.12990 |
+| 100  | 9.51340   | 11.27225 |  1.18488 |
+| 500  | 46.45986  | 54.54320 |  1.17399 |
+
+
+----------------------------------------------------
+
+real Matrix, random rhs (10% non-zeros)
+
+32^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.07869   | 0.06181  |  0.78549 |
+| 10   | 0.11221   | 0.11849  |  1.05604 |
+| 100  | 0.80053   | 0.80445  |  1.00490 |
+| 500  | 4.10597   | 4.07712  |  0.99297 |
+
+48^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+|    1 |   0.12008 |  0.14482 |  1.20603 |
+|   10 |   0.44858 |  0.47249 |  1.05331 |
+|  100 |   3.42371 |  3.43537 |  1.00341 |
+|  500 |  16.76133 | 17.64864 |  1.05294 |
+
+64^3
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.38329   | 0.40335  |  1.05233 |
+| 10   | 1.43663   | 1.42350  |  0.99086 |
+| 100  | 12.61634  | 12.40752 |  0.98345 |
+| 500  | 57.47922  | 55.99277 |  0.97414 |
+
+----------------------------------------------------
+
+Complex matrix, structured rhs
+
+32^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.04515   | 0.06393  |  1.41608 |
+| 10   | 0.10559   | 0.18352  |  1.73805 |
+| 100  | 0.74768   | 1.53847  |  2.05765 |
+| 500  | 3.90769   | 6.77338  |  1.73335 |
+
+48^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.18537   | 0.26580  |  1.43383 |
+| 10   | 0.45097   | 0.79685  |  1.76694 |
+| 100  | 3.56631   | 6.58664  |  1.84691 |
+| 500  | 16.86979  | 31.49937 |  1.86721 |
+
+64^3 grid
+| nrhs | sparseRHS | denseRHS  |  speedup|
+| 1    | 0.57740   | 0.90527   | 1.56786 |
+| 10   | 1.41830   | 2.61453   | 1.84342 |
+| 100  | 11.08386  | 21.54081  | 1.94344 |
+| 500  | 53.16363  | 104.83618 | 1.97195 |
+
+----------------------------------------------------
+
+Complex matrix, random rhs (1% non-zeros)
+
+32^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.06106   | 0.05897  |  0.96574 |
+| 10   | 0.17382   | 0.19072  |  1.09719 |
+| 100  | 1.23606   | 1.40179  |  1.13408 |
+| 500  | 5.75895   | 6.83191  |  1.18631 |
+
+48^3 grid
+| nrhs | sparseRHS | denseRHS |  speedup |
+| 1    | 0.25348   | 0.26336  |  1.03898 |
+| 10   | 0.71898   | 0.78372  |  1.09004 |
+| 100  | 5.44521   | 6.06402  |  1.11364 |
+| 500  | 29.06074  | 31.36278 |  1.07921 |
+
+64^3 grid
+| nrhs | sparseRHS | denseRHS  |  speedup |
+| 1    | 0.83210   | 0.89971   |  1.08125 |
+| 10   | 2.30254   | 2.65724   |  1.15405 |
+| 100  | 19.57116  | 21.22301  |  1.08440 |
+| 500  | 96.15999  | 104.15218 |  1.08311 |

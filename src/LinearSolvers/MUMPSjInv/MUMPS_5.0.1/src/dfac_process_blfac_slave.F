@@ -1,0 +1,310 @@
+C
+C  This file is part of MUMPS 5.0.1, released
+C  on Thu Jul 23 17:08:29 UTC 2015
+C
+C
+C  Copyright 1991-2015 CERFACS, CNRS, ENS Lyon, INP Toulouse, Inria,
+C  University of Bordeaux.
+C
+C  This version of MUMPS is provided to you free of charge. It is
+C  released under the CeCILL-C license:
+C  http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
+C
+      RECURSIVE SUBROUTINE DMUMPS_PROCESS_BLFAC_SLAVE(
+     &   COMM_LOAD, ASS_IRECV,
+     &   BUFR, LBUFR,
+     &   LBUFR_BYTES, PROCNODE_STEPS, MSGSOU,
+     &   SLAVEF, IWPOS, IWPOSCB, IPTRLU, LRLU, LRLUS, N, IW, LIW,
+     &   A, LA, PTRIST, PTRAST, NSTK_S, NBPROCFILS,
+     &   COMP, STEP, PIMASTER, PAMASTER, POSFAC,
+     &   MYID, COMM, IFLAG, IERROR, NBFIN,
+     &
+     &    PTLUST_S, PTRFAC, root, OPASSW, OPELIW,
+     &    ITLOC, RHS_MUMPS, FILS,  
+     &    PTRARW, PTRAIW, INTARR, DBLARR,
+     &    ICNTL,KEEP,KEEP8,DKEEP,IPOOL, LPOOL, LEAF, ND, FRERE_STEPS,
+     &    LPTRAR, NELT, FRTPTR, FRTELT, 
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE 
+     &     )
+      USE DMUMPS_COMM_BUFFER
+      USE DMUMPS_LOAD
+      IMPLICIT NONE
+      INCLUDE 'dmumps_root.h'
+      TYPE (DMUMPS_ROOT_STRUC) :: root
+      INTEGER ICNTL( 40 ), KEEP( 500 )
+      INTEGER(8) KEEP8(150)
+      DOUBLE PRECISION       DKEEP(130)
+      INTEGER LBUFR, LBUFR_BYTES
+      INTEGER COMM_LOAD, ASS_IRECV
+      INTEGER BUFR( LBUFR )
+      INTEGER N, SLAVEF, IWPOS, IWPOSCB, LIW
+      INTEGER(8) :: POSFAC, IPTRLU, LRLU, LRLUS, LA
+      INTEGER(8) :: PTRAST(KEEP(28))
+      INTEGER(8) :: PAMASTER(KEEP(28))
+      INTEGER(8) :: PTRFAC(KEEP(28))
+      INTEGER COMP
+      INTEGER IFLAG, IERROR, NBFIN, MSGSOU
+      INTEGER PROCNODE_STEPS(KEEP(28)), PTRIST(KEEP(28)),
+     &        NSTK_S(KEEP(28))
+      INTEGER NBPROCFILS(KEEP(28)), STEP(N), PIMASTER(KEEP(28))
+      INTEGER IW( LIW )
+      DOUBLE PRECISION A( LA )
+      INTEGER NELT, LPTRAR
+      INTEGER FRTPTR( N + 1 ), FRTELT( NELT )
+      INTEGER PTRAIW( LPTRAR ), PTRARW( LPTRAR )
+      INTEGER ISTEP_TO_INIV2(KEEP(71)), 
+     &        TAB_POS_IN_PERE(SLAVEF+2,max(1,KEEP(56)))
+      INTEGER COMM, MYID
+      INTEGER PTLUST_S(KEEP(28))
+      INTEGER ITLOC( N + KEEP(253)), FILS( N )
+      DOUBLE PRECISION :: RHS_MUMPS(KEEP(255))
+      INTEGER ND( KEEP(28) ), FRERE_STEPS( KEEP(28) )
+      INTEGER INTARR( max(1,KEEP(14)) )
+      DOUBLE PRECISION OPASSW, OPELIW
+      DOUBLE PRECISION FLOP1
+      DOUBLE PRECISION  DBLARR( max(1,KEEP(13)) )
+      INTEGER LEAF, LPOOL 
+      INTEGER IPOOL( LPOOL )
+      INCLUDE 'mumps_headers.h'
+      INCLUDE 'mpif.h'
+      INCLUDE 'mumps_tags.h'
+      INTEGER :: STATUS(MPI_STATUS_SIZE)
+      INTEGER MUMPS_PROCNODE
+      EXTERNAL MUMPS_PROCNODE
+      INTEGER INODE, IPOSK, JPOSK, NCOLU, NPIV, POSITION, IERR
+      INTEGER(8) POSELT, POSBLOCFACTO
+      INTEGER(8) LAELL
+      INTEGER IOLDPS, LCONT1, NROW1, NCOL1, NPIV1, NASS1
+      INTEGER NSLAVES_TOT, HS, DEST, NSLAVES_FOLLOW
+      INTEGER FPERE
+      INTEGER(8) CPOS, LPOS
+      LOGICAL DYNAMIC
+      LOGICAL BLOCKING, SET_IRECV, MESSAGE_RECEIVED
+      INTEGER allocok
+      DOUBLE PRECISION, ALLOCATABLE, DIMENSION(:) :: UDYNAMIC
+      DOUBLE PRECISION ONE,ALPHA
+      PARAMETER (ONE = 1.0D0, ALPHA=-1.0D0)
+      DYNAMIC = .FALSE.
+      POSITION  = 0
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION, INODE, 1,
+     &                 MPI_INTEGER, COMM, IERR )
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION, IPOSK, 1,
+     &                 MPI_INTEGER, COMM, IERR )
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION, JPOSK, 1,
+     &                 MPI_INTEGER, COMM, IERR )
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION, NPIV, 1,
+     &                 MPI_INTEGER, COMM, IERR )
+      IF ( NPIV .LE. 0 ) THEN
+        NPIV = - NPIV
+        WRITE(*,*) MYID,':error, received negative NPIV in BLFAC'
+        CALL MUMPS_ABORT()
+      END IF
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION, FPERE, 1,
+     &                 MPI_INTEGER, COMM, IERR )
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION, NCOLU, 1,
+     &                 MPI_INTEGER, COMM, IERR )
+      LAELL = int(NPIV,8) * int(NCOLU,8)
+      IF ( LRLU .LT. LAELL ) THEN
+        IF ( LRLUS .LT. LAELL ) THEN
+          IFLAG = -9
+          CALL MUMPS_SET_IERROR(LAELL - LRLUS, IERROR)
+          GOTO 700
+        END IF
+        CALL DMUMPS_COMPRE_NEW(N, KEEP(28), IW, LIW, A, LA,
+     &        LRLU, IPTRLU,
+     &        IWPOS, IWPOSCB, PTRIST, PTRAST,
+     &        STEP, PIMASTER, PAMASTER, KEEP(216),LRLUS,
+     &        KEEP(IXSZ),COMP,DKEEP(97),MYID)
+        IF ( LRLU .NE. LRLUS ) THEN
+             WRITE(*,*) 'PB compress DMUMPS_PROCESS_BLFAC_SLAVE'
+     &       ,LRLU,LRLUS
+             IFLAG = -9
+             CALL MUMPS_SET_IERROR(LAELL - LRLU, IERROR)
+             GOTO 700
+        END IF
+      END IF
+      LRLU  = LRLU - LAELL
+      LRLUS = LRLUS - LAELL
+      KEEP8(67) = min(LRLUS, KEEP8(67))
+      POSBLOCFACTO = POSFAC
+      POSFAC = POSFAC + LAELL
+      CALL DMUMPS_LOAD_MEM_UPDATE(.FALSE.,.FALSE.,
+     &                           LA-LRLUS,0_8, LAELL,KEEP,KEEP8,LRLUS)
+      CALL MPI_UNPACK( BUFR, LBUFR_BYTES, POSITION,
+     &                 A(POSBLOCFACTO), NPIV*NCOLU,
+     &                 MPI_DOUBLE_PRECISION,
+     &                 COMM, IERR )
+      IF (PTRIST(STEP( INODE )) .EQ. 0) DYNAMIC = .TRUE.
+      IF ( (PTRIST(STEP( INODE )).NE.0) .AND.
+     &  (IPOSK + NPIV -1 .GT.
+     &   IW(PTRIST(STEP(INODE))+3+KEEP(IXSZ))) )THEN
+        DYNAMIC = .TRUE.
+      ENDIF
+      IF (DYNAMIC)  THEN
+        ALLOCATE(UDYNAMIC(LAELL), stat=allocok)
+        if (allocok .GT. 0) THEN
+          write(*,*) MYID, ' : PB allocation U in blfac_slave '
+     &     , LAELL
+          IFLAG = -13 
+          CALL MUMPS_SET_IERROR(LAELL,IERROR)
+          GOTO 700
+        endif
+        UDYNAMIC(1_8:LAELL) = A(POSBLOCFACTO:POSBLOCFACTO+LAELL-1_8)
+        LRLU  = LRLU + LAELL
+        LRLUS = LRLUS + LAELL
+        POSFAC = POSFAC - LAELL
+      CALL DMUMPS_LOAD_MEM_UPDATE(.FALSE.,.FALSE.,
+     &          LA-LRLUS,0_8,-LAELL,KEEP,KEEP8,LRLUS)
+      ENDIF
+      IF ( PTRIST(STEP(INODE)) .EQ. 0 ) THEN
+        CALL DMUMPS_TREAT_DESCBAND(INODE, COMM_LOAD,
+     &    ASS_IRECV, 
+     &    BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &    IWPOS, IWPOSCB, IPTRLU,
+     &    LRLU, LRLUS, N, IW, LIW, A, LA, PTRIST,
+     &    PTLUST_S, PTRFAC,
+     &    PTRAST, STEP, PIMASTER, PAMASTER, NSTK_S, COMP,
+     &    IFLAG, IERROR, COMM,
+     &    NBPROCFILS,
+     &    IPOOL, LPOOL, LEAF,
+     &    NBFIN, MYID, SLAVEF,
+     &
+     &    root, OPASSW, OPELIW, ITLOC, RHS_MUMPS,
+     &    FILS, PTRARW, PTRAIW,
+     &    INTARR, DBLARR, ICNTL, KEEP,KEEP8,DKEEP, ND, FRERE_STEPS,
+     &    LPTRAR, NELT, FRTPTR, FRTELT, 
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE, .TRUE. 
+     &     )
+        IF ( IFLAG .LT. 0 ) GOTO 600
+      ENDIF
+      DO WHILE ( IPOSK + NPIV -1 .GT.
+     &            IW( PTRIST(STEP( INODE )) + 3 +KEEP(IXSZ)) )
+#if defined(IBC_TEST)
+        MSGSOU = IW( PTRIST(STEP(INODE)) + 9 +  KEEP(IXSZ) )
+#else
+        MSGSOU = MUMPS_PROCNODE( PROCNODE_STEPS(STEP(INODE)), SLAVEF )
+#endif
+        SET_IRECV = .FALSE.
+        BLOCKING  = .TRUE.
+        MESSAGE_RECEIVED = .FALSE.
+        CALL DMUMPS_TRY_RECVTREAT( COMM_LOAD,
+     &    ASS_IRECV, BLOCKING, SET_IRECV, MESSAGE_RECEIVED,
+     &    MSGSOU, BLOC_FACTO_SYM,
+     &    STATUS, 
+     &    BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &    IWPOS, IWPOSCB, IPTRLU,
+     &    LRLU, LRLUS, N, IW, LIW, A, LA, PTRIST,
+     &    PTLUST_S, PTRFAC,
+     &    PTRAST, STEP, PIMASTER, PAMASTER, NSTK_S, COMP,
+     &    IFLAG, IERROR, COMM,
+     &    NBPROCFILS,
+     &    IPOOL, LPOOL, LEAF,
+     &    NBFIN, MYID, SLAVEF,
+     &
+     &    root, OPASSW, OPELIW, ITLOC, RHS_MUMPS,
+     &    FILS, PTRARW, PTRAIW,
+     &    INTARR, DBLARR, ICNTL, KEEP,KEEP8,DKEEP, ND, FRERE_STEPS,
+     &    LPTRAR, NELT, FRTPTR, FRTELT,
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE, .TRUE.
+     &      )
+        IF ( IFLAG .LT. 0 ) GOTO 600
+      END DO
+        SET_IRECV = .TRUE.
+        BLOCKING  = .FALSE.
+        MESSAGE_RECEIVED = .TRUE.
+        CALL DMUMPS_TRY_RECVTREAT( COMM_LOAD,
+     &    ASS_IRECV, BLOCKING, SET_IRECV, MESSAGE_RECEIVED,
+     &    MPI_ANY_SOURCE, MPI_ANY_TAG, 
+     &    STATUS, 
+     &    BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &    IWPOS, IWPOSCB, IPTRLU,
+     &    LRLU, LRLUS, N, IW, LIW, A, LA, PTRIST,
+     &    PTLUST_S, PTRFAC,
+     &    PTRAST, STEP, PIMASTER, PAMASTER, NSTK_S, COMP,
+     &    IFLAG, IERROR, COMM,
+     &    NBPROCFILS,
+     &    IPOOL, LPOOL, LEAF,
+     &    NBFIN, MYID, SLAVEF,
+     &
+     &    root, OPASSW, OPELIW, ITLOC, RHS_MUMPS,
+     &    FILS, PTRARW, PTRAIW,
+     &    INTARR, DBLARR, ICNTL, KEEP,KEEP8,DKEEP, ND, FRERE_STEPS,
+     &    LPTRAR, NELT, FRTPTR, FRTELT, 
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE, .TRUE. 
+     &     )
+      IOLDPS  = PTRIST(STEP( INODE ))
+      POSELT = PTRAST(STEP( INODE ))
+      LCONT1 = IW( IOLDPS + KEEP(IXSZ) )
+      NASS1  = IW( IOLDPS + 1 + KEEP(IXSZ))
+      NROW1  = IW( IOLDPS + 2  + KEEP(IXSZ))
+      NPIV1  = IW( IOLDPS + 3  + KEEP(IXSZ))
+      NSLAVES_TOT = IW( IOLDPS + 5  + KEEP(IXSZ))
+      HS     = 6 + NSLAVES_TOT + KEEP(IXSZ)
+      NCOL1  = LCONT1 + NPIV1
+      CPOS = POSELT + int(JPOSK - 1,8)
+      LPOS = POSELT + int(IPOSK - 1,8)
+      IF ( NPIV .GT. 0 ) THEN
+       IF (DYNAMIC) THEN
+        CALL dgemm( 'T', 'N', NCOLU, NROW1, NPIV, ALPHA,
+     &            UDYNAMIC(1), NPIV,
+     &            A( LPOS ), NCOL1, ONE,
+     &            A( CPOS ), NCOL1 )
+       ELSE
+        CALL dgemm( 'T', 'N', NCOLU, NROW1, NPIV, ALPHA,
+     &            A( POSBLOCFACTO ), NPIV,
+     &            A( LPOS ), NCOL1, ONE,
+     &            A( CPOS ), NCOL1 )
+       ENDIF
+      ENDIF
+      IF (NPIV .GT. 0) THEN
+        FLOP1 = dble(NCOLU*NPIV)*dble(2*NROW1)
+        FLOP1 = -FLOP1
+        CALL DMUMPS_LOAD_UPDATE(1, .FALSE., FLOP1, KEEP,KEEP8 )
+      ENDIF
+      IW( IOLDPS + 6 + KEEP(IXSZ) ) = IW( IOLDPS + 6+ KEEP(IXSZ) ) + 1
+      IF (DYNAMIC) THEN
+       DEALLOCATE(UDYNAMIC)
+      ELSE
+        LRLU  = LRLU + LAELL
+        LRLUS = LRLUS + LAELL
+        POSFAC = POSFAC - LAELL
+      CALL DMUMPS_LOAD_MEM_UPDATE(.FALSE.,.FALSE.,
+     &                      LA-LRLUS,0_8,-LAELL,KEEP,KEEP8,LRLUS)
+      ENDIF
+      NSLAVES_FOLLOW = IW( IOLDPS + 5 +KEEP(IXSZ) ) - XTRA_SLAVES_SYM
+      IF ( IW( IOLDPS + 6  +KEEP(IXSZ)) .eq. 0 .and.
+     &     KEEP(50) .ne. 0 .and. NSLAVES_FOLLOW .eq. 0 )
+     &     THEN
+         DEST = MUMPS_PROCNODE( PROCNODE_STEPS(STEP(INODE)), SLAVEF )
+         CALL DMUMPS_BUF_SEND_1INT( INODE, DEST, END_NIV2_LDLT,
+     &                             COMM, IERR )
+         IF ( IERR .LT. 0 ) THEN
+           write(*,*) ' Internal error in PROCESS_BLFAC_SLAVE.'
+           IFLAG = -99
+           GOTO 700
+         END IF
+      END IF
+      IF (IW(PTRIST(STEP(INODE)) + 6+KEEP(IXSZ) ) .eq. 0) THEN
+         CALL DMUMPS_END_FACTO_SLAVE( COMM_LOAD, ASS_IRECV, 
+     &    N, INODE, FPERE, 
+     &    root,
+     &    MYID, COMM,
+     &    
+     &    BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &    IWPOS, IWPOSCB, IPTRLU, LRLU, LRLUS, IW, LIW, A, LA,
+     &    PTRIST, PTLUST_S, PTRFAC,
+     &    PTRAST, STEP, PIMASTER, PAMASTER,
+     &    NSTK_S, COMP, IFLAG, IERROR, NBPROCFILS,
+     &    IPOOL, LPOOL, LEAF, NBFIN, SLAVEF,
+     &    OPASSW, OPELIW, ITLOC, RHS_MUMPS, FILS, PTRARW, PTRAIW,
+     &    INTARR,DBLARR,ICNTL,KEEP,KEEP8,DKEEP,ND,FRERE_STEPS,
+     &    LPTRAR, NELT, FRTPTR, FRTELT, 
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE 
+     &     )
+       ENDIF 
+ 600  CONTINUE
+      RETURN
+ 700  CONTINUE
+      CALL DMUMPS_BDC_ERROR( MYID, SLAVEF, COMM )
+      RETURN
+      END SUBROUTINE DMUMPS_PROCESS_BLFAC_SLAVE

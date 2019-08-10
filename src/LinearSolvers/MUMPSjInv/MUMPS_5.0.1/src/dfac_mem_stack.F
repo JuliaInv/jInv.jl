@@ -1,0 +1,570 @@
+C
+C  This file is part of MUMPS 5.0.1, released
+C  on Thu Jul 23 17:08:29 UTC 2015
+C
+C
+C  Copyright 1991-2015 CERFACS, CNRS, ENS Lyon, INP Toulouse, Inria,
+C  University of Bordeaux.
+C
+C  This version of MUMPS is provided to you free of charge. It is
+C  released under the CeCILL-C license:
+C  http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
+C
+      SUBROUTINE DMUMPS_FAC_STACK(COMM_LOAD, ASS_IRECV, 
+     &    N, INODE, TYPE, TYPEF, 
+     &    LA, IW, LIW, A,
+     &    IFLAG, IERROR, OPELIW, NELVAW, NMAXNPIV,
+     &    PTRIST, PTLUST_S,
+     &    PTRFAC, PTRAST,
+     &    STEP, PIMASTER, PAMASTER, NE,
+     &    POSFAC, LRLU, LRLUS, IPTRLU, ICNTL, KEEP,KEEP8,DKEEP,
+     &    COMP, IWPOS, IWPOSCB, PROCNODE_STEPS, SLAVEF,
+     &    FPERE, COMM, MYID,
+     &    IPOOL, LPOOL, LEAF, NSTK_S,
+     &    NBPROCFILS,
+     &    BUFR, LBUFR, LBUFR_BYTES, NBFIN, root,
+     &    OPASSW, ITLOC, RHS_MUMPS,
+     &    FILS, PTRARW, PTRAIW, INTARR, DBLARR,
+     &    ND, FRERE, LPTRAR, NELT, FRTPTR, FRTELT,
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE
+     &    )
+      USE DMUMPS_COMM_BUFFER
+      USE DMUMPS_LOAD
+      IMPLICIT NONE
+      INCLUDE 'dmumps_root.h'
+      TYPE (DMUMPS_ROOT_STRUC) :: root
+      INTEGER COMM_LOAD, ASS_IRECV
+      INTEGER COMM, MYID, TYPE, TYPEF
+      INTEGER N, LIW, INODE,IFLAG,IERROR
+      INTEGER ICNTL(40), KEEP(500)
+      DOUBLE PRECISION    DKEEP(130)
+      INTEGER(8) KEEP8(150)
+      INTEGER(8) :: LA, POSFAC, LRLU, LRLUS, IPTRLU
+      INTEGER IWPOSCB, IWPOS,
+     &        FPERE, SLAVEF, NELVAW, NMAXNPIV
+      INTEGER IW(LIW),PROCNODE_STEPS(KEEP(28))
+      INTEGER(8) :: PTRAST  (KEEP(28))
+      INTEGER(8) :: PTRFAC  (KEEP(28))
+      INTEGER(8) :: PAMASTER(KEEP(28))
+      INTEGER PTRIST(KEEP(28)), PTLUST_S(KEEP(28))
+      INTEGER STEP(N), PIMASTER(KEEP(28)), NE(KEEP(28))
+      DOUBLE PRECISION    A(LA)
+      DOUBLE PRECISION OPASSW, OPELIW
+      DOUBLE PRECISION DBLARR(max(1,KEEP(13)))
+      INTEGER INTARR(max(1,KEEP(14))) 
+      INTEGER ITLOC( N + KEEP(253) ), FILS( N ),
+     &        ND( KEEP(28) ), FRERE( KEEP(28) )
+      DOUBLE PRECISION :: RHS_MUMPS(KEEP(255))
+      INTEGER ISTEP_TO_INIV2(KEEP(71)), 
+     &        TAB_POS_IN_PERE(SLAVEF+2,max(1,KEEP(56)))
+      INTEGER NELT, LPTRAR
+      INTEGER FRTPTR( N+1 ), FRTELT( NELT )
+      INTEGER PTRAIW( LPTRAR ), PTRARW( LPTRAR )
+      INTEGER LPOOL, LEAF, COMP
+      INTEGER IPOOL( LPOOL )
+      INTEGER NSTK_S( KEEP(28) )
+      INTEGER NBPROCFILS( KEEP(28) )
+      INTEGER LBUFR, LBUFR_BYTES
+      INTEGER BUFR( LBUFR )
+      INTEGER NBFIN
+      INTEGER NFRONT_ESTIM,NELIM_ESTIM
+      INTEGER MUMPS_PROCNODE
+      EXTERNAL MUMPS_PROCNODE
+      INCLUDE 'mpif.h'
+      INCLUDE 'mumps_tags.h'
+      INTEGER :: STATUS(MPI_STATUS_SIZE)
+      INTEGER LP
+      INTEGER NBROWS_ALREADY_SENT 
+      INTEGER(8) :: POSELT, OPSFAC
+      INTEGER(8) :: IOLD, INEW, FACTOR_POS
+      INTEGER NSLAVES, NCB,
+     &        H_INODE, IERR, NBCOL, NBROW, NBROW_SEND,
+     &        NBROW_STACK, NBCOL_STACK, NELIM
+      INTEGER NCBROW_ALREADY_MOVED, NCBROW_PREVIOUSLY_MOVED,
+     &NCBROW_NEWLY_MOVED
+      INTEGER(8) :: LAST_ALLOWED_POS
+      INTEGER(8) :: LREQCB, MIN_SPACE_IN_PLACE
+      INTEGER(8) :: SHIFT_VAL_SON
+      INTEGER SHIFT_LIST_ROW_SON,
+     &        SHIFT_LIST_COL_SON,
+     &        LIST_ROW_SON, LIST_COL_SON, LIST_SLAVES
+      INTEGER IOLDPS,NFRONT,NPIV,NASS,IOLDP1,PTROWEND,
+     &        LREQI, LCONT
+      INTEGER I,LDA, INIV2
+      INTEGER MSGDEST, MSGTAG, CHK_LOAD
+      INCLUDE 'mumps_headers.h'
+      LOGICAL  COMPRESSCB, MUST_COMPACT_FACTORS
+      LOGICAL  INPLACE
+      INTEGER(8) :: SIZE_INPLACE
+      INTEGER INTSIZ
+      DOUBLE PRECISION FLOP1, FLOP1_EFFECTIVE
+      LOGICAL BLOCKING, SET_IRECV, MESSAGE_RECEIVED
+      LOGICAL SSARBR, SSARBR_ROOT, MUMPS_INSSARBR,
+     & MUMPS_IN_OR_ROOT_SSARBR, MUMPS_ROOTSSARBR
+      EXTERNAL MUMPS_INSSARBR, MUMPS_IN_OR_ROOT_SSARBR,
+     & MUMPS_ROOTSSARBR
+      LP = ICNTL(1)
+      IF (ICNTL(4) .LE. 0) LP = -1
+      INPLACE = .FALSE.
+      MIN_SPACE_IN_PLACE = 0_8
+      IOLDPS = PTLUST_S(STEP(INODE))
+      INTSIZ = IW(IOLDPS+XXI)
+      NFRONT = IW(IOLDPS+KEEP(IXSZ))
+      NPIV   = IW(IOLDPS + 1+KEEP(IXSZ))       
+      NMAXNPIV = max(NPIV, NMAXNPIV)
+      NASS   = iabs(IW(IOLDPS + 2+KEEP(IXSZ))) 
+      NSLAVES=  IW(IOLDPS+5+KEEP(IXSZ))
+      H_INODE= 6 + NSLAVES + KEEP(IXSZ)
+      LCONT = NFRONT - NPIV
+      NBCOL = LCONT
+      SSARBR = MUMPS_INSSARBR(PROCNODE_STEPS(STEP(INODE)),SLAVEF)
+      SSARBR_ROOT = MUMPS_IN_OR_ROOT_SSARBR
+     &              (PROCNODE_STEPS(STEP(INODE)),SLAVEF)
+      LREQCB = 0_8
+      INPLACE = .FALSE.
+      COMPRESSCB= ((KEEP(215).EQ.0)
+     &             .AND.(KEEP(50).NE.0)
+     &             .AND.(TYPEF.EQ.1
+     &             .OR.TYPEF.EQ.2
+     &              )
+     &             .AND.(TYPE.EQ.1))
+      MUST_COMPACT_FACTORS = .TRUE.
+      IF (KEEP(201).EQ.1 .OR. KEEP(201).EQ.-1) THEN
+            MUST_COMPACT_FACTORS = .FALSE.
+      ENDIF
+      IF ((FPERE.EQ.0).AND.(NASS.NE.NPIV)) THEN 
+        IFLAG = -10
+        GOTO 600
+      ENDIF
+      NBROW      = LCONT
+      IF (TYPE.EQ.2) NBROW = NASS - NPIV
+      IF ((KEEP(50).NE.0).AND.(TYPE.EQ.2)) THEN
+        LDA = NASS
+      ELSE
+        LDA = NFRONT
+      ENDIF
+      NBROW_SEND = NBROW
+      NELIM = NASS-NPIV
+      IF (TYPEF.EQ.2) NBROW_SEND = NELIM 
+      POSELT = PTRAST(STEP(INODE))
+      IF (POSELT .ne. PTRFAC(STEP(INODE))) THEN
+        WRITE(*,*) MYID,":Error 1 in DMUMPS_FAC_STACK:"
+        WRITE(*,*) "INODE,  PTRAST, PTRFAC =", 
+     &  INODE, PTRAST(STEP(INODE)), PTRFAC(STEP(INODE))
+        WRITE(*,*) "COMPRESSCB, NFRONT, NPIV, NASS, NSLAVES",
+     &  COMPRESSCB, NFRONT, NPIV, NASS, NSLAVES
+        WRITE(*,*) "TYPE, TYPEF, FPERE ", 
+     & TYPE, TYPEF, FPERE
+        CALL MUMPS_ABORT()
+      END IF
+      NELVAW = NELVAW + NASS - NPIV
+      IF (KEEP(50) .eq. 0) THEN
+        KEEP8(10) = KEEP8(10) + int(NPIV,8) * int(NFRONT,8)
+      ELSE
+        KEEP8(10) = KEEP8(10) + ( int(NPIV,8)*int(NPIV+1,8) )/ 2_8
+      ENDIF
+      KEEP8(10) = KEEP8(10) + int(NBROW,8) * int(NPIV,8)
+      CALL MUMPS_GET_FLOPS_COST( NFRONT, NPIV, NASS,
+     &     KEEP(50), TYPE,FLOP1 )
+      IF ( (.NOT. SSARBR_ROOT) .and. TYPE == 1) THEN
+        IF (NE(STEP(INODE))==0) THEN
+          CHK_LOAD=0
+        ELSE
+          CHK_LOAD=1
+        ENDIF
+        CALL DMUMPS_LOAD_UPDATE(CHK_LOAD, .FALSE., -FLOP1,
+     &                      KEEP,KEEP8)
+      ENDIF
+      FLOP1_EFFECTIVE = FLOP1
+      OPELIW = OPELIW + FLOP1
+      IF ( NPIV .NE. NASS ) THEN
+        CALL MUMPS_GET_FLOPS_COST( NFRONT, NASS, NASS,
+     &       KEEP(50), TYPE,FLOP1 )
+         IF (.NOT. SSARBR_ROOT ) THEN
+            IF (NE(STEP(INODE))==0) THEN
+              CHK_LOAD=0
+            ELSE
+              CHK_LOAD=1
+            ENDIF
+            CALL DMUMPS_LOAD_UPDATE(CHK_LOAD, .FALSE.,
+     &                         FLOP1_EFFECTIVE-FLOP1,
+     &                         KEEP,KEEP8)
+         ENDIF
+      END IF
+      IF ( SSARBR_ROOT ) THEN
+        NFRONT_ESTIM=ND(STEP(INODE)) + KEEP(253)
+        NELIM_ESTIM=NASS-(NFRONT-NFRONT_ESTIM)
+        CALL MUMPS_GET_FLOPS_COST(NFRONT_ESTIM,NELIM_ESTIM,NELIM_ESTIM,
+     &       KEEP(50),1,FLOP1)
+      END IF
+      FLOP1=-FLOP1
+      IF (SSARBR_ROOT) THEN
+        CALL DMUMPS_LOAD_UPDATE(0,.FALSE.,FLOP1,KEEP,KEEP8)
+      ELSE
+        CALL DMUMPS_LOAD_UPDATE(2,.FALSE.,FLOP1,KEEP,KEEP8)
+      ENDIF
+      IF ( FPERE .EQ. 0 ) THEN
+        IF ( KEEP(253) .NE. 0 .AND. KEEP(201).NE.-1
+     &       .AND. KEEP(201).NE.1 ) THEN
+          MUST_COMPACT_FACTORS = .TRUE.
+          GOTO 190 
+        ELSE
+          MUST_COMPACT_FACTORS = .FALSE.
+          GOTO 190 
+        ENDIF
+      ENDIF
+      IF ( FPERE.EQ.KEEP(38) ) THEN
+       NCB   = NFRONT - NASS
+       SHIFT_LIST_ROW_SON = H_INODE + NASS
+       SHIFT_LIST_COL_SON = H_INODE + NFRONT + NASS
+       SHIFT_VAL_SON      = int(NASS,8)*int(NFRONT+1,8)
+       IF (TYPE.EQ.1) THEN
+         CALL DMUMPS_BUILD_AND_SEND_CB_ROOT(
+     &    COMM_LOAD, ASS_IRECV, 
+     &    N, INODE, FPERE,
+     &    PTLUST_S, PTRAST,
+     &    root, NCB, NCB, SHIFT_LIST_ROW_SON,
+     &    SHIFT_LIST_COL_SON , SHIFT_VAL_SON, NFRONT,
+     &    ROOT_CONT_STATIC, MYID, COMM,
+     &
+     &    BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &    IWPOS, IWPOSCB, IPTRLU, LRLU, LRLUS, IW, LIW, A, LA,
+     &    PTRIST, PTLUST_S, PTRFAC,
+     &    PTRAST, STEP, PIMASTER, PAMASTER,
+     &    NSTK_S, COMP, IFLAG, IERROR, NBPROCFILS,
+     &    IPOOL, LPOOL, LEAF, NBFIN, SLAVEF,
+     &    OPASSW, OPELIW, ITLOC, RHS_MUMPS, FILS, PTRARW, PTRAIW,
+     &    INTARR,DBLARR,ICNTL,KEEP,KEEP8,DKEEP,.FALSE., ND, FRERE,
+     &    LPTRAR, NELT, FRTPTR, FRTELT, 
+     &    ISTEP_TO_INIV2, TAB_POS_IN_PERE
+     &     )
+          IF (IFLAG < 0 ) GOTO 500
+       ENDIF
+       MSGDEST=  MUMPS_PROCNODE(PROCNODE_STEPS(STEP(FPERE)),SLAVEF)
+       IOLDPS = PTLUST_S(STEP(INODE))
+       LIST_ROW_SON = IOLDPS + H_INODE + NPIV
+       LIST_COL_SON = IOLDPS + H_INODE + NFRONT + NPIV
+       LIST_SLAVES  = IOLDPS + 6 + KEEP(IXSZ)
+       IF (MSGDEST.EQ.MYID) THEN
+         CALL DMUMPS_PROCESS_RTNELIND( root, 
+     &      INODE, NELIM, NSLAVES, IW(LIST_ROW_SON), 
+     &      IW(LIST_COL_SON), IW(LIST_SLAVES),
+     &
+     &      PROCNODE_STEPS, IWPOS, IWPOSCB, IPTRLU,
+     &      LRLU, LRLUS, N, IW, LIW, A, LA, PTRIST,
+     &      PTLUST_S, PTRFAC,
+     &      PTRAST, STEP, PIMASTER, PAMASTER, NSTK_S,
+     &      ITLOC, RHS_MUMPS, COMP,
+     &      IFLAG, IERROR, 
+     &      IPOOL, LPOOL, LEAF, MYID, SLAVEF,
+     &      KEEP, KEEP8, DKEEP,
+     &      COMM, COMM_LOAD, FILS, ND)
+         IF (IFLAG.LT.0) GOTO 600
+       ELSE
+        IERR = -1
+        DO WHILE (IERR.EQ.-1)
+         CALL DMUMPS_BUF_SEND_RTNELIND( INODE, NELIM, 
+     &     IW(LIST_ROW_SON), IW(LIST_COL_SON), NSLAVES, 
+     &     IW(LIST_SLAVES), MSGDEST, COMM, IERR)
+         IF ( IERR .EQ. -1 ) THEN
+            BLOCKING   =.FALSE.
+            SET_IRECV  =.TRUE.
+            MESSAGE_RECEIVED = .FALSE.
+            CALL DMUMPS_TRY_RECVTREAT( COMM_LOAD, ASS_IRECV, 
+     &       BLOCKING, SET_IRECV, MESSAGE_RECEIVED,
+     &       MPI_ANY_SOURCE, MPI_ANY_TAG,
+     &       STATUS,
+     &       BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &       IWPOS, IWPOSCB, IPTRLU,
+     &       LRLU, LRLUS, N, IW, LIW, A, LA, PTRIST,
+     &       PTLUST_S, PTRFAC,
+     &       PTRAST, STEP, PIMASTER, PAMASTER, NSTK_S, COMP,
+     &       IFLAG, IERROR, COMM,
+     &       NBPROCFILS,
+     &       IPOOL, LPOOL, LEAF,
+     &       NBFIN, MYID, SLAVEF,
+     &
+     &       root, OPASSW, OPELIW, ITLOC, RHS_MUMPS,
+     &       FILS, PTRARW, PTRAIW,
+     &       INTARR, DBLARR, ICNTL, KEEP,KEEP8,DKEEP,
+     &       ND, FRERE, LPTRAR, NELT,
+     &       FRTPTR, FRTELT, 
+     &       ISTEP_TO_INIV2, TAB_POS_IN_PERE,
+     &       .TRUE.
+     &        )
+            IF ( IFLAG .LT. 0 ) GOTO 500
+            IOLDPS = PTLUST_S(STEP(INODE))
+            LIST_ROW_SON = IOLDPS + H_INODE + NPIV
+            LIST_COL_SON = IOLDPS + H_INODE + NFRONT + NPIV
+            LIST_SLAVES  = IOLDPS + 6 + KEEP(IXSZ)
+         ENDIF
+        ENDDO
+        IF ( IERR .EQ. -2 ) THEN 
+            IERROR = ( 3 + NSLAVES + 2 * NELIM ) * KEEP( 34 ) 
+            IFLAG  = - 17
+            GOTO 600
+        ELSE IF ( IERR .EQ. -3 ) THEN
+            IERROR = ( 3 + NSLAVES + 2 * NELIM ) * KEEP( 34 ) 
+            IFLAG  = -20
+            GOTO 600
+        ENDIF
+       ENDIF
+       IF (NELIM.EQ.0) THEN 
+          POSELT = PTRAST(STEP(INODE))
+          OPSFAC = POSELT + int(NPIV,8) * int(NFRONT,8) + int(NPIV,8)
+          GOTO 190
+       ELSE
+          GOTO 500
+       ENDIF
+      ENDIF
+      OPSFAC = POSELT + int(NPIV,8) * int(LDA,8) + int(NPIV,8)
+      IF ( MUMPS_PROCNODE(PROCNODE_STEPS(STEP(FPERE)),
+     &     SLAVEF) .NE. MYID ) THEN
+        MSGTAG =NOEUD
+        MSGDEST=MUMPS_PROCNODE( PROCNODE_STEPS(STEP(FPERE)), SLAVEF )
+        IERR = -1 
+        NBROWS_ALREADY_SENT = 0
+        DO WHILE (IERR.EQ.-1)
+          IF ( (TYPE.EQ.1) .AND. (TYPEF.EQ.1) ) THEN
+             CALL DMUMPS_BUF_SEND_CB( NBROWS_ALREADY_SENT,
+     &         INODE, FPERE, NFRONT, 
+     &         LCONT, NASS, NPIV, IW( IOLDPS +  H_INODE + NPIV ),
+     &         IW( IOLDPS +  H_INODE + NPIV + NFRONT ),
+     &         A( OPSFAC ), COMPRESSCB,
+     &         MSGDEST, MSGTAG, COMM, IERR )
+          ELSE
+             IF ( TYPE.EQ.2 ) THEN
+              INIV2 = ISTEP_TO_INIV2 ( STEP(INODE) )
+             ELSE
+              INIV2 = -9999
+             ENDIF
+             CALL DMUMPS_BUF_SEND_MAITRE2( NBROWS_ALREADY_SENT,
+     &             FPERE, INODE, 
+     &             NBROW_SEND, IW(IOLDPS +  H_INODE + NPIV ), 
+     &             NBCOL, IW(IOLDPS +  H_INODE + NPIV + NFRONT ),
+     &             A(OPSFAC), LDA, NELIM, TYPE,
+     &             NSLAVES, IW(IOLDPS+6+KEEP(IXSZ)), MSGDEST, 
+     &             COMM, IERR, 
+     & 
+     &             SLAVEF, KEEP,KEEP8, INIV2, TAB_POS_IN_PERE )
+          END IF
+          IF ( IERR .EQ. -1 ) THEN
+            BLOCKING  = .FALSE.
+            SET_IRECV = .TRUE.
+            MESSAGE_RECEIVED = .FALSE.
+            CALL DMUMPS_TRY_RECVTREAT( COMM_LOAD, ASS_IRECV, 
+     &       BLOCKING, SET_IRECV, MESSAGE_RECEIVED,
+     &       MPI_ANY_SOURCE, MPI_ANY_TAG,
+     &       STATUS,
+     &       BUFR, LBUFR, LBUFR_BYTES, PROCNODE_STEPS, POSFAC,
+     &       IWPOS, IWPOSCB, IPTRLU,
+     &       LRLU, LRLUS, N, IW, LIW, A, LA,
+     &       PTRIST, PTLUST_S, PTRFAC,
+     &       PTRAST, STEP, PIMASTER, PAMASTER, NSTK_S, COMP,
+     &       IFLAG, IERROR, COMM,
+     &       NBPROCFILS,
+     &       IPOOL, LPOOL, LEAF,
+     &       NBFIN, MYID, SLAVEF,
+     &
+     &       root, OPASSW, OPELIW, ITLOC, RHS_MUMPS,
+     &       FILS, PTRARW, PTRAIW,
+     &       INTARR, DBLARR, ICNTL, KEEP,KEEP8,DKEEP, ND, FRERE,
+     &       LPTRAR, NELT, FRTPTR, FRTELT,
+     &       ISTEP_TO_INIV2, TAB_POS_IN_PERE, .TRUE.  
+     &        )
+             IF ( IFLAG .LT. 0 ) GOTO 500
+          ENDIF
+          IOLDPS = PTLUST_S(STEP( INODE ))
+          OPSFAC = POSELT + int(NPIV,8) * int(LDA,8) + int(NPIV,8)
+        END DO
+        IF ( IERR .EQ. -2 .OR. IERR .EQ. -3 ) THEN 
+          IF ( (TYPE.EQ.1) .AND. (TYPEF.EQ.1) ) THEN
+            IERROR = ( 2*LCONT + 9 ) * KEEP( 34 ) + 
+     &          LCONT*LCONT * KEEP( 35 )
+          ELSE IF (KEEP(50).ne.0 .AND. TYPE .eq. 2 ) THEN
+            IERROR = ( NBROW_SEND + NBCOL+ 5 + NSLAVES) 
+     &                 * KEEP( 34 ) + 
+     &          NBROW_SEND*NBROW_SEND*KEEP( 35 )
+          ELSE
+            IERROR = ( NBROW_SEND + NBCOL+ 5 + NSLAVES) * KEEP( 34 ) + 
+     &          NBROW_SEND*NBCOL*KEEP( 35 )
+          ENDIF
+          IF (IERR .EQ. -2) THEN
+            IFLAG = -17
+            IF ( LP  >  0 ) THEN
+              WRITE(LP, *) MYID,
+     & ": FAILURE, SEND BUFFER TOO SMALL DURING
+     & DMUMPS_FAC_STACK", TYPE, TYPEF
+            ENDIF
+          ENDIF
+          IF (IERR .EQ. -3) THEN
+            IFLAG = -20
+            IF ( LP  >  0 ) THEN
+              WRITE(LP, *) MYID,
+     & ": FAILURE, RECV BUFFER TOO SMALL DURING
+     & DMUMPS_FAC_STACK", TYPE, TYPEF
+            ENDIF
+          ENDIF
+          GOTO 600
+        ENDIF
+      ENDIF
+      IF ( MUMPS_PROCNODE(PROCNODE_STEPS(STEP(FPERE)),
+     &     SLAVEF) .EQ. MYID ) THEN
+        LREQI = 2 + KEEP(IXSZ)
+        NBROW_STACK = NBROW
+        NBROW_SEND = 0
+        IF ((KEEP(50).NE.0).AND.(TYPE.EQ.2)) THEN
+          NBCOL_STACK = NBROW
+        ELSE
+          NBCOL_STACK = NBCOL
+        ENDIF
+      ELSE
+        NBROW_STACK = NBROW-NBROW_SEND
+        NBCOL_STACK = NBCOL
+        LREQI       = 6 + NBROW_STACK + NBCOL + KEEP(IXSZ)
+        IF (.NOT. (TYPE.EQ.1 .AND. TYPEF.EQ.2 ) ) GOTO 190
+        IF (FPERE.EQ.0) GOTO 190
+      ENDIF
+      IF (COMPRESSCB) THEN
+        LREQCB = ( int(NBCOL_STACK,8) * int( NBCOL_STACK + 1, 8) ) / 2_8
+     &         - ( int(NBROW_SEND ,8) * int( NBROW_SEND  + 1, 8) ) / 2_8
+      ELSE
+        LREQCB = int(NBROW_STACK,8) * int(NBCOL_STACK,8)
+      ENDIF
+      INPLACE = ( KEEP(234).NE.0 )
+      IF (KEEP(50).NE.0 .AND. TYPE .EQ. 2) INPLACE = .FALSE.
+      INPLACE = INPLACE .OR. .NOT. MUST_COMPACT_FACTORS
+      INPLACE = INPLACE .AND.
+     &            ( PTLUST_S(STEP(INODE)) + INTSIZ .EQ. IWPOS )
+      MIN_SPACE_IN_PLACE = 0_8
+      IF ( INPLACE .AND. KEEP(50).eq. 0 .AND.
+     &     MUST_COMPACT_FACTORS) THEN
+        MIN_SPACE_IN_PLACE = int(NBCOL_STACK,8)
+      ENDIF
+      IF ( MIN_SPACE_IN_PLACE .GT. LREQCB ) THEN
+        INPLACE = .FALSE.
+      ENDIF
+      CALL DMUMPS_ALLOC_CB( INPLACE, MIN_SPACE_IN_PLACE,
+     &   SSARBR, .FALSE.,
+     &   MYID,N,KEEP,KEEP8,DKEEP,IW, LIW, A, LA,
+     &   LRLU, IPTRLU,IWPOS,IWPOSCB,
+     &   PTRIST,PTRAST,STEP, PIMASTER,PAMASTER,
+     &   LREQI, LREQCB, INODE, S_NOTFREE, .TRUE.,
+     &   COMP, LRLUS, IFLAG, IERROR )
+      IF (IFLAG.LT.0) GOTO 600
+      PTRIST(STEP(INODE)) = IWPOSCB+1
+      IF ( MUMPS_PROCNODE(PROCNODE_STEPS(STEP(FPERE)),
+     &     SLAVEF) .EQ. MYID ) THEN
+        PIMASTER (STEP(INODE)) = PTLUST_S(STEP(INODE))
+        PAMASTER(STEP(INODE)) = IPTRLU + 1_8
+        PTRAST(STEP(INODE)) = -99999999_8
+          IW(IWPOSCB+1+KEEP(IXSZ)) = min(-NBCOL_STACK,-1)
+          IW(IWPOSCB+2+KEEP(IXSZ)) = NBROW_STACK
+          IF (COMPRESSCB) IW(IWPOSCB+1+XXS) = S_CB1COMP
+      ELSE
+        PTRAST(STEP(INODE)) = IPTRLU+1_8
+        IF (COMPRESSCB) IW(IWPOSCB+1+XXS)=S_CB1COMP
+        IW(IWPOSCB+1+KEEP(IXSZ)) = NBCOL
+        IW(IWPOSCB+2+KEEP(IXSZ)) = 0
+        IW(IWPOSCB+3+KEEP(IXSZ)) = NBROW_STACK
+        IW(IWPOSCB+4+KEEP(IXSZ)) = 0
+        IW(IWPOSCB+5+KEEP(IXSZ)) = 1
+        IW(IWPOSCB+6+KEEP(IXSZ)) = 0
+        IOLDP1   = PTLUST_S(STEP(INODE))+H_INODE
+        PTROWEND = IWPOSCB+6+NBROW_STACK+KEEP(IXSZ)
+        DO I = 1, NBROW_STACK
+          IW(IWPOSCB+7+KEEP(IXSZ)+I-1) =
+     &    IW(IOLDP1+NFRONT-NBROW_STACK+I-1)
+        ENDDO
+        DO I = 1, NBCOL
+          IW(PTROWEND+I)=IW(IOLDP1+NFRONT+NPIV+I-1)
+        ENDDO
+      END IF 
+      IF ( KEEP(50).NE.0 .AND. TYPE .EQ. 1 
+     &     .AND. MUST_COMPACT_FACTORS ) THEN
+        POSELT = PTRFAC(STEP(INODE))
+        CALL DMUMPS_COMPACT_FACTORS(A(POSELT), LDA, 
+     &                         NPIV, NBROW, KEEP(50))
+        MUST_COMPACT_FACTORS = .FALSE.
+      ENDIF
+      IF (  KEEP(50).EQ.0 .AND. MUST_COMPACT_FACTORS )
+     &     THEN
+        LAST_ALLOWED_POS = POSELT + int(LDA,8)*int(NPIV+NBROW-1,8)
+     &                     + int(NPIV,8)
+      ELSE
+        LAST_ALLOWED_POS = -1_8
+      ENDIF
+      NCBROW_ALREADY_MOVED = 0
+ 10   CONTINUE
+      NCBROW_PREVIOUSLY_MOVED = NCBROW_ALREADY_MOVED
+      IF (IPTRLU .LT. POSFAC ) THEN
+        CALL DMUMPS_COPY_CB_RIGHT_TO_LEFT( A, LA, LDA,
+     &  POSELT, IPTRLU, NPIV, NBCOL_STACK, NBROW_STACK,
+     &  NBROW_SEND, LREQCB, KEEP, COMPRESSCB,
+     &  LAST_ALLOWED_POS, NCBROW_ALREADY_MOVED )
+      ELSE
+        CALL DMUMPS_COPY_CB_LEFT_TO_RIGHT( A, LA, LDA,
+     &  POSELT, IPTRLU, NPIV, NBCOL_STACK, NBROW_STACK,
+     &  NBROW_SEND, LREQCB, KEEP, COMPRESSCB )
+        NCBROW_ALREADY_MOVED = NBROW_STACK
+      ENDIF
+      IF (LAST_ALLOWED_POS .NE. -1_8) THEN
+      MUST_COMPACT_FACTORS =.FALSE.
+        IF ( NCBROW_ALREADY_MOVED .EQ. NBROW_STACK ) THEN
+          NCBROW_ALREADY_MOVED = NCBROW_ALREADY_MOVED + NBROW_SEND
+        ENDIF
+        NCBROW_NEWLY_MOVED = NCBROW_ALREADY_MOVED
+     &                    - NCBROW_PREVIOUSLY_MOVED
+        FACTOR_POS = POSELT +
+     &         int(LDA,8)*int(NPIV+NBROW-NCBROW_ALREADY_MOVED,8)
+        CALL DMUMPS_COMPACT_FACTORS_UNSYM( A(FACTOR_POS), LDA, NPIV,
+     &       NCBROW_NEWLY_MOVED )
+        INEW = FACTOR_POS + int(NPIV,8) * int(NCBROW_NEWLY_MOVED,8)
+        IOLD = INEW + int(NCBROW_NEWLY_MOVED,8) * int(NBCOL_STACK,8)
+        DO I = 1, NCBROW_PREVIOUSLY_MOVED*NPIV
+            A(INEW) = A(IOLD)
+            IOLD = IOLD + 1_8
+            INEW = INEW + 1_8
+        ENDDO
+        KEEP8(8)=KEEP8(8) + int(NCBROW_PREVIOUSLY_MOVED,8)
+     &                    * int(NPIV,8)
+        LAST_ALLOWED_POS = INEW
+        IF (NCBROW_ALREADY_MOVED.LT.NBROW_STACK) THEN
+          GOTO 10
+        ENDIF
+      ENDIF
+ 190  CONTINUE
+      IF (MUST_COMPACT_FACTORS) THEN
+       POSELT = PTRFAC(STEP(INODE))
+       CALL DMUMPS_COMPACT_FACTORS(A(POSELT), LDA, 
+     &                         NPIV, NBROW, KEEP(50))
+       MUST_COMPACT_FACTORS = .FALSE.
+      ENDIF
+      IOLDPS = PTLUST_S(STEP(INODE))
+      IW(IOLDPS+KEEP(IXSZ))     = NBCOL
+      IW(IOLDPS + 1+KEEP(IXSZ)) = NASS - NPIV
+      IF (TYPE.EQ.2) THEN
+        IW(IOLDPS + 2+KEEP(IXSZ)) = NASS
+      ELSE
+        IW(IOLDPS + 2+KEEP(IXSZ)) = NFRONT
+      ENDIF
+      IW(IOLDPS + 3+KEEP(IXSZ)) = NPIV
+      IF (INPLACE) THEN
+        SIZE_INPLACE = LREQCB - MIN_SPACE_IN_PLACE
+      ELSE
+        SIZE_INPLACE = 0_8
+      ENDIF
+      CALL DMUMPS_COMPRESS_LU(SIZE_INPLACE,MYID,N,IOLDPS,TYPE, IW, LIW, 
+     &    A, LA, POSFAC, LRLU, LRLUS, 
+     &    IWPOS, PTRAST, PTRFAC, STEP, KEEP,KEEP8, SSARBR,INODE,IERR)
+      IF(IERR.LT.0)THEN
+         IFLAG=IERR
+         IERROR=0
+         GOTO 600
+      ENDIF
+ 500  CONTINUE
+      RETURN
+  600 CONTINUE
+      IF (IFLAG .NE. -1) CALL DMUMPS_BDC_ERROR( MYID, SLAVEF, COMM )
+      RETURN
+      END SUBROUTINE DMUMPS_FAC_STACK

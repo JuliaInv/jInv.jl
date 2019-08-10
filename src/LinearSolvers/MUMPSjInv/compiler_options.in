@@ -1,0 +1,56 @@
+
+
+OS := $(shell uname)
+
+# Set the following variables depending on the operating system and compiler.
+# FC : Fortran 90 compiler
+# FL : Fortran linker  (usually same as FC)
+# CC : C compiler
+# OPTF : Fortran compiler options
+# OPTC : C compiler options
+# OPTL : linking options
+# LIBBLAS : Blas library to use
+
+
+ifeq ($(OS),Darwin)
+   FC      = gfortran
+   FL      = gfortran
+   CC      = gcc
+   OPTC    = -O -I. -fPIC -DINTSIZE64
+   OPTF    = -O3 -fPIC -fdefault-integer-8
+   OPTL    = $(OPTF) -shared -fcray-pointer
+
+	LIBBLAS = /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current/libBLAS.dylib
+	LMETISDIR = $(metisdir)/build/Darwin-x86_64/libmetis/
+else
+
+   # Linux
+   CC      = gcc
+   OPTC    = -O -I. -fPIC -DINTSIZE64
+
+   # The following is for gfortran with OpenBLAS:
+
+   FC      = gfortran
+   FL      = gfortran
+   OPTF    = -O3 -fPIC -fdefault-integer-8
+   OPTL    = $(OPTF) -shared -fcray-pointer
+   LIBBLAS = /opt/OpenBLAS/lib/libopenblas_haswellp-r0.2.14.a 
+   LMETISDIR = $(topdir)/../$(metisdir)/build/Linux-x86_64/libmetis/
+   
+
+ #  # The following is for Intel Fortran (ifort) with MKL:
+ #  FC      = ifort
+ #  FL      = ifort
+ #  #OPTF    = -O3 -fPIC -openmp -warn noalignments -integer-size 64
+ #  OPTF    = -O3 -fPIC -warn noalignments -integer-size 64
+ #  OPTL    = $(OPTF) -shared
+ #  
+ #  # For parallelized MKL:
+ #  #LIBBLAS =   -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_intel_thread.a -Wl,--end-group -lpthread -lm
+ #  # For sequential MKL:
+ #  LIBBLAS =   -Wl,--start-group ${MKLROOT}/lib/intel64/libmkl_intel_ilp64.a ${MKLROOT}/lib/intel64/libmkl_core.a ${MKLROOT}/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
+
+
+endif
+
+

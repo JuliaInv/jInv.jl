@@ -1,0 +1,71 @@
+#
+#  This file is part of MUMPS 5.0.1, released
+#  on Thu Jul 23 17:08:29 UTC 2015
+#
+# These settings for a PC under Debian/linux with standard packages :
+# metis (parmetis), scotch (ptscotch), openmpi, gfortran
+
+# packages installation : 
+# apt-get install libmetis-dev libparmetis-dev libscotch-dev libptscotch-dev libatlas-base-dev openmpi-bin libopenmpi-dev  
+
+# Begin orderings
+LSCOTCHDIR = /usr/lib
+#ISCOTCH   = -I/usr/include/scotch # only needed for ptscotch
+
+#LSCOTCH   = -L$(LSCOTCHDIR) -lptesmumps -lptscotch -lptscotcherr
+LSCOTCH   = -L$(LSCOTCHDIR) -lesmumps -lscotch -lscotcherr
+
+LPORDDIR = $(topdir)/PORD/lib/
+IPORD    = -I$(topdir)/PORD/include/
+LPORD    = -L$(LPORDDIR) -lpord
+
+LMETISDIR = /usr/lib 
+#IMETIS    = -I/usr/include/parmetis
+IMETIS    = -I/usr/include/metis
+
+# LMETIS    = -L$(LMETISDIR) -lparmetis
+LMETIS    = -L$(LMETISDIR) -lmetis
+
+# Corresponding variables reused later
+#ORDERINGSF = -Dmetis -Dpord -Dparmetis -Dscotch -Dptscotch
+ORDERINGSF = -Dmetis -Dpord -Dscotch
+ORDERINGSC  = $(ORDERINGSF)
+LORDERINGS = $(LMETIS) $(LPORD) $(LSCOTCH)
+IORDERINGSF = $(ISCOTCH)
+IORDERINGSC = $(IMETIS) $(IPORD) $(ISCOTCH)
+# End orderings
+################################################################################
+
+PLAT    =
+LIBEXT  = .a
+OUTC    = -o 
+OUTF    = -o
+RM = /bin/rm -f
+CC = gcc
+FC = gfortran
+FL = gfortran
+AR = ar vr 
+RANLIB = ranlib
+SCALAP  = -lscalapack-openmpi -lblacs-openmpi  -lblacsF77init-openmpi -lblacsCinit-openmpi
+
+INCPAR = -I/usr/lib/openmpi/include
+
+LIBPAR = $(SCALAP)   -lmpi -lmpi_f77
+
+INCSEQ = -I$(topdir)/libseq
+LIBSEQ  =  -L$(topdir)/libseq -lmpiseq
+
+LIBBLAS = -lblas
+LIBOTHERS = -lpthread
+
+#Preprocessor defs for calling Fortran from C (-DAdd_ or -DAdd__ or -DUPPER)
+CDEFS   = -DAdd_
+
+#Begin Optimized options
+OPTF    = -O  -DALLOW_NON_INIT
+OPTL    = -O 
+OPTC    = -O
+#End Optimized options
+INCS = $(INCPAR)
+LIBS = $(LIBPAR)
+LIBSEQNEEDED =
