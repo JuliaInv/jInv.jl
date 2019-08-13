@@ -16,8 +16,6 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 [[KrylovMethods]]
 deps = ["LinearAlgebra", "Printf", "SparseArrays"]
 git-tree-sha1 = "fb8c55d7059fbde87ee44dbe4e5c27e32b369224"
-repo-rev = "master"
-repo-url = "https://github.com/JuliaInv/KrylovMethods.jl.git"
 uuid = "9a2cd570-f05c-5dc1-9209-93ad6f5727f7"
 version = "0.6.0"
 
@@ -41,8 +39,6 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 [[ParSpMatVec]]
 deps = ["Libdl", "LinearAlgebra", "SparseArrays"]
 git-tree-sha1 = "78a1c05f2d1a5ac6c178590594195031a222aaba"
-repo-rev = "master"
-repo-url = "https://github.com/JuliaInv/ParSpMatVec.jl.git"
 uuid = "ccf9b6e2-7ea7-596a-9d65-09863b18e8cc"
 version = "0.1.1"
 

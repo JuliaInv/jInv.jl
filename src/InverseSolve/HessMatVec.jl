@@ -176,21 +176,28 @@ function HessMatVec(x,pMis::Array{MisfitParam},sigma,d2F,indFors=1:length(pMis))
     # get process map
     i      = 1; nextidx = p -> i;
     procMap = zeros(Int64,numFor)
-    if isa(pMis[1].pFor.Ainv,MUMPSsolver) && (pMis[1].pFor.Ainv.Ainv.ptr !=-1)
-        for ii=1:numFor
-            if any(ii.==indFors)
-                procMap[ii] = pMis[ii].pFor.Ainv.Ainv.worker
-            end
-        end
-        nextidx = p -> ( ind = find(procMap.==p);
-            if !isempty(ind);
-                ind = ind[1];
-                procMap[ind] = -1;
-            end;
-            return ind)
-    else
-        nextidx = p -> (idx=i; i+=1; idx)
-    end
+	
+	###
+	## Eran Treister:
+	## The code below is a hack in case we're using a MUMPSsolver, who is no longer an integral part of jInv, due to dependency issues.
+	## TODO: define the problem and fix it in a more general way for all solver with external data structures.
+	## DO NOT DELETE THE CODE BELOW:
+	###
+    # if isa(pMis[1].pFor.Ainv,MUMPSsolver) && (pMis[1].pFor.Ainv.Ainv.ptr !=-1)
+        # for ii=1:numFor
+            # if any(ii.==indFors)
+                # procMap[ii] = pMis[ii].pFor.Ainv.Ainv.worker
+            # end
+        # end
+        # nextidx = p -> ( ind = find(procMap.==p);
+            # if !isempty(ind);
+                # ind = ind[1];
+                # procMap[ind] = -1;
+            # end;
+            # return ind)
+    # else
+		nextidx = p -> (idx=i; i+=1; idx)
+    # end
 
     matvc = zeros(length(x))
     updateRes(x) = (matvc+=x)

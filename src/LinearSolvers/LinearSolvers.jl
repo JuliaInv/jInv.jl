@@ -19,25 +19,6 @@ module LinearSolvers
 	end
 
 
-	include("MUMPSjInv/MUMPSjInv.jl");
-	global hasMUMPS=false
-	
-	# check if MUMPS can be used
-	# const minMUMPSversion = VersionNumber(0,0,1)
-	# global hasMUMPS=false
-	# try
-		# using MUMPSjInv
-		# global hasMUMPS = true
-		# if myid()==1
-			# vMUMPS = Pkg.installed()["MUMPSjInv"]
-			# if vMUMPS < minMUMPSversion;
-				# warn("MUMPSjInv is outdated! Please update to version $(minMUMPSversion) or higher.")
-			# end
-		# end
-	# catch
-	# end
-
-
 	# check if Pardiso is installed
 	const minPardisoVersion = VersionNumber(0,1,2)
 	global hasPardiso = false
@@ -65,7 +46,6 @@ module LinearSolvers
 		M.Ainv = []
 	end
 
-	include("mumpsWrapper.jl")
 	include("iterativeWrapper.jl")
 	include("blockIterativeWrapper.jl")
 	include("PardisoWrapper.jl")

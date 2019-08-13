@@ -213,21 +213,29 @@ function computeGradMisfit(sigma,Dc::Array,pMis::Array{MisfitParam},indFors=1:le
 	# get process map
 	i      = 1; nextidx = p -> i;
 	procMap = zeros(Int64,numFor)
-	if isa(pMis[1].pFor.Ainv,MUMPSsolver) &&  (pMis[1].pFor.Ainv.Ainv.ptr !=-1)
-		for ii=1:numFor
-			if any(ii.==indFors)
-				procMap[ii] = pMis[ii].pFor.Ainv.Ainv.worker
-			end
-		end
-		nextidx = p -> ( ind = find(procMap.==p);
-			if !isempty(ind);
-				ind = ind[1];
-				procMap[ind] = -1;
-			end;
-			return ind)
-	else
+	
+	###
+	## Eran Treister:
+	## The code below is a hack in case we're using a MUMPSsolver, who is no longer an integral part of jInv, due to dependency issues.
+	## TODO: define the problem and fix it in a more general way for all solver with external data structures.
+	## DO NOT DELETE THE CODE BELOW:
+	## This appears also in HessMatVec.jl
+	###
+	# if isa(pMis[1].pFor.Ainv,MUMPSsolver) &&  (pMis[1].pFor.Ainv.Ainv.ptr !=-1)
+		# for ii=1:numFor
+			# if any(ii.==indFors)
+				# procMap[ii] = pMis[ii].pFor.Ainv.Ainv.worker
+			# end
+		# end
+		# nextidx = p -> ( ind = find(procMap.==p);
+			# if !isempty(ind);
+				# ind = ind[1];
+				# procMap[ind] = -1;
+			# end;
+			# return ind)
+	# else
 		nextidx = p -> (idx=i; i+=1; idx)
-	end
+	# end
 	dF = zeros(length(sigma))
 	updateRes(dFi) = (dF+=dFi)
 
