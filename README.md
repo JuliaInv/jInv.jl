@@ -25,11 +25,13 @@ jInv is intended for use with Julia versions 0.7. and requires:
 
 1. [`KrylovMethods.jl`](https://github.com/lruthotto/KrylovMethods.jl)  - iterative methods for solving (sparse) linear systems.
 
-Additional (optional) packages for higher performance. `jInv` detects automatically if these packages are installed and uses them by default.
+Additional (optional) packages for higher performance. 
+[`ParSpMatVec.jl`](https://github.com/lruthotto/ParSpMatVec.jl) - shared memory implementation for sparse matrix vector products. `jInv` detects automatically if this package is properly set and uses it by default.
 
-1. [`MUMPS.jl`](https://github.com/JuliaSparse/MUMPS.jl) - wrapper for MUMPS. Used as a direct PDE solver.
-2. [`ParSpMatVec.jl`](https://github.com/lruthotto/ParSpMatVec.jl) - shared memory implementation for sparse matrix vector products.
-3. ['Pardiso.jl'](https://github.com/JuliaSparse/Pardiso.jl)
+Additional add-on package:
+
+1. [`MUMPSjInv.jl`](https://github.com/JuliaInv/MUMPSjInv.jl) - wrapper for MUMPS. Used as a direct linear solver.
+2. ['Pardiso.jl'](https://github.com/JuliaSparse/Pardiso.jl) - The extension using this package exists but was not tested for Julia version 1.0.
 
 The mesh module in jInv features regular and tensor meshes but can also be extended by
 1. [`JOcTree`](https://github.com/JuliaInv/JOcTree) - efficient spatially adaptive meshes
@@ -51,9 +53,8 @@ Some inversion examples can be found in the `examples` folder.
 jInv provides generic methods for PDE parameter estimation problems. In order to use it for applications, some methods need to be extended by specifying solvers of the forward problem, sensitivity matrix vector products, etc. This should be organized in small modules. Currently implemented are the following PDE models:
 
 1. [`DivSigGrad.jl`](https://github.com/JuliaInv/DivSigGrad.jl) - Inverse conductivity problems in statics
-1. [`FWI.jl`](https://github.com/JuliaInv/FWI.jl) - Full Waveform Inversion
-1. [`MaxwellFrequency`](https://github.com/JuliaInv/MaxwellFrequency) - Inversion for conductivity in Maxwell's equations
-1. [`EikonalInv.jl`](https://github.com/JuliaInv/EikonalInv.jl) - Inversion for slowness from travel time tomography
+2. [`jInvSeismic.jl`](https://github.com/JuliaInv/jInvSeismic.jl) - Seismic inversion packages: Full Waveform Inversion (jInvSeismic.FWI) and travel time tomography (jInvSeismic.EikonalInv)
+3. [`MaxwellFrequency`](https://github.com/JuliaInv/MaxwellFrequency) - Inversion for conductivity in Maxwell's equations
 
 # Acknowledgements
 
