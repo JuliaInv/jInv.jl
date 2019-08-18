@@ -88,7 +88,7 @@ function HessMatVec(xRef::RemoteChannel,
 
     rrlocs = [xRef.where pMisRef.where sigmaRef.where d2FRef.where mvRef.where]
     if !all(rrlocs .== myid())
-        @warn "HessMatVec: Problem on worker $(myid()) not all remote refs are stored here, but rrlocs=$rrlocs"
+        println("WARNING: HessMatVec: Problem on worker ",myid()," not all remote refs are stored here, but rrlocs=",rrlocs);
     end
 
     # fetching and taking: should be no-ops as all RemoteRefs live on my worker
