@@ -57,7 +57,7 @@ function HessMatVec(x,
 #=
    Hessian includes forward problem all stored on current worker
 =#
-    try
+    # try
         sigma,dsigma = pMis.modelfun(sig)
 
         sigmaloc = interpGlobalToLocal(sigma,pMis.gloc.PForInv,pMis.gloc.sigmaBackground)
@@ -67,13 +67,13 @@ function HessMatVec(x,
         JTxloc   = getSensTMatVec(Jx,sigmaloc,pMis.pFor)
         JTx      = dsigma'*interpLocalToGlobal(JTxloc,pMis.gloc.PForInv) # =
         return JTx
-    catch err
-        if isa(err,InterruptException)
-            return -1
-        else
-            throw(err)
-        end
-    end
+    # catch err
+        # if isa(err,InterruptException)
+            # return -1
+        # else
+            # throw(err)
+        # end
+    # end
 end
 
 
