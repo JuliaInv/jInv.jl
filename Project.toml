@@ -3,7 +3,7 @@ uuid = "3dacf901-f8cd-5544-86ed-7a705f85c244"
 license = "MIT"
 desc = "Flexible Framework for Parallel PDE Parameter Estimation"
 authors = ["Eran Treister <erantreister@gmail.com>"]
-version = "1.0"
+version = "1.0.0"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
