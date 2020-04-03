@@ -1,5 +1,5 @@
 export getUjProjMatrix
-export getVectorMassMatrix, getDifferentialOperators,GetLinearElasticityOperator,GetLinearElasticityOperatorFullStrain
+export getVectorMassMatrix, getDifferentialOperators,GetLinearElasticityOperator,GetLinearElasticityOperatorFullStrain, GetLinearElasticityOperatorMixedFormulation ,getTensorMassMatrix
 
 function ddxCN(n::Int64,h) ## From nodes to cells
 	D = (1/h)*ddx(n);
@@ -184,7 +184,6 @@ function GetLinearElasticityOperator(M::RegularMesh, mu::Vector,lambda::Vector)
 	Mu     = getTensorMassMatrix(M,mu,saveAvMat=false)[1];
 	LambdaMuCells = spdiagm(lambda[:] + mu[:]);
 	Rho	   = getFaceMassMatrix(M,1e-5*mu, saveMat = false, avN2C = avN2C_Nearest);
-	G = vecGRAD'*Mu*vecGRAD
 	
 	H = Div'*LambdaMuCells*Div + vecGRAD'*Mu*vecGRAD + Rho;
 	return H;						
@@ -196,5 +195,17 @@ function GetLinearElasticityOperatorFullStrain(M::RegularMesh, mu::Vector,lambda
 	Lambda = getTensorMassMatrix(M,lambda,saveAvMat=false)[1];
 	Rho	   = getFaceMassMatrix(M,1e-5*mu, saveMat = false, avN2C = avN2C_Nearest);
 	H = vecGRAD'*(Lambda*vecDiv + 2.0*Mu*vecGRAD) + Rho;
+	return H;						
+end
+
+
+function GetLinearElasticityOperatorMixedFormulation(M::RegularMesh, mu::Vector,lambda::Vector)	
+	vecGRAD,~,Div,nf, = getDifferentialOperators(M,2);
+	Mu     			  = getTensorMassMatrix(M,mu[:],saveAvMat=false)[1];
+	Rho	   			  = getFaceMassMatrix(M,1e-5*mu, saveMat = false, avN2C = avN2C_Nearest);
+	A 				  = vecGRAD'*Mu*vecGRAD + Rho;
+	C 				  = -(spdiagm(1.0./(lambda[:]+mu[:])));
+	Div.nzval .*= -1.0;
+	H = [A  Div' ; Div  C;];
 	return H;						
 end
