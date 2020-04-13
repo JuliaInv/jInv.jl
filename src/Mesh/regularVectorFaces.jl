@@ -11,8 +11,8 @@ function ddxNC(n::Int64,h) ## From cells to nodes
 	I, J, V = SparseArrays.spdiagm_internal(-1 => fill(-1.0,n), 0 => fill(1.0,n)); 
 	D = sparse(I, J, (1/h)*V,n+1,n);
 	## This is for boundary conditions: need to figure this out
-	D[1,1] = 1.0/h;
-	D[end,end] = -1.0/h;
+	# D[1,1] = 1.0/h;
+	# D[end,end] = -1.0/h;
 	return D
 end
 
@@ -146,7 +146,6 @@ function getTensorMassMatrix(M::RegularMesh, mu::Vector; saveAvMat::Bool = true)
 		# Mass = spdiagm(m);
 		# len = [0;length(mu)+length(Ae1mu);length(Ae2mu)+length(mu)];
 		# len[3] = len[3]+len[2];
-		
 		
 		# In 2D the strain tensor (when u is on faces) is defined on the nodes.
 		An = getNodalAverageMatrix(M; saveMat = saveAvMat, avN2C = avN2C_Nearest)
