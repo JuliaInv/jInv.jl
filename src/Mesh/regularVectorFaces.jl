@@ -10,9 +10,9 @@ function ddxNC(n::Int64,h) ## From cells to nodes
 	#A = 1/h*spdiagm((-ones(n),ones(n)),[-1,0],n+1,n)
 	I, J, V = SparseArrays.spdiagm_internal(-1 => fill(-1.0,n), 0 => fill(1.0,n)); 
 	D = sparse(I, J, (1/h)*V,n+1,n);
-	## This is for boundary conditions: need to figure this out
-	# D[1,1] = 1.0/h;
-	# D[end,end] = -1.0/h;
+	## This is for Neumann boundary conditions: need to figure this out
+	D[1,1] = 0.0;
+	D[end,end] = 0.0;
 	return D
 end
 
