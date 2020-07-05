@@ -1,5 +1,5 @@
 export getUjProjMatrix
-export getVectorMassMatrix, getDifferentialOperators,GetLinearElasticityOperator,GetLinearElasticityOperatorFullStrain, GetLinearElasticityOperatorMixedFormulation ,getTensorMassMatrix
+export getDifferentialOperators,GetLinearElasticityOperator,GetLinearElasticityOperatorFullStrain, GetLinearElasticityOperatorMixedFormulation ,getTensorMassMatrix
 
 function ddxCN(n::Int64,h) ## From nodes to cells
 	D = (1/h)*ddx(n);
