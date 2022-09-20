@@ -92,6 +92,7 @@ function getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, m
                 sigmaBackgroundRFs[p] = remotecall_wait(identity,p,sigmaBack) # send background conductivity
                 for idx=1:length(pForRFs)
                     if p==pForRFs[idx].where
+						println("Mesh2MeshRFs[idx].where: ",Mesh2MeshRFs[idx].where)
                         pMis[idx] = initRemoteChannel(getMisfitParam,p,pForRFs[idx],Wd[idx],dobs[idx],misfit,IactRFs[p],sigmaBackgroundRFs[p],Mesh2MeshRFs[idx],modelfun,fname);
                     end
                 end
@@ -106,13 +107,11 @@ function getMisfitParam(pForRF::RemoteChannel, Wd, dobs, misfit::Function,
                             Mesh2MeshRF::UnionLocRemote = 1.0,
                             modelfun::Function=identityMod,fname="")
     # Single worker version of getMisfitParam.
-    worker = pForRF.where;
     if !isa(Mesh2MeshRF,AbstractFloat)
-        Mesh2Mesh     = fetch(Mesh2MeshRF);
-        finalize(Mesh2MeshRF)  # to prevent memory leak
-        if worker!=Mesh2MeshRF.where
-            error("getMisfitParam::Mesh2Mesh and pFor not on the same worker");
+		if pForRF.where!=Mesh2MeshRF.where
+			error("getMisfitParam::Mesh2Mesh and pFor not on the same worker");
         end
+		Mesh2Mesh     = fetch(Mesh2MeshRF);
     else
         Mesh2Mesh = Mesh2MeshRF;
     end
