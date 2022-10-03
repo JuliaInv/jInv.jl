@@ -92,7 +92,6 @@ function getMisfitParam(pForRFs::Array{RemoteChannel}, Wd::Array, dobs::Array, m
                 sigmaBackgroundRFs[p] = remotecall_wait(identity,p,sigmaBack) # send background conductivity
                 for idx=1:length(pForRFs)
                     if p==pForRFs[idx].where
-						println("Mesh2MeshRFs[idx].where: ",Mesh2MeshRFs[idx].where)
                         pMis[idx] = initRemoteChannel(getMisfitParam,p,pForRFs[idx],Wd[idx],dobs[idx],misfit,IactRFs[p],sigmaBackgroundRFs[p],Mesh2MeshRFs[idx],modelfun,fname);
                     end
                 end
