@@ -1,6 +1,7 @@
 export getUjProjMatrix
 export getDifferentialOperators,GetLinearElasticityOperator,GetLinearElasticityOperatorFullStrain, GetLinearElasticityOperatorMixedFormulation ,getTensorMassMatrix
 
+
 function ddxCN(n::Int64,h) ## From nodes to cells
 	D = (1/h)*ddx(n);
 	return D
@@ -13,8 +14,8 @@ function ddxNC(n::Int64,h) ## From cells to nodes
 	
 	# D = spdiagm(n+1,n,-1=>fill(-1.0/h,n),0=>fill(1.0/h,n))
 	## This is for Neumann boundary conditions: need to figure this out
-	D[1,1] = 0.0;
-	D[end,end] = 0.0;
+	#D[1,1] = 0.0;
+	#D[end,end] = 0.0;
 	return D
 end
 
